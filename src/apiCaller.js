@@ -9,9 +9,7 @@ const { signHash, verifyHash } = ecc
 const AbiCache = require('./abi-cache')
 const AssetCache = require('./asset-cache')
 
-
 /**
- * 
  * APICaller for everiToken
 */
 class APICaller {
@@ -172,6 +170,8 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
 
     const pubkeys = Array.from(keyMap.keys())
 
+    // TODO: add multiple signature support
+
     /*return eos.getRequiredKeys(transaction, pubkeys).then(({ required_keys }) => {
         if (!required_keys.length) {
             throw new Error('missing required keys for ' + JSON.stringify(transaction))
@@ -210,6 +210,5 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
         return sigs
     //})
 }
-  
 
 module.exports = { APICaller };

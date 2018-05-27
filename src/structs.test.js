@@ -4,7 +4,7 @@ const Fcbuffer = require('fcbuffer')
 
 const Eos = require('.')
 
-describe('shorthand', () => {
+/*describe('shorthand', () => {
 
   it('asset', () => {
     const eos = Eos.Localnet()
@@ -95,7 +95,7 @@ describe('shorthand', () => {
     assertSerializer(SignatureType, signatureString)
   })
 
-})
+})*/
 
 if(process.env['NODE_ENV'] === 'development') {
 
@@ -115,7 +115,7 @@ if(process.env['NODE_ENV'] === 'development') {
   })
 }
 
-describe('Message.data', () => {
+/*describe('Message.data', () => {
   it('json', () => {
     const eos = Eos.Localnet({forceActionDataHex: false})
     const {structs, types} = eos.fc
@@ -197,7 +197,7 @@ describe('Message.data', () => {
     }
     assertSerializer(structs.action, value)
   })
-})
+})*/
 
 function assertSerializer (type, value) {
   const obj = type.fromObject(value) // tests fromObject
