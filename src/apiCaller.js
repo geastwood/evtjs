@@ -1,13 +1,9 @@
-const defaultConfig = {
-    host: '',
-    port: 8888,
-    protocol: 'http'
-};
-
-const ecc = require('eosjs-ecc')
-const { signHash, verifyHash } = ecc
-const AbiCache = require('./abi-cache')
-const AssetCache = require('./asset-cache')
+const ecc = require('eosjs-ecc');
+const { signHash, verifyHash } = ecc;
+const AbiCache = require('./abi-cache');
+const AssetCache = require('./asset-cache');
+const EvtConfig = require("./evtConfig");
+const { fetch } = require("./fetch");
 
 /**
  * APICaller for everiToken
@@ -15,28 +11,23 @@ const AssetCache = require('./asset-cache')
 class APICaller {
     /**
      * Creates a new APICaller.
-     * @param {*} config 
+     * @param {EvtConfig} config 
      */
     constructor(config) {
-        this.config = defaultConfig;
-        this.config = Object.assign(this.config, config);
+        config = config || new EvtConfig();
+        if (typeof config == 'object' && config != null && !(config instanceof EvtConfig)) {
+            config = new EvtConfig(config);
+        }
+
+        /** @member {EvtConfig} evtConfig */
+        this.config = config || new EvtConfig();
 
         if (!this.config.signProvider) {
             this.config.signProvider = defaultSignProvider(this, this.config);
         }
 
-        /*const Network = 
-
-        const network = Network(Object.assign({}, {
-            apiLog: consoleObjCallbackLog(this.config.verbose)},
-            config: this.config
-          ));*/
-
-        this.config.assetCache = AssetCache(null)
-        this.config.abiCache = AbiCache(null, this.config)
-
-        var buffer = new Buffer(32).fill(0, 0, 32);
-        this.config.signProvider({sign: signHash, buf: buffer, transaction: {}});
+        // var buffer = new Buffer(32).fill(0, 0, 32);
+        // this.config.signProvider({sign: signHash, buf: buffer, transaction: {}});
     }
 
     /**
@@ -44,14 +35,14 @@ class APICaller {
      * @param {*} request 
      */
     async callAPI(request) {
-        var url = this.config.protocol + "://" + this.config.host + ":" + this.config.port + request.url;
+        var url = this.config.endpoint.protocol + "://" + this.config.endpoint.host + ":" + this.config.endpoint.port + request.url;
 
         var res = await fetch(url, {
             method: request.method,
-            body: JSON.stringify(request.body || "") || undefined,
-            headers: new Headers({
+            body: request.body ? JSON.stringify(request.body) : undefined,
+            headers: {
                 'Content-Type': 'application/json'
-            })
+            }
         });
         
         return (await res.json());

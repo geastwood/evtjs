@@ -9,13 +9,25 @@
  * more informatino.
  */
 
-const pkg = require('../package.json')
+try {
+    require("babel-polyfill");
+}
+catch(e) {
+    if(e.message.indexOf('only one instance of babel-polyfill is allowed') === -1) {
+        console.error(e)
+    }
+}
+const pkg = require('../package.json');
+const { APICaller } = require("./apiCaller");
 
 // Global EVT Object for exporting
-const EVT = {
-    version: pkg.version
+let EVT = function(config) {
+    return new APICaller(config);
 };
 
-module.exports = EVT;
+EVT = Object.assign(EVT, {
+    version: pkg.version,
+    APICaller
+});
 
-console.log(JSON.stringify(EVT, null, 4));
+module.exports = EVT;
