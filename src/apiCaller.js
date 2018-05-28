@@ -4,6 +4,7 @@ const AbiCache = require('./abi-cache');
 const AssetCache = require('./asset-cache');
 const EvtConfig = require("./evtConfig");
 const { fetch } = require("./fetch");
+const ByteBuffer = require('bytebuffer')
 
 /**
  * APICaller for everiToken
@@ -34,7 +35,7 @@ class APICaller {
      * Call everiToken APIs directly, not suggested to use by user
      * @param {*} request 
      */
-    async callAPI(request) {
+    async __callAPI(request) {
         var url = this.config.endpoint.protocol + "://" + this.config.endpoint.host + ":" + this.config.endpoint.port + request.url;
 
         var res = await fetch(url, {
@@ -48,49 +49,152 @@ class APICaller {
         return (await res.json());
     }
 
-    chainGetInfo() {
-        return this.callAPI({
+    /**
+     * get information from everiToken chain node
+     */
+    async getInfo() {
+        var info = await this.__callAPI({
             url: "/v1/chain/get_info",
             method: "GET"
         });
+
+        this.__cachedInfo = info;
+
+        return info;
     }
 
-    chainAbiJsonToBin(abi) {
-        return this.callAPI({
+    /**
+     * push transaction to everiToken chain
+     */
+    async pushTransaction(args) {
+        var newDomainName = 'sdf';
+
+        args = JSON.parse(JSON.stringify(args));
+        // make sure that it there is basic information about the chain
+        if (!this.__cachedInfo) {
+            await this.getInfo();
+        }
+
+        // TODO version check
+
+        for (let i = 0; i < args.transaction.actions.length; ++i) {
+            let originalAction = args.transaction.actions[i];
+
+            // create binary action for push_transaction
+            let binAction = {
+                name: originalAction.action,
+                data: (await this.__chainAbiJsonToBin(originalAction)).binargs
+            };
+
+            // use mapper to determine the `domain` and `key` field
+            domainKeyMappers[originalAction.action](originalAction, binAction);
+
+            // override action
+            args.transaction.actions[i] = binAction;
+        }
+
+        // fill extra fields for trx
+        let expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
+        var hash = ByteBuffer.fromHex(this.__cachedInfo.last_irreversible_block_id, true); // little endian
+        var numHex = this.__cachedInfo.last_irreversible_block_id.substr(4, 4);
+        var last_irreversible_block_num = ByteBuffer.fromHex(numHex, false).readUint16(0);
+        var last_irreversible_block_prefix = hash.readUInt32(8);
+
+        args = Object.assign(args, {
+            compression: 'none'
+        });
+
+        args.transaction = Object.assign(args.transaction, {
+            "expiration": expiration,
+            "ref_block_num": last_irreversible_block_num,
+            "ref_block_prefix": last_irreversible_block_prefix,
+            "delay_sec": 0,
+        });
+
+        // get digest of the whole trx
+        let digestRes = (await this.__getDigestToSign(args.transaction)).digest;
+
+        // sign
+        const signBuf = new Buffer(digestRes, 'hex');
+        let sigs = await this.__signTransaction(signBuf, args.transaction);
+
+        if (!Array.isArray(sigs)) {
+            sigs = [ sigs ]
+        }
+        
+        args.signatures = sigs;
+
+        // push transaction
+        var res = await this.__chainPushTransaction(args);
+
+        // check if it is successful
+        if (res && res.processed && res.processed.receipt && res.processed.receipt.status === 'executed') {
+            return true;
+        }
+        else {
+            // throw error detail
+            if (res && res.error && res.error.details && res.error.details.length) {
+                throw new Error(res.error.what + " (" + res.error.code + "): " + res.error.details.map(r => r.message ? (r.message + "; "): ""));
+            }
+            else {
+                throw new Error("did not receive anything from the chain");
+            }
+        }
+    }
+    
+    __chainAbiJsonToBin(abi) {
+        return this.__callAPI({
             url: "/v1/chain/abi_json_to_bin",
             method: "POST",
             body: abi
         });
     }
 
-    signTransaction(buf, transaction) {
+    __signTransaction(buf, transaction) {
         return this.config.signProvider({signHash, buf, transaction});
     }
 
-    getDigestToSign(transaction) {
-        return this.callAPI({
+    __getDigestToSign(transaction) {
+        return this.__callAPI({
             url: "/v1/chain/trx_json_to_digest",
             method: "POST",
             body: transaction
         });
     }
 
-    chainPushTransaction(tr) {
-        return this.callAPI({
+    __chainPushTransaction(tr) {
+        return this.__callAPI({
             url: "/v1/chain/push_transaction",
             method: "POST",
             body: tr
         });
     }
 
-    chainGetRequiredKeys(tr) {
-        return this.callAPI({
+    __chainGetRequiredKeys(tr) {
+        return this.__callAPI({
             url: "/v1/chain/get_required_keys",
             method: "POST",
             body: tr
         });
     }
 }
+
+const domainKeyMappers = {
+    'newdomain': (action, transfered) => {
+        transfered.domain = "domain";
+        transfered.key = action.args.name;
+    },
+
+    'issuetoken': (action, transfered) => {
+        transfered.domain = action.args.domain;
+        transfered.key = "issue";
+    },
+
+    'newgroup': (action, transfered) => {
+        transfered.domain = 'group';
+        transfered.key = action.args.name;
+    }
+};
 
 /**
   The default sign provider is designed to interact with the available public
@@ -139,9 +243,6 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
         const pvt = keys[0].private
         var ret = signHash(buf, pvt)
         
-        console.log("sign result:" + ret);
-
-        console.log("verify: ===============================" + verifyHash(ret, buf, ecc.privateToPublic(pvt)));
         return ret;
     }
 

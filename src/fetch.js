@@ -11,15 +11,10 @@ module.exports = {
                 options.headers = new Headers(options.headers);
             }
 
-            options.headers = undefined;  // TODO 临时去掉 json 头
-            
             return window.fetch(url, options);
         }
         else {
             // Node
-            
-            // options.headers = { };  // TODO 临时去掉 json 头
-
             return new Promise((res, rej) => {
                 let http = require('http');
 
