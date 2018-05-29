@@ -28,7 +28,7 @@
   "bugs": {
     "url": "https://github.com/everiToken/evtjs/issues"
   },
-  "homepage": "https://github.com/everiToken/evtjs#readme",
+  "homepage": "https://everitoken.io/",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",

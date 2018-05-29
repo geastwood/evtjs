@@ -96,26 +96,29 @@ describe('APICaller test', () => {
 
         var newDomainName = "nd" + (new Date()).valueOf();
 
-        await apiCaller.pushTransaction({
-            transaction: {
-                actions: [
-                    {
-                        "action": "issuetoken",
-                        "args": {
-                            "domain": "nd",
-                            "names": [
-                                "t1",
-                                "t2",
-                                "t3"
-                            ],
-                            "owner": [
-                                Key.privateToPublic(wif)
-                            ]
+        try {
+            await apiCaller.pushTransaction({
+                transaction: {
+                    actions: [
+                        {
+                            "action": "issuetoken",
+                            "args": {
+                                "domain": "nd",
+                                "names": [
+                                    "t1",
+                                    "t2",
+                                    "t3"
+                                ],
+                                "owner": [
+                                    Key.privateToPublic(wif)
+                                ]
+                            }
                         }
-                    }
-                ]
-            }
-        });
+                    ]
+                }
+            });
+        }
+        catch (e) { }
     });
 
     it('new_group', async function () {
@@ -130,59 +133,62 @@ describe('APICaller test', () => {
 
         var newDomainName = "nd" + (new Date()).valueOf();
 
-        await apiCaller.pushTransaction({
-            transaction: {
-                actions: [
-                    {
-                        "action": "newgroup",
-                        "args": {
-                            "name": "testgroup",
-                            "group": {
+        try {
+            await apiCaller.pushTransaction({
+                transaction: {
+                    actions: [
+                        {
+                            "action": "newgroup",
+                            "args": {
                                 "name": "testgroup",
-                                "key": Key.privateToPublic(wif),
-                                "root": {
-                                    "threshold": 6,
-                                    "weight": 0,
-                                    "nodes": [
-                                        {
-                                            "threshold": 1,
-                                            "weight": 3,
-                                            "nodes": [
-                                                {
-                                                    "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
-                                                    "weight": 1
-                                                },
-                                                {
-                                                    "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
-                                                    "weight": 1
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
-                                            "weight": 3
-                                        },
-                                        {
-                                            "threshold": 1,
-                                            "weight": 3,
-                                            "nodes": [
-                                                {
-                                                    "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
-                                                    "weight": 1
-                                                },
-                                                {
-                                                    "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
-                                                    "weight": 1
-                                                }
-                                            ]
-                                        }
-                                    ]
+                                "group": {
+                                    "name": "testgroup",
+                                    "key": Key.privateToPublic(wif),
+                                    "root": {
+                                        "threshold": 6,
+                                        "weight": 0,
+                                        "nodes": [
+                                            {
+                                                "threshold": 1,
+                                                "weight": 3,
+                                                "nodes": [
+                                                    {
+                                                        "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                                                        "weight": 1
+                                                    },
+                                                    {
+                                                        "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                                                        "weight": 1
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                                                "weight": 3
+                                            },
+                                            {
+                                                "threshold": 1,
+                                                "weight": 3,
+                                                "nodes": [
+                                                    {
+                                                        "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                                                        "weight": 1
+                                                    },
+                                                    {
+                                                        "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                                                        "weight": 1
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
                                 }
                             }
                         }
-                    }
-                ]
-            }
-        });
+                    ]
+                }
+            });
+        }
+        catch (e) { }
     });
 });
