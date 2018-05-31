@@ -33,6 +33,44 @@ describe('APICaller test', () => {
         assert(response.evt_api_version, "expect evt_api_version");
     });
 
+    /*it('getAccount', async () => {
+        const apiCaller = EVT({
+            endpoint: {
+                host: '192.168.1.104'
+            }
+        });
+
+        await apiCaller.getAccount("test");
+    });*/
+
+    it('newAccount', async () => {
+        const apiCaller = EVT({
+            host: '192.168.1.104',
+            port: '8888',
+            keyProvider: wif,
+            endpoint: {
+                host: '192.168.1.104'
+            }
+        });
+
+        try {
+            console.log(JSON.stringify(await apiCaller.pushTransaction({
+                transaction: {
+                    actions: [
+                        {
+                            "action": "newaccount",
+                            "args": {
+                                "name": 'test',
+                                "owner": [ Key.privateToPublic(wif) ]
+                            }
+                        }
+                    ]
+                }
+            })));
+        }
+        catch (e) { }
+    });
+
     it('newdomain', async function () {
         const apiCaller = new EVT({
             host: '192.168.1.104',

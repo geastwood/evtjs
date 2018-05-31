@@ -38,6 +38,19 @@ class APICaller {
     async __callAPI(request) {
         var url = this.config.endpoint.protocol + "://" + this.config.endpoint.host + ":" + this.config.endpoint.port + request.url;
 
+        if (request.__fixedSignature) {
+            // 添加签名
+            const signBuf = Buffer.from('2800f0f3f88ce2b4a8c6ce4c20a91f5a7e3647fa73894e9d2bc4cc61b6bda1be', 'hex');
+            let sigs = await this.__signTransaction(signBuf, request.body || { });
+
+            if (!Array.isArray(sigs)) {
+                sigs = [ sigs ]
+            }
+            
+            request.body = request.body || { };
+            request.body.signatures = sigs;
+        }
+
         var res = await fetch(url, {
             method: request.method,
             body: request.body ? JSON.stringify(request.body) : undefined,
@@ -63,12 +76,25 @@ class APICaller {
         return info;
     }
 
+    async getAccount(name) {
+        return await this.__callAPI({
+            url: "/v1/evt/get_account",
+            method: "POST",
+            body: {
+                name
+            }
+        });
+    }
+
+    async __fixedSignatureCall(args) {
+        args.__fixedSignature = 'everiWallet';
+        return await this.__callAPI(args);
+    }
+
     /**
      * push transaction to everiToken chain
      */
     async pushTransaction(args) {
-        var newDomainName = 'sdf';
-
         args = JSON.parse(JSON.stringify(args));
         // make sure that it there is basic information about the chain
         if (!this.__cachedInfo) {
@@ -81,6 +107,7 @@ class APICaller {
             let originalAction = args.transaction.actions[i];
 
             // create binary action for push_transaction
+            //console.log(JSON.stringify(await this.__chainAbiJsonToBin(originalAction), null, 4));
             let binAction = {
                 name: originalAction.action,
                 data: (await this.__chainAbiJsonToBin(originalAction)).binargs
@@ -112,7 +139,9 @@ class APICaller {
         });
 
         // get digest of the whole trx
+        //console.log(JSON.stringify(args, null, 4));
         let digestRes = (await this.__getDigestToSign(args.transaction)).digest;
+        //console.log(digestRes);
 
         // sign
         const signBuf = new Buffer(digestRes, 'hex');
@@ -193,6 +222,16 @@ const domainKeyMappers = {
     'newgroup': (action, transfered) => {
         transfered.domain = 'group';
         transfered.key = action.args.name;
+    },
+
+    'newaccount': (action, transfered) => {
+        transfered.domain = 'account';
+        transfered.key = action.args.name;
+    },
+
+    'transferevt': (action, transfered) => {
+        transfered.domain = 'account';
+        transfered.key = action.args.from;
     }
 };
 
@@ -208,6 +247,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
     const { keyProvider } = config
 
     if (!keyProvider) {
+        console.log("config" + JSON.stringify(config, null, 4));
         throw new TypeError('This transaction requires a config.keyProvider for signing')
     }
 
