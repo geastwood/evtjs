@@ -8,6 +8,11 @@ const Fcbuffer = require('fcbuffer')
 const Key = require("./key")
 
 const wif = '5HxQKWDznancXZXm7Gr2guadK7BhK9Zs8ejDhfA9oEBM89ZaAru'
+const network = {
+    host: 'testnet1.everitoken.io',
+    port: 8888,
+    protocol: 'https'
+};
 
 describe('version', () => {
     it('exposes a version number', () => {
@@ -24,9 +29,7 @@ describe('APICaller test', () => {
     // get evt chain version
     it('getInfo', async function () {
         const apiCaller = EVT({
-            endpoint: {
-                host: '192.168.1.104'
-            }
+            endpoint: network
         });
 
         var response = await apiCaller.getInfo();
@@ -45,12 +48,8 @@ describe('APICaller test', () => {
 
     it('newAccount', async () => {
         const apiCaller = EVT({
-            host: '192.168.1.104',
-            port: '8888',
             keyProvider: wif,
-            endpoint: {
-                host: '192.168.1.104'
-            }
+            endpoint: network
         });
 
         try {
@@ -76,9 +75,7 @@ describe('APICaller test', () => {
             host: '192.168.1.104',
             port: '8888',
             keyProvider: wif,
-            endpoint: {
-                host: '192.168.1.104'
-            }
+            endpoint: network
         });
 
         var newDomainName = "nd" + (new Date()).valueOf();
@@ -127,9 +124,7 @@ describe('APICaller test', () => {
             host: '192.168.1.104',
             port: '8888',
             keyProvider: wif,
-            endpoint: {
-                host: '192.168.1.104'
-            }
+            endpoint: network
         });
 
         var newDomainName = "nd" + (new Date()).valueOf();
@@ -164,9 +159,7 @@ describe('APICaller test', () => {
             host: '192.168.1.104',
             port: '8888',
             keyProvider: wif,
-            endpoint: {
-                host: '192.168.1.104'
-            }
+            endpoint: network
         });
 
         var newDomainName = "nd" + (new Date()).valueOf();

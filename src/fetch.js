@@ -16,17 +16,19 @@ module.exports = {
         else {
             // Node
             return new Promise((res, rej) => {
-                let http = require('http');
+                let http = url.startsWith("http:") ? require('http') : require('https');
 
                 // parse http url
                 let parsed_url = require('url').parse(url);
+
+                console.log(url);
 
                 // request via http module
                 var req = {
                     host: parsed_url.hostname,
                     port: parsed_url.port || 80,
                     path: parsed_url.path,
-                    protocol: 'http:',
+                    protocol: url.startsWith("http:") ? 'http:' : 'https:',
                     headers: options.headers || { },
                     method: options.method || 'GET'
                 };
@@ -45,7 +47,16 @@ module.exports = {
                     response.on('end', () => {
                         var parsedResObj = {
                             json: async function getJSON() {
-                                return JSON.parse(buf.toString('utf8'));
+                                try {
+                                    return JSON.parse(buf.toString('utf8'));
+                                }
+                                catch (e) {
+                                    throw new Error("error while deserialization: " + buf.toString('utf8'));
+                                }
+                            },
+
+                            text: async function text() {
+                                return buf.toString('utf8');
                             }
                         };
                         
