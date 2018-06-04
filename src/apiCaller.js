@@ -76,6 +76,10 @@ class APICaller {
         return info;
     }
 
+    /**
+     * get balance and other basic information of a user account
+     * @param {*} name 
+     */
     async getAccount(name) {
         return await this.__callAPI({
             url: "/v1/evt/get_account",
@@ -86,8 +90,47 @@ class APICaller {
         });
     }
 
-    async __fixedSignatureCall(args) {
-        args.__fixedSignature = 'everiWallet';
+    /**
+     * (TODO) get domain list a user joined in (TODO) What dose `join in a domain` mean ??
+     * @param {*} name 
+     */
+    async getJoinedDomainList(accountName) {
+        return (await this.__fixedSignatureCall({
+            url: "/v1/evt/get_my_domains",
+            method: "POST",
+            body: {
+            }
+        })).map(x => { return { name: x } });
+    }
+
+    /**
+     * get group list a user joined in
+     * @param {*} name 
+     */
+    async getJoinedGroupList(accountName) {
+        return (await this.__fixedSignatureCall({
+            url: "/v1/evt/get_my_groups",
+            method: "POST",
+            body: {
+            }
+        })).map(x => { return { name: x } });
+    }
+
+    /**
+     * get owned token list for a account
+     * @param {*} name 
+     */
+    async getOwnedTokens(accountName) {
+        return (await this.__fixedSignatureCall({
+            url: "/v1/evt/get_my_tokens",
+            method: "POST",
+            body: {
+            }
+        })).map(x => { return { name: x.substr(x.lastIndexOf('-') + 1), domain: x.substr(0, x.lastIndexOf('-')) } });
+    }
+
+    async __fixedSignatureCall(args, fixedDataToSign = 'everiWallet') {
+        args.__fixedSignature = fixedDataToSign;
         return await this.__callAPI(args);
     }
 

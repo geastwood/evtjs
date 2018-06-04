@@ -7,7 +7,7 @@ const ByteBuffer = require('bytebuffer')
 const Fcbuffer = require('fcbuffer')
 const Key = require("./key")
 
-const wif = '5HxQKWDznancXZXm7Gr2guadK7BhK9Zs8ejDhfA9oEBM89ZaAru'
+const wif = '5JH8KHTRhdzzT8cQXaLNKjp28wYGdLtswBPCqMw4kwgMv8jUSHB'
 const network = {
     host: 'testnet1.everitoken.io',
     port: 8888,
@@ -33,18 +33,52 @@ describe('APICaller test', () => {
         });
 
         var response = await apiCaller.getInfo();
-        assert(response.evt_api_version, "expect evt_api_version");
+        assert(response.evt_api_version, "expected evt_api_version");
     });
 
-    /*it('getAccount', async () => {
+    it('getAccount', async function () {
         const apiCaller = EVT({
-            endpoint: {
-                host: '192.168.1.104'
-            }
+            endpoint: network,
+            keyProvider: wif
         });
 
-        await apiCaller.getAccount("test");
-    });*/
+        var response = await apiCaller.getAccount('ceeji');
+        // console.error("getAccount" + JSON.stringify(response, null, 4));
+        assert(response.balance, "expected balance");
+    });
+
+    it('getJoinedDomainList', async function () {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getJoinedDomainList('ceeji');
+        console.error(JSON.stringify(response, null, 4));
+        assert(Array.isArray(response), "expected array");
+    });
+
+    it('getJoinedGroupList', async () => {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getJoinedGroupList('ceeji');
+        console.error(JSON.stringify(response, null, 4));
+        assert(Array.isArray(response), "expected array");
+    });
+
+    it('getOwnedTokens', async () => {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getOwnedTokens('ceeji');
+        console.error(JSON.stringify(response, null, 4));
+        assert(Array.isArray(response), "expected array");
+    });
 
     it('newAccount', async () => {
         const apiCaller = EVT({
