@@ -11,10 +11,10 @@ npm run install
 You can also download our release package and reference it to use in browser.
 
 ## Usage
-
 ```
 const apiCaller = EVT({
-            endpoint: network
-        });
+    endpoint: network
+});
 
-        var response = await apiCaller.getInfo();
+var response = await apiCaller.getInfo();
+```
