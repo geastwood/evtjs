@@ -19,6 +19,7 @@ catch(e) {
 }
 const pkg = require('../package.json');
 const { APICaller } = require("./apiCaller");
+const EvtConfig = require("./evtConfig");
 
 // Global EVT Object for exporting
 let EVT = function(config) {
@@ -27,7 +28,8 @@ let EVT = function(config) {
 
 EVT = Object.assign(EVT, {
     version: pkg.version,
-    APICaller
+    APICaller,
+    EvtConfig
 });
 
 module.exports = EVT;
