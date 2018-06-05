@@ -11,7 +11,7 @@ npm run install
 
 You can also download our release package and reference it to use in browser.
 
-## Usage
+## Basic Usage
 ```js
 // set network endpoint
 const network = {
@@ -76,3 +76,93 @@ Some important values is as follow:
 
 - `head_block_*` and `last_irreversible_block_*`: Represents information for last block / last irreversible block. This is used by other calls automatically by the library.
 
+### getAccount
+
+Get basic information of a account including balance.
+
+```js
+let info = await apiCaller.getAccount(accountName);
+```
+
+Sample value of `info`:
+
+```json
+{"name":"xxxx","creator":"evt","create_time":"2018-06-04T13:39:31","balance":"1.0000 EVT","frozen_balance":"0.0000 EVT","owner":["EVTxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"]}
+```
+
+Not that the balance in TestNet is fake. And frozen_balance is not avaiable now and is fixed to `zero`.
+
+Balance is returned by a string which contains a `' EVT'` postfix. And the number is always corrected to four decimal places (ex. 1.000 EVT).
+
+### getOwnedTokens
+
+Get the list of tokens which is owned by the signature (that is, the value of keyProvider).
+
+```js
+let info = await apiCaller.getOwnedTokens();
+```
+
+Sample value of `info`:
+
+```json
+[
+    {
+        "name": "T39823",
+        "domain": "test"
+    }
+]
+```
+
+### pushTransaction
+
+Push a `transaction` to the chain. A `transaction` is composed of some `actions`. Generally a `action` is a interface to a writable API.
+
+## Action Examples
+
+For more action, you can see the document of `everitoken HTTP API`.
+
+### Create Account
+```js
+{
+    "action": "newaccount",
+    "args": {
+        "name": 'xxxx',
+        "owner": [ 'publicKeyOfOwner' ]
+    }
+}
+```
+
+### Create Account
+```js
+{
+    "action": "newdomain",
+    "args": {
+        "name": newDomainName,
+        "issuer": "publicKeyOfIssuer",
+        "issue": {
+            "name": "issue",
+            "threshold": 1,
+            "authorizers": [{
+                "ref": "[A] EVT7dwvuZfiNdTbo3aamP8jgq8RD4kzauNkyiQVjxLtAhDHJm9joQ",
+                "weight": 1
+            }]
+        },
+        "transfer": {
+            "name": "transfer",
+            "threshold": 1,
+            "authorizers": [{
+                "ref": "[G] OWNER",
+                "weight": 1
+            }]
+        },
+        "manage": {
+            "name": "manage",
+            "threshold": 1,
+            "authorizers": [{
+                "ref": "[A] EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                "weight": 1
+            }]
+        }
+    }
+}
+```
