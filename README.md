@@ -132,7 +132,7 @@ For more action, you can see the document of `everitoken HTTP API`.
 }
 ```
 
-### Create Account
+### Create Domain
 ```js
 {
     "action": "newdomain",
@@ -166,3 +166,5 @@ For more action, you can see the document of `everitoken HTTP API`.
     }
 }
 ```
+
+For more detail, you can see [API documentation of everiToken](https://github.com/everitoken/evt/wiki/API-References);

@@ -20,6 +20,14 @@ describe('version', () => {
     })
 })
 
+describe('randomKey', () => {
+    it('test ecc key generation', async () => {
+        let key = await EVT.EvtKey.randomPrivateKey();
+
+        console.log(key);
+    })
+})
+
 const randomName = () => {
     const name = String(Math.round(Math.random() * 1000000000)).replace(/[0,6-9]/g, '')
     return 'a' + name + '111222333444'.substring(0, 11 - name.length) // always 12 in length
