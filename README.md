@@ -42,6 +42,23 @@ apiCaller.getInfo()
 
 For detail, see unit test in `index.test.js`.
 
+### EvtKey: randomPrivateKey
+
+You can get a random private key bye EVT.EvtKey.randomPrivateKey:
+
+```js
+// randomPrivateKey returns a promise so we should use await or 'then' 
+let key = await EVT.EvtKey.randomPrivateKey();
+
+// now key is the private key, that is , a wit.
+```
+
+And then you can convert it to a public key by `privateToPublic`:
+
+```js
+let publicKey = EVT.EvtKey.privateToPublic(key);
+```
+
 ### getInfo
 
 get basic information from block chain.
