@@ -73,6 +73,11 @@ class APICaller {
 
         this.__cachedInfo = info;
 
+        // check version of remote net
+        if (!info.version.startsWith('1.')) {
+            throw new Error("The API version of remote net is not compatible with current evtjs's version.");
+        }
+
         return info;
     }
 
