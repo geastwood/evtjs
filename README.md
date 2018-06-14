@@ -44,7 +44,7 @@ For detail, see unit test in `index.test.js`.
 
 ### EvtKey: randomPrivateKey
 
-You can get a random private key bye EVT.EvtKey.randomPrivateKey:
+`EvtKey` is a class for everiToken's key management. You can get a random private key by `EVT.EvtKey.randomPrivateKey`:
 
 ```js
 // randomPrivateKey returns a promise so we should use await or 'then' 
@@ -85,7 +85,7 @@ Sample value of `info`:
 }
 ```
 
-Some important values is as follow:
+Some important return values are as follow:
 
 - `evt_api_version`: This is important and _must be verified before any other call_ . 
   
@@ -107,13 +107,13 @@ Sample value of `info`:
 {"name":"xxxx","creator":"evt","create_time":"2018-06-04T13:39:31","balance":"1.0000 EVT","frozen_balance":"0.0000 EVT","owner":["EVTxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"]}
 ```
 
-Not that the balance in TestNet is fake. And frozen_balance is not avaiable now and is fixed to `zero`.
+Not that the balance in TestNet is fake. And frozen_balance is not available now and is fixed to `zero`.
 
 Balance is returned by a string which contains a `' EVT'` postfix. And the number is always corrected to four decimal places (ex. 1.000 EVT).
 
 ### getOwnedTokens
 
-Get the list of tokens which is owned by the signature (that is, the value of keyProvider).
+Get the list of tokens which is owned by the signer's public key (that is, the value of keyProvider).
 
 ```js
 let info = await apiCaller.getOwnedTokens();
@@ -132,11 +132,56 @@ Sample value of `info`:
 
 ### pushTransaction
 
-Push a `transaction` to the chain. A `transaction` is composed of some `actions`. Generally a `action` is a interface to a writable API.
+Push a `transaction` to the chain. A `transaction` is composed of some `actions`. Generally a `action` is a interface to a writable API. Almost all the writable API are wrapped in transactions.
+
+You are able to push a transaction by:
+
+```
+apiCaller.pushTransaction(trx);
+```
+
+`trx` is a object with structure as follow:
+
+```js
+{
+    transaction: { // required
+        actions: [ // required
+            { // at least one action object
+                action: <string> // required, action name
+                args: { // required, action's argument
+                    // the detail format of arguments will be shown below
+                }
+            }
+        ]
+    }
+}
+```
+
+Here is a complete example:
+
+```js
+await apiCaller.pushTransaction({
+    transaction: {
+        actions: [
+            {
+                "action": "newaccount",
+                "args": {
+                    "name": 'test',
+                    "owner": [ 'EVT7moLiPstoZdn1MA7phJWzugg4rLS7ZLaTEzie1FUrco87e1qs2' ]
+                }
+            }
+        ]
+    }
+});
+```
+
+The structure of `args` in the action varies between actions. The structure is defined in everiToken's ABI. For detail, you may refer to [ABI reference](https://github.com/everitoken/evt/wiki/ABI-References) of everiToken.
+
+below are some examples about how to fill out `args`.
 
 ## Action Examples
 
-For more action, you can see the document of `everitoken HTTP API`.
+These snippets are valid `action` for a transaction for pushing.
 
 ### Create Account
 ```js
@@ -184,4 +229,3 @@ For more action, you can see the document of `everitoken HTTP API`.
 }
 ```
 
-For more detail, you can see [API documentation of everiToken](https://github.com/everitoken/evt/wiki/API-References);
