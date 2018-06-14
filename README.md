@@ -175,7 +175,7 @@ await apiCaller.pushTransaction({
 });
 ```
 
-The structure of `args` in the action varies between actions. below are some examples about how to fill out `args`. The structure of `args` is defined in everiToken's ABI. For detail, you may refer to [ABI reference](https://github.com/everitoken/evt/blob/master/docs/ABI-References.md) of everiToken. You should navigate to the link to get the list of actions.
+The structure of `args` in the action varies between actions. Below are some examples about how to fill out `args`. The structure of `args` is defined in everiToken's ABI. For detail, you may refer to [ABI reference](https://github.com/everitoken/evt/blob/master/docs/ABI-References.md) of everiToken. You should navigate to the link to get the list of actions.
 
 ## Action Examples
 
