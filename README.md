@@ -226,4 +226,3 @@ These snippets are valid `action` for a transaction for pushing.
     }
 }
 ```
-

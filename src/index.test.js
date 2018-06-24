@@ -7,7 +7,8 @@ const ByteBuffer = require('bytebuffer')
 const Fcbuffer = require('fcbuffer')
 const Key = require("./key")
 
-const wif = '5JH8KHTRhdzzT8cQXaLNKjp28wYGdLtswBPCqMw4kwgMv8jUSHB'
+const wif = '5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ'
+const wif2 = '5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i'
 const network = {
     host: 'testnet1.everitoken.io',
     port: 8888,
@@ -50,7 +51,7 @@ describe('APICaller test', () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getAccount('ceeji');
+        var response = await apiCaller.getAccount('ctest2');
         // console.error("getAccount" + JSON.stringify(response, null, 4));
         assert(response.balance, "expected balance");
     });
@@ -61,7 +62,7 @@ describe('APICaller test', () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getJoinedDomainList('ceeji');
+        var response = await apiCaller.getJoinedDomainList('ctest2');
         console.error(JSON.stringify(response, null, 4));
         assert(Array.isArray(response), "expected array");
     });
@@ -72,7 +73,7 @@ describe('APICaller test', () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getJoinedGroupList('ceeji');
+        var response = await apiCaller.getJoinedGroupList('ctest2');
         console.error(JSON.stringify(response, null, 4));
         assert(Array.isArray(response), "expected array");
     });
@@ -83,14 +84,14 @@ describe('APICaller test', () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getOwnedTokens('ceeji');
+        var response = await apiCaller.getOwnedTokens('ctest2');
         console.error(JSON.stringify(response, null, 4));
         assert(Array.isArray(response), "expected array");
     });
 
     it('newAccount', async () => {
         const apiCaller = EVT({
-            keyProvider: wif,
+            keyProvider: [ wif, wif2 ],
             endpoint: network
         });
 
@@ -116,7 +117,7 @@ describe('APICaller test', () => {
         const apiCaller = new EVT({
             host: '192.168.1.104',
             port: '8888',
-            keyProvider: wif,
+            keyProvider: [ wif, wif2 ],
             endpoint: network
         });
 
@@ -165,7 +166,7 @@ describe('APICaller test', () => {
         const apiCaller = new EVT({
             host: '192.168.1.104',
             port: '8888',
-            keyProvider: wif,
+            keyProvider: [ wif, wif2 ],
             endpoint: network
         });
 

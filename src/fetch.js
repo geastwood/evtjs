@@ -1,3 +1,17 @@
+let logger = require('./logger');
+let httpModule = undefined;
+let httpsModule = undefined;
+let agent = undefined;
+
+// if in Node, initialize libraries
+if (!(typeof window === 'object' && typeof window.fetch === 'function')) {
+    httpModule = require('http');
+    httpsModule = require('https');
+    agent = new httpsModule.Agent({
+        keepAlive: true
+    });
+}
+
 module.exports = {
     /**
      * Fetch a url using fetch in browser and http or https in Node
@@ -5,6 +19,8 @@ module.exports = {
      * @param {*} options 
      */
     fetch(url, options) {
+        let timeStart = new Date().valueOf();
+        
         if (typeof window === 'object' && typeof window.fetch === 'function') {
             // Browser with fetch support
             if (options.headers) {
@@ -16,12 +32,12 @@ module.exports = {
         else {
             // Node
             return new Promise((res, rej) => {
-                let http = url.startsWith("http:") ? require('http') : require('https');
+                let http = url.startsWith("http:") ? httpModule : httpsModule;
 
                 // parse http url
                 let parsed_url = require('url').parse(url);
 
-                console.log(url);
+                // console.log(url);
 
                 // request via http module
                 var req = {
@@ -32,6 +48,10 @@ module.exports = {
                     headers: options.headers || { },
                     method: options.method || 'GET'
                 };
+
+                if (url.startsWith("https:")) {
+                    req.agent = agent;
+                }
 
                 if (options.body) {
                     req.headers['Content-Length'] = new Buffer(options.body, 'utf8').length;
@@ -45,6 +65,8 @@ module.exports = {
                     });
 
                     response.on('end', () => {
+                        logger.verbose("[+" + (new Date().valueOf() - timeStart) + " ms] " + response.statusCode + " " + url);
+
                         var parsedResObj = {
                             json: async function getJSON() {
                                 try {

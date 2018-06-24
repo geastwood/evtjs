@@ -39,9 +39,9 @@ class APICaller {
         var url = this.config.endpoint.protocol + "://" + this.config.endpoint.host + ":" + this.config.endpoint.port + request.url;
 
         if (request.__fixedSignature) {
-            // 添加签名
+            // add signature
             const signBuf = Buffer.from('2800f0f3f88ce2b4a8c6ce4c20a91f5a7e3647fa73894e9d2bc4cc61b6bda1be', 'hex');
-            let sigs = await this.__signTransaction(signBuf, request.body || { });
+            let sigs = await this.__signTransaction(signBuf, request.body || { }, request.__fixedKeyToUse);
 
             if (!Array.isArray(sigs)) {
                 sigs = [ sigs ]
@@ -50,6 +50,9 @@ class APICaller {
             request.body = request.body || { };
             request.body.signatures = sigs;
         }
+
+        // console.log("fetch: " + url);
+        // console.log("fetch: " + JSON.stringify(request, null, 4));
 
         var res = await fetch(url, {
             method: request.method,
@@ -74,7 +77,7 @@ class APICaller {
         this.__cachedInfo = info;
 
         // check version of remote net
-        if (!info.version.startsWith('1.')) {
+        if (!info.evt_api_version.startsWith('1.')) {
             throw new Error("The API version of remote net is not compatible with current evtjs's version.");
         }
 
@@ -99,43 +102,47 @@ class APICaller {
      * (TODO) get domain list a user joined in (TODO) What dose `join in a domain` mean ??
      * @param {*} name 
      */
-    async getJoinedDomainList(accountName) {
+    async getJoinedDomainList(accountName, keyToUse) {
         return (await this.__fixedSignatureCall({
             url: "/v1/evt/get_my_domains",
             method: "POST",
             body: {
             }
-        })).map(x => { return { name: x } });
+        }, "everiWallet", keyToUse)).map(x => { return { name: x } });
     }
 
     /**
      * get group list a user joined in
      * @param {*} name 
      */
-    async getJoinedGroupList(accountName) {
+    async getJoinedGroupList(accountName, keyToUse) {
         return (await this.__fixedSignatureCall({
             url: "/v1/evt/get_my_groups",
             method: "POST",
             body: {
             }
-        })).map(x => { return { name: x } });
+        }, "everiWallet", keyToUse)).map(x => { return { name: x } });
     }
 
     /**
      * get owned token list for a account
      * @param {*} name 
      */
-    async getOwnedTokens(accountName) {
+    async getOwnedTokens(accountName, keyToUse) {
         return (await this.__fixedSignatureCall({
             url: "/v1/evt/get_my_tokens",
             method: "POST",
             body: {
             }
-        })).map(x => { return { name: x.substr(x.lastIndexOf('-') + 1), domain: x.substr(0, x.lastIndexOf('-')) } });
+        }, "everiWallet", keyToUse)).map(x => { return { name: x.substr(x.lastIndexOf('-') + 1), domain: x.substr(0, x.lastIndexOf('-')) } });
     }
 
-    async __fixedSignatureCall(args, fixedDataToSign = 'everiWallet') {
+    async __fixedSignatureCall(args, fixedDataToSign = 'everiWallet', fixedKeyToUse = null) {
         args.__fixedSignature = fixedDataToSign;
+        args.__fixedKeyToUse = fixedKeyToUse;
+
+        // console.log(JSON.stringify(args, null, 4));
+
         return await this.__callAPI(args);
     }
 
@@ -227,8 +234,8 @@ class APICaller {
         });
     }
 
-    __signTransaction(buf, transaction) {
-        return this.config.signProvider({signHash, buf, transaction});
+    __signTransaction(buf, transaction, keyToUse) {
+        return this.config.signProvider({signHash, buf, transaction, keyToUse});
     }
 
     __getDigestToSign(transaction) {
@@ -247,11 +254,13 @@ class APICaller {
         });
     }
 
-    __chainGetRequiredKeys(tr) {
+    __chainGetRequiredKeys(body) {
+        console.log("[__chainGetRequiredKeys] " + JSON.stringify(body, null, 4));
+
         return this.__callAPI({
             url: "/v1/chain/get_required_keys",
             method: "POST",
-            body: tr
+            body
         });
     }
 }
@@ -291,11 +300,11 @@ const domainKeyMappers = {
   If only one key is available, the blockchain API calls are skipped and that
   key is used to sign the transaction.
 */
-const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, transaction }) {
+const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, transaction, keyToUse }) {
     const { keyProvider } = config
 
     if (!keyProvider) {
-        console.log("config" + JSON.stringify(config, null, 4));
+        // console.log("config" + JSON.stringify(config, null, 4));
         throw new TypeError('This transaction requires a config.keyProvider for signing')
     }
 
@@ -308,7 +317,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
     keys = await Promise.resolve(keys)
 
     if (!Array.isArray(keys)) {
-        keys = [keys]
+        keys = [ keys ]
     }
 
     keys = keys.map(key => {
@@ -325,6 +334,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
     if (!keys.length) {
         throw new Error('missing key, check your keyProvider')
     }
+
 
     // simplify default signing #17
     if (keys.length === 1 && keys[0].private) {
@@ -350,7 +360,23 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
 
     const pubkeys = Array.from(keyMap.keys())
 
-    // TODO: add multiple signature support
+    if (keyToUse) {
+        const pvt = keyMap[keyToUse];
+
+        if (pvt) {
+            var ret = signHash(buf, pvt);
+            
+            return ret;
+        }
+
+        throw new Error("the key provided is not found");
+    }
+
+    // Multiple signature support
+    let apiRes = await apiCaller.__chainGetRequiredKeys({ transaction, available_keys: keys.map(key => ecc.privateToPublic(key.private)) });
+    let required_keys = apiRes.required_keys;
+
+    console.log("required_keys: " + JSON.stringify(apiRes, null, 4));
 
     /*return eos.getRequiredKeys(transaction, pubkeys).then(({ required_keys }) => {
         if (!required_keys.length) {
