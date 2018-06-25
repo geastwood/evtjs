@@ -156,8 +156,6 @@ class APICaller {
             await this.getInfo();
         }
 
-        // TODO version check
-
         for (let i = 0; i < args.transaction.actions.length; ++i) {
             let originalAction = args.transaction.actions[i];
 

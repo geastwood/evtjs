@@ -23,7 +23,9 @@ const network = {
 // get EVT instance
 const apiCaller = EVT({
     endpoint: network,
-    keyProvider: 'xxxxxxxxxxxxxxxxxxxxxxxxxx' // wit string of private key (can generate from everiSigner), yuo can also pass a function that return that string (or event Promise<string> for a async function)
+    keyProvider: 'xxxxxxxxxxxxxxxxxxxxxxxxxx' 
+    // keyProvider should be string of private key (aka. wit, can generate from everiSigner)
+    // you can also pass a function that return that string (or even Promise<string> for a async function)
 });
 
 // call API
