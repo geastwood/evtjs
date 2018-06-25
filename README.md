@@ -9,7 +9,7 @@ Using `npm`:
 npm install evtjs
 ```
 
-You can also download our release package and reference it to use in browser.
+You can also download our release package and reference it to use the library in browser.
 
 ## Basic Usage
 ```js
