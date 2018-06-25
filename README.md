@@ -5,13 +5,13 @@ General purpose API Binding for the everiToken blockchain. Supports `node` and `
 ## Install
 Using `npm`:
 
-```shell
+```bash
 npm install evtjs
 ```
 
 Using `yarn`:
 
-```shell
+```bash
 yarn add evtjs
 ```
 

@@ -371,10 +371,11 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
     }
 
     // Multiple signature support
+    // console.log("get required_keys from" + JSON.stringify(keys.map(key => ecc.privateToPublic(key.private)), null, 4));
     let apiRes = await apiCaller.__chainGetRequiredKeys({ transaction, available_keys: keys.map(key => ecc.privateToPublic(key.private)) });
     let required_keys = apiRes.required_keys;
 
-    console.log("required_keys: " + JSON.stringify(apiRes, null, 4));
+    // console.log("required_keys: " + JSON.stringify(apiRes, null, 4));
 
     /*return eos.getRequiredKeys(transaction, pubkeys).then(({ required_keys }) => {
         if (!required_keys.length) {

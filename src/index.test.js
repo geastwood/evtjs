@@ -88,31 +88,7 @@ describe('APICaller test', () => {
         console.error(JSON.stringify(response, null, 4));
         assert(Array.isArray(response), "expected array");
     });
-
-    it('newAccount', async () => {
-        const apiCaller = EVT({
-            keyProvider: [ wif, wif2 ],
-            endpoint: network
-        });
-
-        try {
-            console.log(JSON.stringify(await apiCaller.pushTransaction({
-                transaction: {
-                    actions: [
-                        {
-                            "action": "newaccount",
-                            "args": {
-                                "name": 'test',
-                                "owner": [ Key.privateToPublic(wif) ]
-                            }
-                        }
-                    ]
-                }
-            })));
-        }
-        catch (e) { }
-    });
-
+    
     it('newdomain', async function () {
         const apiCaller = new EVT({
             host: '192.168.1.104',
