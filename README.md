@@ -101,27 +101,9 @@ Some important return values are as follow:
 
 - `head_block_*` and `last_irreversible_block_*`: Represents information for last block / last irreversible block. This is used by other calls automatically by the library.
 
-### getAccount
-
-Get basic information of a account including balance.
-
-```js
-let info = await apiCaller.getAccount(accountName);
-```
-
-Sample value of `info`:
-
-```json
-{"name":"xxxx","creator":"evt","create_time":"2018-06-04T13:39:31","balance":"1.0000 EVT","frozen_balance":"0.0000 EVT","owner":["EVTxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"]}
-```
-
-Not that the balance in TestNet is fake. And frozen_balance is not available now and is fixed to `zero`.
-
-Balance is returned by a string which contains a `' EVT'` postfix. And the number is always corrected to four decimal places (ex. 1.000 EVT).
-
 ### getOwnedTokens
 
-Get the list of tokens which is owned by the signer's public key (that is, the value of keyProvider).
+Get the list of tokens which is owned by the signer's public key.
 
 ```js
 let info = await apiCaller.getOwnedTokens();
@@ -165,40 +147,11 @@ apiCaller.pushTransaction(trx);
 }
 ```
 
-Here is a complete example:
-
-```js
-await apiCaller.pushTransaction({
-    transaction: {
-        actions: [
-            {
-                "action": "newaccount",
-                "args": {
-                    "name": 'test',
-                    "owner": [ 'EVT7moLiPstoZdn1MA7phJWzugg4rLS7ZLaTEzie1FUrco87e1qs2' ]
-                }
-            }
-        ]
-    }
-});
-```
-
 The structure of `args` in the action varies between actions. Below are some examples about how to fill out `args`. The structure of `args` is defined in everiToken's ABI. For detail, you may refer to [ABI reference](https://github.com/everitoken/evt/blob/master/docs/ABI-References.md) of everiToken. You should navigate to the link to get the list of actions.
 
 ## Action Examples
 
 These snippets are valid `action` for a transaction for pushing.
-
-### Create Account
-```js
-{
-    "action": "newaccount",
-    "args": {
-        "name": 'xxxx',
-        "owner": [ 'publicKeyOfOwner' ]
-    }
-}
-```
 
 ### Create Domain
 ```js
@@ -231,6 +184,25 @@ These snippets are valid `action` for a transaction for pushing.
                 "weight": 1
             }]
         }
+    }
+}
+```
+
+### Issue Tokens (NFT)
+
+```js
+{
+    "action": "issuetoken",
+    "args": {
+        "domain": "nd",
+        "names": [
+            "t1",
+            "t2",
+            "t3"
+        ],
+        "owner": [
+            "EVT5GhNCdXHUER4z3LB1TQBke7JZSyPYiwVznr8vYZXpnBMxj4MsR"
+        ]
     }
 }
 ```
