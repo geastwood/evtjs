@@ -6,7 +6,7 @@ General purpose API Binding for the everiToken blockchain. Supports `node` and `
 Using `npm`:
 
 ```shell
-npm run install
+npm install evtjs
 ```
 
 You can also download our release package and reference it to use in browser.
@@ -22,10 +22,10 @@ const network = {
 
 // get EVT instance
 const apiCaller = EVT({
-    endpoint: network,
-    keyProvider: 'xxxxxxxxxxxxxxxxxxxxxxxxxx' 
     // keyProvider should be string of private key (aka. wit, can generate from everiSigner)
     // you can also pass a function that return that string (or even Promise<string> for a async function)
+    endpoint: network,
+    keyProvider: 'xxxxxxxxxxxxxxxxxxxxxxxxxx' 
 });
 
 // call API
