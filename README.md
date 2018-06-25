@@ -9,6 +9,12 @@ Using `npm`:
 npm install evtjs
 ```
 
+Using `yarn`:
+
+```shell
+yarn add evtjs
+```
+
 You can also download our release package and reference it to use the library in browser.
 
 ## Basic Usage
