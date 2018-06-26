@@ -9,10 +9,12 @@ const Key = require("./key")
 
 const wif = '5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ'
 const wif2 = '5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i'
+const publicKey = EVT.EvtKey.privateToPublic(wif);
+
 const network = {
-    host: 'testnet1.everitoken.io',
+    host: '118.31.58.10', // testnet1.everitoken.io
     port: 8888,
-    protocol: 'https'
+    protocol: 'http'
 };
 
 describe('version', () => {
@@ -21,11 +23,28 @@ describe('version', () => {
     })
 })
 
-describe('randomKey', () => {
+describe('EvtKey', () => {
     it('test ecc key generation', async () => {
         let key = await EVT.EvtKey.randomPrivateKey();
+        let publicKey = EVT.EvtKey.privateToPublic(key);
 
-        console.log(key);
+        assert(publicKey.startsWith("EVT"), "expected publicKey starting with EVT");
+    })
+
+    it('test seed key generation', async () => {
+        let key = await EVT.EvtKey.seedPrivateKey("seed");
+        let publicKey = EVT.EvtKey.privateToPublic(key);
+
+        assert(key === '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D');
+        assert(publicKey === 'EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND');
+    })
+
+    it('test validKey', async () => {
+        assert(EVT.EvtKey.isValidPrivateKey('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D'), 'should be a valid private');
+        assert(!EVT.EvtKey.isValidPrivateKey('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER7XsAR2eCcpt3D'), 'should not be a valid private');
+        assert(EVT.EvtKey.isValidPublicKey('EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND'), 'should be a valid public');
+        assert(!EVT.EvtKey.isValidPublicKey('EOS6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND'), 'should not be a valid public');
+        assert(!EVT.EvtKey.isValidPublicKey('EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDWFRvsv2FxgND'), 'should not be a valid public');
     })
 })
 
@@ -43,26 +62,19 @@ describe('APICaller test', () => {
 
         var response = await apiCaller.getInfo();
         assert(response.evt_api_version, "expected evt_api_version");
+        assert(response.server_version, "expected server_version");
+        assert(response.last_irreversible_block_num, "expected last_irreversible_block_num");
+        assert(response.last_irreversible_block_id, "expected last_irreversible_block_id");
+        assert(response.chain_id, "expected chain_id");
     });
 
-    it('getAccount', async function () {
+    it('getCreatedDomainList', async function () {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
         });
 
-        var response = await apiCaller.getAccount('ctest2');
-        // console.error("getAccount" + JSON.stringify(response, null, 4));
-        assert(response.balance, "expected balance");
-    });
-
-    it('getJoinedDomainList', async function () {
-        const apiCaller = EVT({
-            endpoint: network,
-            keyProvider: wif
-        });
-
-        var response = await apiCaller.getJoinedDomainList('ctest2');
+        var response = await apiCaller.getCreatedDomainList(publicKey);
         console.error(JSON.stringify(response, null, 4));
         assert(Array.isArray(response), "expected array");
     });

@@ -77,7 +77,7 @@ class APICaller {
         this.__cachedInfo = info;
 
         // check version of remote net
-        if (!info.evt_api_version.startsWith('1.')) {
+        if (!info.evt_api_version.startsWith('2.')) {
             throw new Error("The API version of remote net is not compatible with current evtjs's version.");
         }
 
@@ -99,16 +99,23 @@ class APICaller {
     }
 
     /**
-     * (TODO) get domain list a user joined in (TODO) What dose `join in a domain` mean ??
+     * (TODO) get domain list a user created
      * @param {*} name 
      */
-    async getJoinedDomainList(accountName, keyToUse) {
-        return (await this.__fixedSignatureCall({
-            url: "/v1/evt/get_my_domains",
+    async getCreatedDomainList(publicKey) {
+        let res = await this.__fixedSignatureCall({
+            url: "/v1/history/get_my_domains",
             method: "POST",
             body: {
             }
-        }, "everiWallet", keyToUse)).map(x => { return { name: x } });
+        }, "everiWallet", keyToUse);
+
+        if (Array.isArray(res)) {
+            return res.map(x => { return { name: x } });
+        }
+        else {
+            throw new Error(res.code + " " + res.message);
+        }
     }
 
     /**
@@ -150,7 +157,7 @@ class APICaller {
      * push transaction to everiToken chain
      */
     async pushTransaction(args) {
-        
+
         args = JSON.parse(JSON.stringify(args));
         // make sure that it there is basic information about the chain
         if (!this.__cachedInfo) {
@@ -266,13 +273,18 @@ class APICaller {
 
 const domainKeyMappers = {
     'newdomain': (action, transfered) => {
-        transfered.domain = "domain";
-        transfered.key = action.args.name;
+        transfered.domain = action.args.name;
+        transfered.key = ".create";
+    },
+
+    'updatedomain': (action, transfered) => {
+        transfered.domain = action.args.name;
+        transfered.key = ".update";
     },
 
     'issuetoken': (action, transfered) => {
         transfered.domain = action.args.domain;
-        transfered.key = "issue";
+        transfered.key = ".issue";
     },
 
     'newgroup': (action, transfered) => {
