@@ -26,7 +26,7 @@ const network = {
     protocol: 'https'               // the TestNet of everiToken uses SSL
 };
 
-// get EVT instance
+// get apicaller instance
 const apiCaller = EVT({
     // keyProvider should be string of private key (aka. wit, can generate from everiSigner)
     // you can also pass a function that return that string (or even Promise<string> for a async function)
@@ -46,13 +46,13 @@ apiCaller.getInfo()
 });
 ```
 
-## Usage
+## EvtKey Usage
 
-For detail, see unit test in `index.test.js`.
+`EvtKey` is a class for everiToken's key management. 
 
-### EvtKey: randomPrivateKey
+### randomPrivateKey
 
-`EvtKey` is a class for everiToken's key management. You can get a random private key by `EVT.EvtKey.randomPrivateKey`:
+You can get a random private key by `EVT.EvtKey.randomPrivateKey`:
 
 ```js
 // randomPrivateKey returns a promise so we should use await or 'then' 
@@ -66,6 +66,29 @@ And then you can convert it to a public key by `privateToPublic`:
 ```js
 let publicKey = EVT.EvtKey.privateToPublic(key);
 ```
+
+### seedPrivateKey
+
+Get a private key from a specific `seed`. The `seed` is a string. For private key's safety, the `seed` must be random enough and must have at least 32 bytes' length.
+
+```js
+let privateKey = EVT.EvtKey.seedPrivateKey('AVeryVeryVeryLongRandomSeedHere');
+```
+
+### isValidPrivateKey / isValidPublicKey
+
+You can also use `isValidPrivateKey` or `isValidPublicKey` to check a key.
+
+```js
+    assert(EVT.EvtKey.isValidPrivateKey('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D'), 'should be a valid private');
+    assert(EVT.EvtKey.isValidPublicKey('EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND'), 'should be a valid public');
+```
+
+## APICaller Usage
+
+For detail, see unit test in `index.test.js`.
+
+Before calling APICaller, you must initialize a instance of APICaller and pass a `keyProvider` for it. You can use `EvtKey` to generate a valid one.
 
 ### getInfo
 
