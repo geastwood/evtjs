@@ -150,6 +150,7 @@ class APICaller {
      * push transaction to everiToken chain
      */
     async pushTransaction(args) {
+        
         args = JSON.parse(JSON.stringify(args));
         // make sure that it there is basic information about the chain
         if (!this.__cachedInfo) {

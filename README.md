@@ -41,9 +41,9 @@ apiCaller.getInfo()
 .then(res => {
     // TODO
 })
-.catch(e) {
+.catch((e) => {
     // TODO
-}
+});
 ```
 
 ## Usage
