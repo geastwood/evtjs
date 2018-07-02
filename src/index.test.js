@@ -12,17 +12,19 @@ const wif2 = '5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i'
 const publicKey = EVT.EvtKey.privateToPublic(wif);
 
 const network = {
-    host: '118.31.58.10', // testnet1.everitoken.io
+    host: 'testnet1.everitoken.io',
     port: 8888,
-    protocol: 'http'
+    protocol: 'https'
 };
 
+// ==== part 1: version ====
 describe('version', () => {
     it('exposes a version number', () => {
         assert.ok(EVT.version)
     })
-})
+});
 
+// ==== part 2: EvtKey ====
 describe('EvtKey', () => {
     it('test ecc key generation', async () => {
         let key = await EVT.EvtKey.randomPrivateKey();
@@ -53,7 +55,8 @@ const randomName = () => {
     return 'a' + name + '111222333444'.substring(0, 11 - name.length) // always 12 in length
 }
 
-describe('APICaller test', () => {
+// ==== part 3: APICaller read API ====
+describe('APICaller read API test', () => {
     // get evt chain version
     it('getInfo', async function () {
         const apiCaller = EVT({
@@ -62,32 +65,33 @@ describe('APICaller test', () => {
 
         var response = await apiCaller.getInfo();
         assert(response.evt_api_version, "expected evt_api_version");
+        assert(response.evt_api_version === "2.0.0", "unexpected evt_api_version");
         assert(response.server_version, "expected server_version");
         assert(response.last_irreversible_block_num, "expected last_irreversible_block_num");
         assert(response.last_irreversible_block_id, "expected last_irreversible_block_id");
         assert(response.chain_id, "expected chain_id");
     });
 
-    it('getCreatedDomainList', async function () {
+    it('getCreatedDomains', async function () {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
         });
 
-        var response = await apiCaller.getCreatedDomainList(publicKey);
-        console.error(JSON.stringify(response, null, 4));
+        var response = await apiCaller.getCreatedDomains(publicKey);
         assert(Array.isArray(response), "expected array");
+        // TODO must have data (after creating domains)
     });
 
-    it('getJoinedGroupList', async () => {
+    it('getManagedGroups', async () => {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
         });
 
-        var response = await apiCaller.getJoinedGroupList('ctest2');
-        console.error(JSON.stringify(response, null, 4));
+        var response = await apiCaller.getManagedGroups(publicKey);
         assert(Array.isArray(response), "expected array");
+        // TODO must have data (after creating groups)
     });
 
     it('getOwnedTokens', async () => {
@@ -96,11 +100,49 @@ describe('APICaller test', () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getOwnedTokens('ctest2');
-        console.error(JSON.stringify(response, null, 4));
+        var response = await apiCaller.getOwnedTokens(publicKey);
         assert(Array.isArray(response), "expected array");
+        // TODO must have data (after having tokens)
     });
-    
+
+    it('getActionsOfDomains', async () => {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getActionsOfDomains({
+            domain: 'haha'
+        });
+        assert(Array.isArray(response), "expected array");
+        // TODO must have data (after having tokens)
+    });
+
+    it('getTransactionDetailById', async () => {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getTransactionDetailById("f0c789933e2b381e88281e8d8e750b561a4d447725fb0eb621f07f219fe2f738");
+        assert(response.id, "expected id");
+        // TODO must have data (after creating transactions)
+    });
+
+    it('getTransactionsDetailOfPublicKeys', async () => {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getTransactionsDetailOfPublicKeys(publicKey);
+        assert(Array.isArray(response), "expected array");
+        // TODO must have data (after creating transactions)
+    });
+});
+
+// ==== part 4: APICaller write API ====
+describe('APICaller write API test', () => {
     it('newdomain', async function () {
         const apiCaller = new EVT({
             host: '192.168.1.104',

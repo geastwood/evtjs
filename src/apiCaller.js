@@ -38,7 +38,9 @@ class APICaller {
     async __callAPI(request) {
         var url = this.config.endpoint.protocol + "://" + this.config.endpoint.host + ":" + this.config.endpoint.port + request.url;
 
-        if (request.__fixedSignature) {
+        request.sign = request.sign == undefined ? true : request.sign;
+
+        if (request.sign && request.__fixedSignature) {
             // add signature
             const signBuf = Buffer.from('2800f0f3f88ce2b4a8c6ce4c20a91f5a7e3647fa73894e9d2bc4cc61b6bda1be', 'hex');
             let sigs = await this.__signTransaction(signBuf, request.body || { }, request.__fixedKeyToUse);
@@ -85,90 +87,195 @@ class APICaller {
     }
 
     /**
-     * get balance and other basic information of a user account
-     * @param {*} name 
+     * get domain list a user created, make sure you have history_plugin enabled on the chain node
+     * @param {*} publicKeys a array or a single value which represents public keys you want to query
      */
-    async getAccount(name) {
-        return await this.__callAPI({
-            url: "/v1/evt/get_account",
+    async getCreatedDomains(publicKeys) {
+        let res = await this.__callAPI({
+            url: "/v1/history/get_domains",
             method: "POST",
             body: {
-                name
-            }
+                keys: Array.isArray(publicKeys) ? publicKeys : [ publicKeys ]
+            },
+            sign: false // no need to sign
         });
-    }
-
-    /**
-     * (TODO) get domain list a user created
-     * @param {*} name 
-     */
-    async getCreatedDomainList(publicKey) {
-        let res = await this.__fixedSignatureCall({
-            url: "/v1/history/get_my_domains",
-            method: "POST",
-            body: {
-            }
-        }, "everiWallet", keyToUse);
 
         if (Array.isArray(res)) {
             return res.map(x => { return { name: x } });
         }
         else {
-            throw new Error(res.code + " " + res.message);
+            this.__throwServerResponseError(res);
         }
     }
 
     /**
-     * get group list a user joined in
-     * @param {*} name 
+     * get a list of groups, each group in it must has a group key which is contained by provided public keys. Make sure you have history_plugin enabled on the chain node
+     * @param {*} publicKeys a array or a single value which represents public keys you want to query
      */
-    async getJoinedGroupList(accountName, keyToUse) {
-        return (await this.__fixedSignatureCall({
-            url: "/v1/evt/get_my_groups",
+    async getManagedGroups(publicKeys) {
+        let res = await this.__callAPI({
+            url: "/v1/history/get_groups",
             method: "POST",
             body: {
-            }
-        }, "everiWallet", keyToUse)).map(x => { return { name: x } });
+                keys: Array.isArray(publicKeys) ? publicKeys : [ publicKeys ]
+            },
+            sign: false // no need to sign
+        });
+
+        if (Array.isArray(res)) {
+            return res.map(x => { return { name: x } });
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
     }
 
     /**
-     * get owned token list for a account
-     * @param {*} name 
+     * get owned token list for accounts. Make sure you have history_plugin enabled on the chain node
+     * @param {*} publicKeys a array or a single value which represents public keys you want to query
      */
-    async getOwnedTokens(accountName, keyToUse) {
-        return (await this.__fixedSignatureCall({
-            url: "/v1/evt/get_my_tokens",
+    async getOwnedTokens(publicKeys) {
+        let res = await this.__callAPI({
+            url: "/v1/history/get_tokens",
             method: "POST",
             body: {
-            }
-        }, "everiWallet", keyToUse)).map(x => { return { name: x.substr(x.lastIndexOf('-') + 1), domain: x.substr(0, x.lastIndexOf('-')) } });
+                keys: Array.isArray(publicKeys) ? publicKeys : [ publicKeys ]
+            },
+            sign: false // no need to sign
+        });
+
+        if (Array.isArray(res)) {
+            return res.map(x => { return { name: x.substr(x.lastIndexOf('-') + 1), domain: x.substr(0, x.lastIndexOf('-')) } })
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
+     * Query actions by domain, key and action names. Make sure you have history_plugin enabled on the chain node
+     * @param {*} params
+     */
+    async getActionsOfDomains(params) {
+        if (typeof params !== 'object') throw new Error("invalid params");
+        if (!params || !params.domain) throw new Error("invalid params: domain is required");
+
+        let res = await this.__callAPI({
+            url: "/v1/history/get_actions",
+            method: "POST",
+            body: params,
+            sign: false // no need to sign
+        });
+
+        if (Array.isArray(res)) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
+     * get detail information about a transaction by its id. Make sure you have history_plugin enabled on the chain node
+     * @param {*} id the id of the transaction
+     */
+    async getTransactionDetailById(id) {
+        if (typeof id !== 'string' || !id) throw new Error("invalid transaction id");
+
+        let res = await this.__callAPI({
+            url: "/v1/history/get_transaction",
+            method: "POST",
+            body: { id },
+            sign: false // no need to sign
+        });
+
+        if (res && res.id && res.transaction) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
+     * get detail information about a transaction by its id. Make sure you have history_plugin enabled on the chain node
+     * @param {string[]} publicKeys a single value or a array of public keys to query (required)
+     * @param {number} skip the count to be skipped, default to 0 (optional)
+     * @param {number} take the count to be taked, default to 10 (optional)
+     */
+    async getTransactionsDetailOfPublicKeys(publicKeys, skip = 0, take = 10) {
+        if (!publicKeys) throw new Error("invalid publicKeys");
+        if (!Array.isArray(publicKeys)) {
+            publicKeys = [ publicKeys ];
+        }
+
+        skip = skip || 0;
+        take = take || 10;
+
+        let body = {
+            keys: publicKeys,
+            skip,
+            take
+        };
+
+        console.log(body);
+
+        let res = await this.__callAPI({
+            url: "/v1/history/get_transactions",
+            method: "POST",
+            body: body,
+            sign: false // no need to sign
+        });
+
+        if (Array.isArray(res)) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    // wrap the exception returned from server side
+    __throwServerResponseError(res) {
+        let err = new Error(`[${res.code} ${res.message}] (${(res.error || {}).code}) ${(res.error || {}).name}: ${(res.error || {}).what}`);
+        err.httpCode = res.code;
+        err.serverError = res.error;
+        err.serverMessage = res.message;
+
+        throw err;
     }
 
     async __fixedSignatureCall(args, fixedDataToSign = 'everiWallet', fixedKeyToUse = null) {
         args.__fixedSignature = fixedDataToSign;
         args.__fixedKeyToUse = fixedKeyToUse;
 
-        // console.log(JSON.stringify(args, null, 4));
-
         return await this.__callAPI(args);
     }
 
     /**
      * push transaction to everiToken chain
+     * @param {Object} params arguments to use for pushing 
      */
-    async pushTransaction(args) {
+    async pushTransaction(params) {
+        // check arguments
+        if (!params.transaction) {
+            throw new Error("invalid format of params: no transaction field");
+        }
 
-        args = JSON.parse(JSON.stringify(args));
+        params.sign = params.sign !== false ? true : false;
+
+        // building the body of the request
+        let body = { transaction: JSON.parse(JSON.stringify(params.transaction)) };
+
         // make sure that it there is basic information about the chain
         if (!this.__cachedInfo) {
             await this.getInfo();
         }
 
-        for (let i = 0; i < args.transaction.actions.length; ++i) {
-            let originalAction = args.transaction.actions[i];
+        for (let i = 0; i < body.transaction.actions.length; ++i) {
+            let originalAction = body.transaction.actions[i];
 
             // create binary action for push_transaction
-            //console.log(JSON.stringify(await this.__chainAbiJsonToBin(originalAction), null, 4));
             let binAction = {
                 name: originalAction.action,
                 data: (await this.__chainAbiJsonToBin(originalAction)).binargs
@@ -178,44 +285,47 @@ class APICaller {
             domainKeyMappers[originalAction.action](originalAction, binAction);
 
             // override action
-            args.transaction.actions[i] = binAction;
+            body.transaction.actions[i] = binAction;
         }
 
-        // fill extra fields for trx
-        let expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
-        var hash = ByteBuffer.fromHex(this.__cachedInfo.last_irreversible_block_id, true); // little endian
-        var numHex = this.__cachedInfo.last_irreversible_block_id.substr(4, 4);
-        var last_irreversible_block_num = ByteBuffer.fromHex(numHex, false).readUint16(0);
-        var last_irreversible_block_prefix = hash.readUInt32(8);
+        let expiration, hash, numHex, last_irreversible_block_num, last_irreversible_block_prefix;
 
-        args = Object.assign(args, {
+        // process referenced block number and expiration time for transaction
+        expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
+        hash = ByteBuffer.fromHex(this.__cachedInfo.last_irreversible_block_id, true); // little endian
+        numHex = this.__cachedInfo.last_irreversible_block_id.substr(4, 4);
+        last_irreversible_block_num = ByteBuffer.fromHex(numHex, false).readUint16(0);
+        last_irreversible_block_prefix = hash.readUInt32(8);
+
+        body = Object.assign(body, {
             compression: 'none'
         });
 
-        args.transaction = Object.assign(args.transaction, {
+        body.transaction = Object.assign(body.transaction, {
             "expiration": expiration,
             "ref_block_num": last_irreversible_block_num,
             "ref_block_prefix": last_irreversible_block_prefix,
             "delay_sec": 0,
         });
 
-        // get digest of the whole trx
-        //console.log(JSON.stringify(args, null, 4));
-        let digestRes = (await this.__getDigestToSign(args.transaction)).digest;
-        //console.log(digestRes);
+        // calculate signatures
+        if (params.sign) {
+            // get digest of the whole trx
+            let digestRes = (await this.__getDigestToSign(body.transaction)).digest;
 
-        // sign
-        const signBuf = new Buffer(digestRes, 'hex');
-        let sigs = await this.__signTransaction(signBuf, args.transaction);
+            // sign
+            const signBuf = new Buffer(digestRes, 'hex');
+            let sigs = await this.__signTransaction(signBuf, body.transaction);
 
-        if (!Array.isArray(sigs)) {
-            sigs = [ sigs ]
+            if (!Array.isArray(sigs)) {
+                sigs = [ sigs ]
+            }
+            
+            body.signatures = sigs;
         }
-        
-        args.signatures = sigs;
 
         // push transaction
-        var res = await this.__chainPushTransaction(args);
+        var res = await this.__chainPushTransaction(body);
 
         // check if it is successful
         if (res && res.processed && res.processed.receipt && res.processed.receipt.status === 'executed') {
