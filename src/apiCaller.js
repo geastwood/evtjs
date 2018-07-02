@@ -235,7 +235,10 @@ class APICaller {
         }
     }
 
-    // wrap the exception returned from server side
+    /**
+     * wrap the exception returned from server side
+     * @param {*} res 
+     */
     __throwServerResponseError(res) {
         let err = new Error(`[${res.code} ${res.message}] (${(res.error || {}).code}) ${(res.error || {}).name}: ${(res.error || {}).what}`);
         err.httpCode = res.code;
