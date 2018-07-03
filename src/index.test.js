@@ -195,17 +195,17 @@ describe('APICaller write API test', () => {
                         "action": "newdomain",
                         "args": {
                             "name": newDomainName,
-                            "issuer": "EVT7dwvuZfiNdTbo3aamP8jgq8RD4kzauNkyiQVjxLtAhDHJm9joQ",
+                            "issuer": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
                             "issue": {
-                                "name": "issue",
+                                "name": "issue1",
                                 "threshold": 1,
                                 "authorizers": [{
-                                    "ref": "[A] EVT7dwvuZfiNdTbo3aamP8jgq8RD4kzauNkyiQVjxLtAhDHJm9joQ",
+                                    "ref": "[A] EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
                                     "weight": 1
                                 }]
                             },
                             "transfer": {
-                                "name": "transfer",
+                                "name": "transfer1",
                                 "threshold": 1,
                                 "authorizers": [{
                                     "ref": "[G] OWNER",
@@ -213,7 +213,7 @@ describe('APICaller write API test', () => {
                                 }]
                             },
                             "manage": {
-                                "name": "manage",
+                                "name": "manage1",
                                 "threshold": 1,
                                 "authorizers": [{
                                     "ref": "[A] EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",

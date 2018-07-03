@@ -422,6 +422,7 @@ class APICaller {
             return ret;
         }
 
+        console.log(abi);
         this.__throwServerResponseError(ret);
     }
 
