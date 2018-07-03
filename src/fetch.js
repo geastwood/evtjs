@@ -37,7 +37,7 @@ module.exports = {
                 // parse http url
                 let parsed_url = require('url').parse(url);
 
-                // console.log(url);
+                console.log(url);
 
                 // request via http module
                 var req = {

@@ -34,7 +34,10 @@ EvtKey.seedPrivateKey = function(seed) {
  * @param {*} key public key
  */
 EvtKey.isValidPublicKey = function(key) {
-    return ecc.isValidPublic(key)
+    if (typeof key !== 'string' || key.length < 8) return false;
+    if (!key.startsWith("EVT")) return false;
+
+    return ecc.isValidPublic('EVT' + key.substr(3)) || ecc.isValidPublic('EOS' + key.substr(3));
 }
 
 /**

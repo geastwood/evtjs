@@ -198,6 +198,50 @@ class APICaller {
     }
 
     /**
+     * get detail information about a domain by its name. Make sure you have history_plugin enabled on the chain node
+     * @param {*} name the name of the domain
+     */
+    async getDomainDetail(name) {
+        if (typeof name !== 'string' || !name) throw new Error("invalid domain name");
+
+        let res = await this.__callAPI({
+            url: "/v1/evt/get_domain",
+            method: "POST",
+            body: { name },
+            sign: false // no need to sign
+        });
+
+        if (res && res.name && res.issuer) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
+     * get detail information about a group by its name. Make sure you have history_plugin enabled on the chain node
+     * @param {*} name the name of the group
+     */
+    async getGroupDetail(name) {
+        if (typeof name !== 'string' || !name) throw new Error("invalid group name");
+
+        let res = await this.__callAPI({
+            url: "/v1/evt/get_group",
+            method: "POST",
+            body: { name },
+            sign: false // no need to sign
+        });
+
+        if (res && res.name && res.root) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * get detail information about a transaction by its id. Make sure you have history_plugin enabled on the chain node
      * @param {string[]} publicKeys a single value or a array of public keys to query (required)
      * @param {number} skip the count to be skipped, default to 0 (optional)
@@ -218,8 +262,6 @@ class APICaller {
             take
         };
 
-        console.log(body);
-
         let res = await this.__callAPI({
             url: "/v1/history/get_transactions",
             method: "POST",
@@ -236,6 +278,28 @@ class APICaller {
     }
 
     /**
+     * get detail information about a fungible symbol by its name.
+     * @param {*} name the name of the fungible symbol you want to query
+     */
+    async getFungibleSymbolDetail(name) {
+        if (typeof name !== 'string' || !name) throw new Error("invalid fungible name");
+
+        let res = await this.__callAPI({
+            url: "/v1/evt/get_fungible",
+            method: "POST",
+            body: { name },
+            sign: false // no need to sign
+        });
+
+        if (res && res.sym && res.creator) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * wrap the exception returned from server side
      * @param {*} res 
      */
@@ -244,6 +308,8 @@ class APICaller {
         err.httpCode = res.code;
         err.serverError = res.error;
         err.serverMessage = res.message;
+
+        console.log(res);
 
         throw err;
     }
@@ -345,24 +411,37 @@ class APICaller {
         }
     }
     
-    __chainAbiJsonToBin(abi) {
-        return this.__callAPI({
+    async __chainAbiJsonToBin(abi) {
+        let ret = await this.__callAPI({
             url: "/v1/chain/abi_json_to_bin",
             method: "POST",
             body: abi
         });
+
+        if (ret.binargs) {
+            return ret;
+        }
+
+        this.__throwServerResponseError(ret);
     }
 
     __signTransaction(buf, transaction, keyToUse) {
         return this.config.signProvider({signHash, buf, transaction, keyToUse});
     }
 
-    __getDigestToSign(transaction) {
-        return this.__callAPI({
+    async __getDigestToSign(transaction) {
+        let ret = await this.__callAPI({
             url: "/v1/chain/trx_json_to_digest",
             method: "POST",
             body: transaction
         });
+
+        if (ret.digest) {
+            return ret;
+        }
+
+        console.log(transaction);
+        this.__throwServerResponseError(ret);
     }
 
     __chainPushTransaction(tr) {

@@ -10,6 +10,7 @@ const Key = require("./key")
 const wif = '5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ'
 const wif2 = '5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i'
 const publicKey = EVT.EvtKey.privateToPublic(wif);
+var newDomainName = null;
 
 const network = {
     host: 'testnet1.everitoken.io',
@@ -44,7 +45,7 @@ describe('EvtKey', () => {
     it('test validKey', async () => {
         assert(EVT.EvtKey.isValidPrivateKey('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D'), 'should be a valid private');
         assert(!EVT.EvtKey.isValidPrivateKey('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER7XsAR2eCcpt3D'), 'should not be a valid private');
-        assert(EVT.EvtKey.isValidPublicKey('EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND'), 'should be a valid public');
+        assert(EVT.EvtKey.isValidPublicKey('EVT76uLwUD5t6fkob9Rbc9UxHgdTVshNceyv2hmppw4d82j2zYRpa'), 'should be a valid public');
         assert(!EVT.EvtKey.isValidPublicKey('EOS6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND'), 'should not be a valid public');
         assert(!EVT.EvtKey.isValidPublicKey('EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDWFRvsv2FxgND'), 'should not be a valid public');
     })
@@ -139,19 +140,53 @@ describe('APICaller read API test', () => {
         assert(Array.isArray(response), "expected array");
         // TODO must have data (after creating transactions)
     });
+
+    it('getFungibleSymbolDetail', async () => {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getFungibleSymbolDetail('EVT');
+        console.log(response);
+        assert(Array.isArray(response), "expected array");
+        // TODO must have data (after creating symbol)
+    });
+
+    it('getDomainDetail', async () => {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getDomainDetail('EVT');
+        console.log(response);
+        assert(response && response.issuer, "expected response");
+        // TODO must have data (after creating symbol)
+    });
+
+    it('getGroupDetail', async () => {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getGroupDetail('testgroup');
+        console.log(response);
+        assert(response && response.root, "expected response");
+        // TODO must have data (after creating symbol)
+    });
 });
 
 // ==== part 4: APICaller write API ====
 describe('APICaller write API test', () => {
     it('newdomain', async function () {
         const apiCaller = new EVT({
-            host: '192.168.1.104',
-            port: '8888',
             keyProvider: [ wif, wif2 ],
             endpoint: network
         });
 
-        var newDomainName = "nd" + (new Date()).valueOf();
+        newDomainName = "nd" + (new Date()).valueOf();
 
         await apiCaller.pushTransaction({
             transaction: {
@@ -190,6 +225,9 @@ describe('APICaller write API test', () => {
                 ]
             }
         });
+
+        let res = await apiCaller.getDomainDetail(newDomainName);
+        assert(res.name === newDomainName, "expected right domain name");
     });
 
     it('issue_tokens', async function () {
