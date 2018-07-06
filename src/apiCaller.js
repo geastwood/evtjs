@@ -64,7 +64,16 @@ class APICaller {
             }
         });
         
-        return (await res.json());
+        let ret = await res.json();
+
+        if (ret && ret.code && ret.message && ret.error) {
+            this.__throwServerResponseError(ret);
+        }
+        if (!ret) {
+            throw new Error("No response or not a valid json from http server");
+        }
+
+        return ret;
     }
 
     /**
@@ -211,7 +220,7 @@ class APICaller {
             sign: false // no need to sign
         });
 
-        if (res && res.name && res.issuer) {
+        if (res && res.name && res.creator) {
             return res;
         }
         else {
@@ -351,6 +360,9 @@ class APICaller {
             };
 
             // use mapper to determine the `domain` and `key` field
+            if (!domainKeyMappers[originalAction.action]) {
+                throw new Error("The action is not supported yet in evtjs");
+            }
             domainKeyMappers[originalAction.action](originalAction, binAction);
 
             // override action
@@ -454,8 +466,6 @@ class APICaller {
     }
 
     __chainGetRequiredKeys(body) {
-        console.log("[__chainGetRequiredKeys] " + JSON.stringify(body, null, 4));
-
         return this.__callAPI({
             url: "/v1/chain/get_required_keys",
             method: "POST",
@@ -485,8 +495,38 @@ const domainKeyMappers = {
         transfered.key = action.args.name;
     },
 
-    'newaccount': (action, transfered) => {
-        transfered.domain = 'account';
+    'updategroup': (action, transfered) => {
+        transfered.domain = 'group';
+        transfered.key = action.args.name;
+    },
+
+    'newfungible': (action, transfered) => {
+        transfered.domain = 'fungible';
+        transfered.key = action.args.sym;
+    },
+
+    'updfungible': (action, transfered) => {
+        transfered.domain = 'fungible';
+        transfered.key = action.args.sym;
+    },
+
+    'issuefungible': (action, transfered) => {
+        transfered.domain = 'fungible';
+        transfered.key = action.args.sym; // TODO
+    },
+
+    'transferft': (action, transfered) => {
+        transfered.domain = 'fungible';
+        transfered.key = action.args.sym; // TODO
+    },
+
+    'transfer': (action, transfered) => {
+        transfered.domain = action.args.domain;
+        transfered.key = action.args.name;
+    },
+
+    'destroytoken': (action, transfered) => {
+        transfered.domain = action.args.domain;
         transfered.key = action.args.name;
     },
 
@@ -590,7 +630,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
 
         const pvts = [], missingKeys = []
 
-        required_keys = pubkeys[0]; // assume that we need only the first key, will be changed in the future TODO
+        // required_keys = pubkeys[0]; // assume that we need only the first key, will be changed in the future TODO
 
         for (let requiredKey of required_keys) {
             // normalize (EOSKey.. => PUB_K1_Key..)

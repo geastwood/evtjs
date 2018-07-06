@@ -70,6 +70,7 @@ module.exports = {
                         var parsedResObj = {
                             json: async function getJSON() {
                                 try {
+                                    console.log("length: " + buf.length + " " + buf.toString('utf8'));
                                     return JSON.parse(buf.toString('utf8'));
                                 }
                                 catch (e) {

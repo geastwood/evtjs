@@ -22,11 +22,11 @@ EvtKey.randomPrivateKey = async function() {
 };
 
 /**
- * Generates a private key for evt in specific seed. Note: for a same seed, the private key will always be the same.
- * @param {*} seed 
+ * Generates a private key for evt in specific seed. Note: The same seed produces the same private key every time. At least 128 random bits should be used to produce a good private key.
+ * @param {string} seed The seed string
  */
 EvtKey.seedPrivateKey = function(seed) {
-    return ecc.seedPrivate(seed)
+    return ecc.seedPrivate(seed);
 }
 
 /**
