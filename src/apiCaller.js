@@ -530,6 +530,16 @@ const domainKeyMappers = {
         transfered.key = action.args.name;
     },
 
+    'evt2pevt': (action, transfered) => {
+        transfered.domain = 'fungible';
+        transfered.key = 'EVT';
+    },
+
+    'addmeta': (action, transfered) => {
+        transfered.domain = 'fungible'; // TODO
+        transfered.key = 'EVT'; // TODO
+    },
+
     'transferevt': (action, transfered) => {
         transfered.domain = 'account';
         transfered.key = action.args.from;
