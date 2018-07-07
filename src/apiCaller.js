@@ -1,10 +1,9 @@
-const ecc = require('eosjs-ecc');
-const { signHash, verifyHash } = ecc;
-const AbiCache = require('./abi-cache');
-const AssetCache = require('./asset-cache');
+const ecc = require("eosjs-ecc");
+const { signHash } = ecc;
 const EvtConfig = require("./evtConfig");
 const { fetch } = require("./fetch");
-const ByteBuffer = require('bytebuffer')
+const ByteBuffer = require("bytebuffer");
+const EvtAction = require("./action");
 
 /**
  * APICaller for everiToken
@@ -16,7 +15,7 @@ class APICaller {
      */
     constructor(config) {
         config = config || new EvtConfig();
-        if (typeof config == 'object' && config != null && !(config instanceof EvtConfig)) {
+        if (typeof config == "object" && config != null && !(config instanceof EvtConfig)) {
             config = new EvtConfig(config);
         }
 
@@ -42,11 +41,11 @@ class APICaller {
 
         if (request.sign && request.__fixedSignature) {
             // add signature
-            const signBuf = Buffer.from('2800f0f3f88ce2b4a8c6ce4c20a91f5a7e3647fa73894e9d2bc4cc61b6bda1be', 'hex');
+            const signBuf = Buffer.from("2800f0f3f88ce2b4a8c6ce4c20a91f5a7e3647fa73894e9d2bc4cc61b6bda1be", "hex");
             let sigs = await this.__signTransaction(signBuf, request.body || { }, request.__fixedKeyToUse);
 
             if (!Array.isArray(sigs)) {
-                sigs = [ sigs ]
+                sigs = [ sigs ];
             }
             
             request.body = request.body || { };
@@ -60,13 +59,14 @@ class APICaller {
             method: request.method,
             body: request.body ? JSON.stringify(request.body) : undefined,
             headers: {
-                'Content-Type': 'application/json'
+                "Content-Type": "application/json"
             }
         });
         
         let ret = await res.json();
 
         if (ret && ret.code && ret.message && ret.error) {
+            //console.error("————————request sent: " + JSON.stringify(request, null, 4));
             this.__throwServerResponseError(ret);
         }
         if (!ret) {
@@ -88,7 +88,7 @@ class APICaller {
         this.__cachedInfo = info;
 
         // check version of remote net
-        if (!info.evt_api_version.startsWith('2.')) {
+        if (!info.evt_api_version.startsWith("2.")) {
             throw new Error("The API version of remote net is not compatible with current evtjs's version.");
         }
 
@@ -110,7 +110,7 @@ class APICaller {
         });
 
         if (Array.isArray(res)) {
-            return res.map(x => { return { name: x } });
+            return res.map(x => { return { name: x }; });
         }
         else {
             this.__throwServerResponseError(res);
@@ -132,7 +132,7 @@ class APICaller {
         });
 
         if (Array.isArray(res)) {
-            return res.map(x => { return { name: x } });
+            return res.map(x => { return { name: x }; });
         }
         else {
             this.__throwServerResponseError(res);
@@ -154,7 +154,7 @@ class APICaller {
         });
 
         if (Array.isArray(res)) {
-            return res.map(x => { return { name: x.substr(x.lastIndexOf('-') + 1), domain: x.substr(0, x.lastIndexOf('-')) } })
+            return res.map(x => { return { name: x.substr(x.lastIndexOf("-") + 1), domain: x.substr(0, x.lastIndexOf("-")) }; });
         }
         else {
             this.__throwServerResponseError(res);
@@ -166,7 +166,7 @@ class APICaller {
      * @param {*} params
      */
     async getActionsOfDomains(params) {
-        if (typeof params !== 'object') throw new Error("invalid params");
+        if (typeof params !== "object") throw new Error("invalid params");
         if (!params || !params.domain) throw new Error("invalid params: domain is required");
 
         let res = await this.__callAPI({
@@ -189,7 +189,7 @@ class APICaller {
      * @param {*} id the id of the transaction
      */
     async getTransactionDetailById(id) {
-        if (typeof id !== 'string' || !id) throw new Error("invalid transaction id");
+        if (typeof id !== "string" || !id) throw new Error("invalid transaction id");
 
         let res = await this.__callAPI({
             url: "/v1/history/get_transaction",
@@ -211,7 +211,7 @@ class APICaller {
      * @param {*} name the name of the domain
      */
     async getDomainDetail(name) {
-        if (typeof name !== 'string' || !name) throw new Error("invalid domain name");
+        if (typeof name !== "string" || !name) throw new Error("invalid domain name");
 
         let res = await this.__callAPI({
             url: "/v1/evt/get_domain",
@@ -233,7 +233,7 @@ class APICaller {
      * @param {*} name the name of the group
      */
     async getGroupDetail(name) {
-        if (typeof name !== 'string' || !name) throw new Error("invalid group name");
+        if (typeof name !== "string" || !name) throw new Error("invalid group name");
 
         let res = await this.__callAPI({
             url: "/v1/evt/get_group",
@@ -291,7 +291,7 @@ class APICaller {
      * @param {*} name the name of the fungible symbol you want to query
      */
     async getFungibleSymbolDetail(name) {
-        if (typeof name !== 'string' || !name) throw new Error("invalid fungible name");
+        if (typeof name !== "string" || !name) throw new Error("invalid fungible name");
 
         let res = await this.__callAPI({
             url: "/v1/evt/get_fungible",
@@ -318,12 +318,10 @@ class APICaller {
         err.serverError = res.error;
         err.serverMessage = res.message;
 
-        console.log(res);
-
         throw err;
     }
 
-    async __fixedSignatureCall(args, fixedDataToSign = 'everiWallet', fixedKeyToUse = null) {
+    async __fixedSignatureCall(args, fixedDataToSign = "everiWallet", fixedKeyToUse = null) {
         args.__fixedSignature = fixedDataToSign;
         args.__fixedKeyToUse = fixedKeyToUse;
 
@@ -332,9 +330,18 @@ class APICaller {
 
     /**
      * push transaction to everiToken chain
-     * @param {Object} params arguments to use for pushing 
+     * @param {any[]} actions actions in the transaction
      */
-    async pushTransaction(params) {
+    async pushTransaction(...actions) {
+        if (!Array.isArray(actions)) {
+            actions = [ actions ];
+        }
+
+        let params = {
+            transaction: {
+                actions: actions
+            }
+        };
         // check arguments
         if (!params.transaction) {
             throw new Error("invalid format of params: no transaction field");
@@ -343,28 +350,31 @@ class APICaller {
         params.sign = params.sign !== false ? true : false;
 
         // building the body of the request
-        let body = { transaction: JSON.parse(JSON.stringify(params.transaction)) };
+        let body = { transaction: params.transaction };
 
         // make sure that it there is basic information about the chain
         if (!this.__cachedInfo) {
             await this.getInfo();
         }
 
+        //console.log("body:______" + JSON.stringify(body, null, 4));
+
         for (let i = 0; i < body.transaction.actions.length; ++i) {
+            if (!(body.transaction.actions[i] instanceof EvtAction)) {
+                body.transaction.actions[i] = new EvtAction(body.transaction.actions[i].action, body.transaction.actions[i].args);
+            }
+
+            /** @type {EvtAction} */
             let originalAction = body.transaction.actions[i];
 
             // create binary action for push_transaction
             let binAction = {
-                name: originalAction.action,
-                data: (await this.__chainAbiJsonToBin(originalAction)).binargs
+                name: originalAction.actionName,
+                data: (await this.__chainAbiJsonToBin({ action: originalAction.actionName, args: originalAction.abi })).binargs,
+                domain: originalAction.domain,
+                key: originalAction.key
             };
-
-            // use mapper to determine the `domain` and `key` field
-            if (!domainKeyMappers[originalAction.action]) {
-                throw new Error("The action is not supported yet in evtjs");
-            }
-            domainKeyMappers[originalAction.action](originalAction, binAction);
-
+            
             // override action
             body.transaction.actions[i] = binAction;
         }
@@ -379,7 +389,7 @@ class APICaller {
         last_irreversible_block_prefix = hash.readUInt32(8);
 
         body = Object.assign(body, {
-            compression: 'none'
+            compression: "none"
         });
 
         body.transaction = Object.assign(body.transaction, {
@@ -395,11 +405,11 @@ class APICaller {
             let digestRes = (await this.__getDigestToSign(body.transaction)).digest;
 
             // sign
-            const signBuf = new Buffer(digestRes, 'hex');
+            const signBuf = new Buffer(digestRes, "hex");
             let sigs = await this.__signTransaction(signBuf, body.transaction);
 
             if (!Array.isArray(sigs)) {
-                sigs = [ sigs ]
+                sigs = [ sigs ];
             }
             
             body.signatures = sigs;
@@ -409,7 +419,8 @@ class APICaller {
         var res = await this.__chainPushTransaction(body);
 
         // check if it is successful
-        if (res && res.processed && res.processed.receipt && res.processed.receipt.status === 'executed') {
+        if (res && res.processed && res.processed.receipt && res.processed.receipt.status === "executed") {
+            console.log(res);
             return true;
         }
         else {
@@ -434,7 +445,6 @@ class APICaller {
             return ret;
         }
 
-        console.log(abi);
         this.__throwServerResponseError(ret);
     }
 
@@ -453,11 +463,11 @@ class APICaller {
             return ret;
         }
 
-        console.log(transaction);
         this.__throwServerResponseError(ret);
     }
 
     __chainPushTransaction(tr) {
+        // console.log("___push_:::" + JSON.stringify(tr, null, 4));
         return this.__callAPI({
             url: "/v1/chain/push_transaction",
             method: "POST",
@@ -474,78 +484,6 @@ class APICaller {
     }
 }
 
-const domainKeyMappers = {
-    'newdomain': (action, transfered) => {
-        transfered.domain = action.args.name;
-        transfered.key = ".create";
-    },
-
-    'updatedomain': (action, transfered) => {
-        transfered.domain = action.args.name;
-        transfered.key = ".update";
-    },
-
-    'issuetoken': (action, transfered) => {
-        transfered.domain = action.args.domain;
-        transfered.key = ".issue";
-    },
-
-    'newgroup': (action, transfered) => {
-        transfered.domain = 'group';
-        transfered.key = action.args.name;
-    },
-
-    'updategroup': (action, transfered) => {
-        transfered.domain = 'group';
-        transfered.key = action.args.name;
-    },
-
-    'newfungible': (action, transfered) => {
-        transfered.domain = 'fungible';
-        transfered.key = action.args.sym;
-    },
-
-    'updfungible': (action, transfered) => {
-        transfered.domain = 'fungible';
-        transfered.key = action.args.sym;
-    },
-
-    'issuefungible': (action, transfered) => {
-        transfered.domain = 'fungible';
-        transfered.key = action.args.sym; // TODO
-    },
-
-    'transferft': (action, transfered) => {
-        transfered.domain = 'fungible';
-        transfered.key = action.args.sym; // TODO
-    },
-
-    'transfer': (action, transfered) => {
-        transfered.domain = action.args.domain;
-        transfered.key = action.args.name;
-    },
-
-    'destroytoken': (action, transfered) => {
-        transfered.domain = action.args.domain;
-        transfered.key = action.args.name;
-    },
-
-    'evt2pevt': (action, transfered) => {
-        transfered.domain = 'fungible';
-        transfered.key = 'EVT';
-    },
-
-    'addmeta': (action, transfered) => {
-        transfered.domain = 'fungible'; // TODO
-        transfered.key = 'EVT'; // TODO
-    },
-
-    'transferevt': (action, transfered) => {
-        transfered.domain = 'account';
-        transfered.key = action.args.from;
-    }
-};
-
 /**
   The default sign provider is designed to interact with the available public
   keys (maybe just one), the transaction, and the blockchain to figure out
@@ -555,64 +493,64 @@ const domainKeyMappers = {
   key is used to sign the transaction.
 */
 const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, transaction, keyToUse }) {
-    const { keyProvider } = config
+    const { keyProvider } = config;
 
     if (!keyProvider) {
         // console.log("config" + JSON.stringify(config, null, 4));
-        throw new TypeError('This transaction requires a config.keyProvider for signing')
+        throw new TypeError("This transaction requires a config.keyProvider for signing");
     }
 
-    let keys = keyProvider
-    if (typeof keyProvider === 'function') {
-        keys = keyProvider({ transaction })
+    let keys = keyProvider;
+    if (typeof keyProvider === "function") {
+        keys = keyProvider({ transaction });
     }
 
     // keyProvider may return keys or Promise<keys>
-    keys = await Promise.resolve(keys)
+    keys = await Promise.resolve(keys);
 
     if (!Array.isArray(keys)) {
-        keys = [ keys ]
+        keys = [ keys ];
     }
 
     keys = keys.map(key => {
         try {
             // normalize format (WIF => PVT_K1_base58privateKey)
-            return { private: ecc.PrivateKey(key).toString() }
+            return { private: ecc.PrivateKey(key).toString() };
         } catch (e) {
             // normalize format (EOSKey => PUB_K1_base58publicKey)
-            return { public: ecc.PublicKey(key).toString() }
+            return { public: ecc.PublicKey(key).toString() };
         }
-        assert(false, 'expecting public or private keys from keyProvider')
-    })
+        assert(false, "expecting public or private keys from keyProvider");
+    });
 
     if (!keys.length) {
-        throw new Error('missing key, check your keyProvider')
+        throw new Error("missing key, check your keyProvider");
     }
 
 
     // simplify default signing #17
     if (keys.length === 1 && keys[0].private) {
-        const pvt = keys[0].private
-        var ret = signHash(buf, pvt)
+        const pvt = keys[0].private;
+        var ret = signHash(buf, pvt);
         
         return ret;
     }
 
-    const keyMap = new Map()
+    const keyMap = new Map();
 
     // keys are either public or private keys
     for (const key of keys) {
-        const isPrivate = key.private != null
-        const isPublic = key.public != null
+        const isPrivate = key.private != null;
+        const isPublic = key.public != null;
 
         if (isPrivate) {
-            keyMap.set(ecc.privateToPublic(key.private), key.private)
+            keyMap.set(ecc.privateToPublic(key.private), key.private);
         } else {
-            keyMap.set(key.public, null)
+            keyMap.set(key.public, null);
         }
     }
 
-    const pubkeys = Array.from(keyMap.keys())
+    const pubkeys = Array.from(keyMap.keys());
 
     if (keyToUse) {
         const pvt = keyMap[keyToUse];
@@ -638,38 +576,38 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
             throw new Error('missing required keys for ' + JSON.stringify(transaction))
         }*/
 
-        const pvts = [], missingKeys = []
+    const pvts = [], missingKeys = [];
 
-        // required_keys = pubkeys[0]; // assume that we need only the first key, will be changed in the future TODO
+    // required_keys = pubkeys[0]; // assume that we need only the first key, will be changed in the future TODO
 
-        for (let requiredKey of required_keys) {
-            // normalize (EOSKey.. => PUB_K1_Key..)
-            requiredKey = ecc.PublicKey(requiredKey).toString()
+    for (let requiredKey of required_keys) {
+        // normalize (EOSKey.. => PUB_K1_Key..)
+        requiredKey = ecc.PublicKey(requiredKey).toString();
 
-            const wif = keyMap.get(requiredKey)
-            if (wif) {
-                pvts.push(wif)
-            } else {
-                missingKeys.push(requiredKey)
-            }
+        const wif = keyMap.get(requiredKey);
+        if (wif) {
+            pvts.push(wif);
+        } else {
+            missingKeys.push(requiredKey);
         }
+    }
 
-        if (missingKeys.length !== 0) {
-            assert(typeof keyProvider === 'function',
-                'keyProvider function is needed for private key lookup')
+    if (missingKeys.length !== 0) {
+        assert(typeof keyProvider === "function",
+            "keyProvider function is needed for private key lookup");
 
-            // const pubkeys = missingKeys.map(key => ecc.PublicKey(key).toStringLegacy())
-            keyProvider({ pubkeys: missingKeys })
-                .forEach(pvt => { pvts.push(pvt) })
-        }
+        // const pubkeys = missingKeys.map(key => ecc.PublicKey(key).toStringLegacy())
+        keyProvider({ pubkeys: missingKeys })
+            .forEach(pvt => { pvts.push(pvt); });
+    }
 
-        const sigs = []
-        for (const pvt of pvts) {
-            sigs.push(signHash(buf, pvt))
-        }
+    const sigs = [];
+    for (const pvt of pvts) {
+        sigs.push(signHash(buf, pvt));
+    }
 
-        return sigs
+    return sigs;
     //})
-}
+};
 
 module.exports = { APICaller };

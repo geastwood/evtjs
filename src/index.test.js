@@ -1,14 +1,10 @@
 /* eslint-env mocha */
-const assert = require('assert')
-const fs = require('fs')
-const EVT = require('.')
-const { Keystore } = require('eosjs-keygen')
-const ByteBuffer = require('bytebuffer')
-const Fcbuffer = require('fcbuffer')
-const Key = require("./key")
+const assert = require("assert");
+const EVT = require(".");
+const Key = require("./key");
 
-const wif = '5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ'
-const wif2 = '5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i'
+const wif = "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ";
+const wif2 = "5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i";
 const publicKey = EVT.EvtKey.privateToPublic(wif);
 
 const testingTmpData = {
@@ -17,52 +13,47 @@ const testingTmpData = {
 };
 
 const network = {
-    host: 'testnet1.everitoken.io',
+    host: "testnet1.everitoken.io",
     port: 8888,
-    protocol: 'https'
+    protocol: "https"
 };
 
 // ==== part 1: version ====
-describe('version', () => {
-    it('exposes a version number', () => {
-        assert.ok(EVT.version)
-    })
+describe("version", () => {
+    it("exposes a version number", () => {
+        assert.ok(EVT.version);
+    });
 });
 
 // ==== part 2: EvtKey ====
-describe('EvtKey', () => {
-    it('test ecc key generation', async () => {
+describe("EvtKey", () => {
+    it("test ecc key generation", async () => {
         let key = await EVT.EvtKey.randomPrivateKey();
         let publicKey = EVT.EvtKey.privateToPublic(key);
 
         assert(publicKey.startsWith("EVT"), "expected publicKey starting with EVT");
-    })
+    });
 
-    it('test seed key generation', async () => {
+    it("test seed key generation", async () => {
         let key = await EVT.EvtKey.seedPrivateKey("seed");
         let publicKey = EVT.EvtKey.privateToPublic(key);
 
-        assert(key === '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D');
-        assert(publicKey === 'EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND');
-    })
+        assert(key === "5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D");
+        assert(publicKey === "EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND");
+    });
 
-    it('test validKey', async () => {
-        assert(EVT.EvtKey.isValidPrivateKey('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D'), 'should be a valid private');
-        assert(!EVT.EvtKey.isValidPrivateKey('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER7XsAR2eCcpt3D'), 'should not be a valid private');
-        assert(EVT.EvtKey.isValidPublicKey('EVT76uLwUD5t6fkob9Rbc9UxHgdTVshNceyv2hmppw4d82j2zYRpa'), 'should be a valid public');
-        assert(!EVT.EvtKey.isValidPublicKey('EOS6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND'), 'should not be a valid public');
-        assert(!EVT.EvtKey.isValidPublicKey('EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDWFRvsv2FxgND'), 'should not be a valid public');
-    })
-})
-
-const randomName = () => {
-    const name = String(Math.round(Math.random() * 1000000000)).replace(/[0,6-9]/g, '')
-    return 'a' + name + '111222333444'.substring(0, 11 - name.length) // always 12 in length
-}
+    it("test validKey", async () => {
+        assert(EVT.EvtKey.isValidPrivateKey("5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D"), "should be a valid private");
+        assert(!EVT.EvtKey.isValidPrivateKey("5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER7XsAR2eCcpt3D"), "should not be a valid private");
+        assert(EVT.EvtKey.isValidPublicKey("EVT76uLwUD5t6fkob9Rbc9UxHgdTVshNceyv2hmppw4d82j2zYRpa"), "should be a valid public");
+        assert(!EVT.EvtKey.isValidPublicKey("EOS6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND"), "should not be a valid public");
+        assert(!EVT.EvtKey.isValidPublicKey("EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDWFRvsv2FxgND"), "should not be a valid public");
+    });
+}); 
 
 // ==== part 3: APICaller write API ====
-describe('APICaller write API test', () => {
-    it('newdomain', async function () {
+describe("APICaller write API test", () => {
+    it("newdomain", async function () {
         const apiCaller = new EVT({
             keyProvider: [ wif, wif2 ],
             endpoint: network
@@ -71,40 +62,34 @@ describe('APICaller write API test', () => {
         testingTmpData.newDomainName = "nd" + (new Date()).valueOf();
 
         await apiCaller.pushTransaction({
-            transaction: {
-                actions: [
-                    {
-                        "action": "newdomain",
-                        "args": {
-                            "name": testingTmpData.newDomainName,
-                            "creator": publicKey,
-                            "issue": {
-                                "name": "issue",
-                                "threshold": 1,
-                                "authorizers": [{
-                                    "ref": "[A] " + publicKey,
-                                    "weight": 1
-                                }]
-                            },
-                            "transfer": {
-                                "name": "transfer",
-                                "threshold": 1,
-                                "authorizers": [{
-                                    "ref": "[G] OWNER",
-                                    "weight": 1
-                                }]
-                            },
-                            "manage": {
-                                "name": "manage",
-                                "threshold": 1,
-                                "authorizers": [{
-                                    "ref": "[A] " + publicKey,
-                                    "weight": 1
-                                }]
-                            }
-                        }
-                    }
-                ]
+            "action": "newdomain",
+            "args": {
+                "name": testingTmpData.newDomainName,
+                "creator": publicKey,
+                "issue": {
+                    "name": "issue",
+                    "threshold": 1,
+                    "authorizers": [{
+                        "ref": "[A] " + publicKey,
+                        "weight": 1
+                    }]
+                },
+                "transfer": {
+                    "name": "transfer",
+                    "threshold": 1,
+                    "authorizers": [{
+                        "ref": "[G] OWNER",
+                        "weight": 1
+                    }]
+                },
+                "manage": {
+                    "name": "manage",
+                    "threshold": 1,
+                    "authorizers": [{
+                        "ref": "[A] " + publicKey,
+                        "weight": 1
+                    }]
+                }
             }
         });
 
@@ -112,10 +97,10 @@ describe('APICaller write API test', () => {
         assert(res.name === testingTmpData.newDomainName, "expected right domain name");
     });
 
-    it('issue_tokens', async function () {
+    it("issue_tokens", async function () {
         const apiCaller = new EVT({
-            host: '192.168.1.104',
-            port: '8888',
+            host: "192.168.1.104",
+            port: "8888",
             keyProvider: [ wif, wif2 ],
             endpoint: network
         });
@@ -123,99 +108,115 @@ describe('APICaller write API test', () => {
         testingTmpData.addedTokenNamePrefix = "tk" + ((new Date()).valueOf() / 500);
 
         await apiCaller.pushTransaction({
-            transaction: {
-                actions: [
-                    {
-                        "action": "issuetoken",
-                        "args": {
-                            "domain": testingTmpData.newDomainName,
-                            "names": [
-                                testingTmpData.addedTokenNamePrefix + "1",
-                                testingTmpData.addedTokenNamePrefix + "2",
-                                testingTmpData.addedTokenNamePrefix + "3"
-                            ],
-                            "owner": [
-                                Key.privateToPublic(wif)
-                            ]
-                        }
-                    }
+            "action": "issuetoken",
+            "args": {
+                "domain": testingTmpData.newDomainName,
+                "names": [
+                    testingTmpData.addedTokenNamePrefix + "1",
+                    testingTmpData.addedTokenNamePrefix + "2",
+                    testingTmpData.addedTokenNamePrefix + "3"
+                ],
+                "owner": [
+                    Key.privateToPublic(wif)
                 ]
             }
         });
     });
 
-    it('new_group', async function () {
+    it("new_group", async function () {
         const apiCaller = new EVT({
-            host: '192.168.1.104',
-            port: '8888',
             keyProvider: wif,
             endpoint: network
         });
 
-        try {
-            await apiCaller.pushTransaction({
-                transaction: {
-                    actions: [
-                        {
-                            "action": "newgroup",
-                            "args": {
-                                "name": "testgroup",
-                                "group": {
-                                    "name": "testgroup",
-                                    "key": Key.privateToPublic(wif),
-                                    "root": {
-                                        "threshold": 6,
-                                        "weight": 0,
-                                        "nodes": [
-                                            {
-                                                "threshold": 1,
-                                                "weight": 3,
-                                                "nodes": [
-                                                    {
-                                                        "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
-                                                        "weight": 1
-                                                    },
-                                                    {
-                                                        "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
-                                                        "weight": 1
-                                                    }
-                                                ]
-                                            },
-                                            {
-                                                "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
-                                                "weight": 3
-                                            },
-                                            {
-                                                "threshold": 1,
-                                                "weight": 3,
-                                                "nodes": [
-                                                    {
-                                                        "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
-                                                        "weight": 1
-                                                    },
-                                                    {
-                                                        "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
-                                                        "weight": 1
-                                                    }
-                                                ]
-                                            }
-                                        ]
+        testingTmpData.newGroupName = "g" + parseInt((new Date()).valueOf() / 5000);
+
+        await apiCaller.pushTransaction({
+            "action": "newgroup",
+            "args": {
+                "name": testingTmpData.newGroupName,
+                "group": {
+                    "name": testingTmpData.newGroupName,
+                    "key": Key.privateToPublic(wif),
+                    "root": {
+                        "threshold": 6,
+                        "weight": 0,
+                        "nodes": [
+                            {
+                                "threshold": 1,
+                                "weight": 3,
+                                "nodes": [
+                                    {
+                                        "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                                        "weight": 1
+                                    },
+                                    {
+                                        "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                                        "weight": 1
                                     }
-                                }
+                                ]
+                            },
+                            {
+                                "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                                "weight": 3
+                            },
+                            {
+                                "threshold": 1,
+                                "weight": 3,
+                                "nodes": [
+                                    {
+                                        "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                                        "weight": 1
+                                    },
+                                    {
+                                        "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                                        "weight": 1
+                                    }
+                                ]
                             }
-                        }
-                    ]
+                        ]
+                    }
                 }
-            });
+            }
+        });
+    });
+
+    it("new_fungible", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        function randomString() {
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXTZ";
+            var string_length = 6;
+            var randomstring = "";
+            for (var i=0; i<string_length; i++) {
+                var rnum = Math.floor(Math.random() * chars.length);
+                randomstring += chars.substring(rnum,rnum+1);
+            }
+            
+            return randomstring;
         }
-        catch (e) { }
+
+        testingTmpData.newSymbol = randomString();
+
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("newfungible", {
+                sym: "5," + testingTmpData.newSymbol,
+                creator: publicKey,
+                issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
+                manage: { name: "manage", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
+                total_supply: "100000.00000 " + testingTmpData.newSymbol
+            }, "fungible", testingTmpData.newSymbol)
+        );
     });
 });
 
 // ==== part 3: APICaller read API ====
-describe('APICaller read API test', () => {
+describe("APICaller read API test", () => {
     // get evt chain version
-    it('getInfo', async function () {
+    it("getInfo", async function () {
         const apiCaller = EVT({
             endpoint: network
         });
@@ -229,7 +230,7 @@ describe('APICaller read API test', () => {
         assert(response.chain_id, "expected chain_id");
     });
 
-    it('getCreatedDomains', async function () {
+    it("getCreatedDomains", async function () {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
@@ -240,7 +241,7 @@ describe('APICaller read API test', () => {
         // TODO must have data (after creating domains)
     });
 
-    it('getManagedGroups', async () => {
+    it("getManagedGroups", async () => {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
@@ -251,7 +252,7 @@ describe('APICaller read API test', () => {
         // TODO must have data (after creating groups)
     });
 
-    it('getOwnedTokens', async () => {
+    it("getOwnedTokens", async () => {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
@@ -262,7 +263,7 @@ describe('APICaller read API test', () => {
         // TODO must have data (after having tokens)
     });
 
-    it('getActionsOfDomains', async () => {
+    it("getActionsOfDomains", async () => {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
@@ -276,7 +277,7 @@ describe('APICaller read API test', () => {
         assert(Array.isArray(response), "expected array");
     });
 
-    it('getTransactionDetailById', async () => {
+    it("getTransactionDetailById", async () => {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
@@ -287,7 +288,7 @@ describe('APICaller read API test', () => {
         // TODO must have data (after creating transactions)
     });
 
-    it('getTransactionsDetailOfPublicKeys', async () => {
+    it("getTransactionsDetailOfPublicKeys", async () => {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
@@ -298,38 +299,38 @@ describe('APICaller read API test', () => {
         // TODO must have data (after creating transactions)
     });
 
-    it('getFungibleSymbolDetail', async () => {
+    it("getFungibleSymbolDetail", async () => {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
         });
 
-        var response = await apiCaller.getFungibleSymbolDetail('EVT');
-        console.log(response);
+        var response = await apiCaller.getFungibleSymbolDetail("EVT");
+        //console.log(response);
         assert(Array.isArray(response), "expected array");
         // TODO must have data (after creating symbol)
     });
 
-    it('getDomainDetail', async () => {
+    it("getDomainDetail", async () => {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
         });
 
-        var response = await apiCaller.getDomainDetail('EVT');
-        console.log(response);
+        var response = await apiCaller.getDomainDetail("EVT");
+        //console.log(response);
         assert(response && response.issuer, "expected response");
         // TODO must have data (after creating symbol)
     });
 
-    it('getGroupDetail', async () => {
+    it("getGroupDetail", async () => {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
         });
 
-        var response = await apiCaller.getGroupDetail('testgroup');
-        console.log(response);
+        var response = await apiCaller.getGroupDetail("testgroup");
+        //console.log(response);
         assert(response && response.root, "expected response");
         // TODO must have data (after creating symbol)
     });

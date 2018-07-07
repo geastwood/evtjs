@@ -13,14 +13,15 @@ try {
     require("babel-polyfill");
 }
 catch(e) {
-    if(e.message.indexOf('only one instance of babel-polyfill is allowed') === -1) {
-        console.error(e)
+    if(e.message.indexOf("only one instance of babel-polyfill is allowed") === -1) {
+        console.error(e);
     }
 }
-const pkg = require('../package.json');
+const pkg = require("../package.json");
 const { APICaller } = require("./apiCaller");
 const EvtConfig = require("./evtConfig");
 const EvtKey = require("./key");
+const EvtAction = require("./action");
 
 // Global EVT Object for exporting
 let EVT = function(config) {
@@ -31,7 +32,8 @@ EVT = Object.assign(EVT, {
     version: pkg.version,
     APICaller,
     EvtConfig,
-    EvtKey
+    EvtKey,
+    EvtAction
 });
 
 module.exports = EVT;

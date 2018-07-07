@@ -1,6 +1,6 @@
-const Structs = require('./structs');
+const Structs = require("./structs");
 
-structs = Structs({ });
+let structs = Structs({ });
 console.log(structs);
 
 let trans = {
