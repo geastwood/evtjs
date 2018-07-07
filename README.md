@@ -3,17 +3,25 @@
 General purpose API Binding for the everiToken blockchain. Supports `node` and `browser`.
 
 ## Install
-Using `npm`:
+For NodeJS, use `npm`:
 
 ```bash
-npm install evtjs
+npm install evtjs --save
 ```
 
-Using `yarn`:
+Or use `yarn`:
 
 ```bash
 yarn add evtjs
 ```
+
+For browser, you may download the source code and compile it for browsers in the root directory:
+
+```js
+npm run build_browser
+```
+
+Then you'll find produced `evt.js` in `dist` folder.
 
 You can also download our release package and reference it to use the library in browser.
 
@@ -21,12 +29,12 @@ You can also download our release package and reference it to use the library in
 ```js
 // set network endpoint
 const network = {
-    host: 'testnet1.everitoken.io', // For everiToken Aurora 1.0
+    host: 'testnet1.everitoken.io', // For everiToken Aurora 2.0
     port: 8888,                     // defaults to 8888
     protocol: 'https'               // the TestNet of everiToken uses SSL
 };
 
-// get apicaller instance
+// get APICaller instance
 const apiCaller = EVT({
     // keyProvider should be string of private key (aka. wit, can generate from everiSigner)
     // you can also pass a function that return that string (or even Promise<string> for a async function)
@@ -36,14 +44,16 @@ const apiCaller = EVT({
 
 // call API
 var response = await apiCaller.getInfo();
-// or
+
+// or if `await` is supported in current environment
 apiCaller.getInfo()
-.then(res => {
-    // TODO
-})
-.catch((e) => {
-    // TODO
-});
+    .then(res => {
+        // TODO
+    })
+    .catch((e) => {
+        // TODO
+    });
+
 ```
 
 ## EvtKey Usage
@@ -86,11 +96,55 @@ You can also use `isValidPrivateKey` or `isValidPublicKey` to check a key.
 
 ## APICaller Usage
 
-For detail, see unit test in `index.test.js`.
+### Initialization
 
 Before calling APICaller, you must initialize a instance of APICaller and pass a `keyProvider` for it. You can use `EvtKey` to generate a valid one.
 
-### getInfo
+A APICaller object could be created like this:
+
+```js
+// get APICaller instance
+var apiCaller = EVT(args);
+```
+
+#### Parameters
+
+- `args`: a object, the following fields are required:
+  - `keyProvider`: keyProvider should be string representing private key, or a function which returns the private key or a `Promise` that will resolves with the private key for a async function
+  - `endpoint`: a object to specify the endpoint of the node to be connected
+
+Here are several example of `keyProvider`:
+
+```js
+// keyProvider is the private key
+let keyProvider = '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D';
+
+// keyProvider is a function
+let keyProvider = function() {
+    return '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D';
+}
+
+// keyProvider is a async function
+let keyProvider = function() {
+    return new Promise((res, rej) => {
+        res('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D');
+    });
+}
+```
+
+A example of `endpoint`:
+
+```js
+// endpoint is a object
+// example: 
+let endpoint = {
+    host: 'testnet1.everitoken.io', // For everiToken Aurora 2.0
+    port: 8888,                     // defaults to 8888
+    protocol: 'https'               // the TestNet of everiToken uses SSL
+};
+```
+
+### getInfo()
 
 get basic information from block chain.
 
@@ -98,7 +152,7 @@ get basic information from block chain.
 let info = await apiCaller.getInfo();
 ```
 
-Sample value of `info`:
+#### Example Response
 
 ```json
 {
@@ -124,15 +178,17 @@ Some important return values are as follow:
 
 - `head_block_*` and `last_irreversible_block_*`: Represents information for last block / last irreversible block. This is used by other calls automatically by the library.
 
-### getOwnedTokens
+### getOwnedTokens(publicKeys)
 
-Get the list of tokens which is owned by the signer's public key.
+Get the list of tokens which is owned by `publicKeys`.
 
-```js
-let info = await apiCaller.getOwnedTokens();
-```
+> Make sure you have history_plugin enabled on connected node
 
-Sample value of `info`:
+#### Parameters
+
+- `publicKey`: a array or a single value which represents public keys you want to query
+
+#### Example Response
 
 ```json
 [
