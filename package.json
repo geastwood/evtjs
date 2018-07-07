@@ -40,7 +40,7 @@
     "coveralls": "^3.0.0",
     "eosjs-keygen": "^1.2.0",
     "jsdoc-to-markdown": "^3.0.4",
-    "mocha": "^3.4.2",
+    "mocha": "^5.2.0",
     "nyc": "^11.4.1"
   },
   "dependencies": {
