@@ -260,13 +260,13 @@ describe("APICaller read API test", () => {
         // TODO must have data (after having tokens)
     });
 
-    it("getActionsOfDomains", async () => {
+    it("getActions", async () => {
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: wif
         });
 
-        var response = await apiCaller.getActionsOfDomains({
+        var response = await apiCaller.getActions({
             domain: testingTmpData.newDomainName,
             skip: 0,
             take: 10

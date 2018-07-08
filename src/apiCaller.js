@@ -165,7 +165,7 @@ class APICaller {
      * Query actions by domain, key and action names. Make sure you have history_plugin enabled on the chain node
      * @param {*} params
      */
-    async getActionsOfDomains(params) {
+    async getActions(params) {
         if (typeof params !== "object") throw new Error("invalid params");
         if (!params || !params.domain) throw new Error("invalid params: domain is required");
 

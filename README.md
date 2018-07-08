@@ -227,6 +227,84 @@ A example:
 ]
 ```
 
+### getCreatedDomains(publicKeys)
+
+Get the list of domains which is created by `publicKeys`.
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `publicKey`: a array or a single value which represents public keys you want to query
+
+#### Response
+
+The response is a array representing the list of domains created by public keys provided. Each domain is identified by the `name`.
+
+A example:
+
+```json
+[
+    {
+        "name": "testdomain"
+    }
+]
+```
+
+### getActions(params)
+
+Get the list of actions. Supports filtering by `domain`, `key`, and `action name`.
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `params`: a object with the follow members:
+  - `domain`: The domain to filter the result. It is required. Some special domains are supported, such as `fungible`
+  - `key`: The key to filter the result. The value of it is the same as you provided one in `pushTransaction`. Optional.
+  - `names`: A array to filter the action name. Optional.
+  - `skip`: The count to skip in the result. This is for paging.
+  - `take`: The count to take after skipping. This is for paging.
+
+#### Response
+
+The response is a array representing the list of actions.
+
+A example:
+
+```json
+[{
+    "name": "newfungible",
+    "domain": "fungible",
+    "key": "EVT",
+    "trx_id": "f0c789933e2b381e88281e8d8e750b561a4d447725fb0eb621f07f219fe2f738",
+    "data": {
+      "sym": "5,EVT",
+      "creator": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+      "issue": {
+        "name": "issue",
+        "threshold": 1,
+        "authorizers": [{
+            "ref": "[A] EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+            "weight": 1
+          }
+        ]
+      },
+      "manage": {
+        "name": "manage",
+        "threshold": 1,
+        "authorizers": [{
+            "ref": "[A] EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+            "weight": 1
+          }
+        ]
+      },
+      "total_supply": "100000.00000 EVT"
+    }
+  }
+]
+```
+
 ### pushTransaction(...actions)
 
 Push a `transaction` to the chain. A `transaction` is composed of some `actions`. Generally a `action` is a interface to a writable API. Almost all the writable API are wrapped in transactions.
@@ -235,10 +313,10 @@ Push a `transaction` to the chain. A `transaction` is composed of some `actions`
 
 ```js
 apiCaller.pushTransaction(
-    EVT.EvtAction(....), // the first action
-    EVT.EvtAction(....), // the second action
-    EVT.EvtAction(....), // the third action
-    EVT.EvtAction(....), // other actions
+    new EVT.EvtAction(....), // the first action
+    new EVT.EvtAction(....), // the second action
+    new EVT.EvtAction(....), // the third action
+    new EVT.EvtAction(....), // other actions
     ....                 // as more as you want
 );
 ```
@@ -292,7 +370,9 @@ await apiCaller.pushTransaction(
 );
 ```
 
-The structure of `args` in the action varies between actions. Below are some examples about how to fill out `args`. The structure of `args` is defined in everiToken's ABI. For detail, you may refer to [ABI reference](https://github.com/everitoken/evt/blob/master/docs/ABI-References.md) of everiToken. You should navigate to the link to get the list of actions.
+#### Response
+
+The response is a object containing a value named `transactionId` if succeed. Or a `Error` will be thrown.
 
 ## Action Examples
 
