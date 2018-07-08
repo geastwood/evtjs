@@ -61,9 +61,8 @@ describe("APICaller write API test", () => {
 
         testingTmpData.newDomainName = "nd" + (new Date()).valueOf();
 
-        await apiCaller.pushTransaction({
-            "action": "newdomain",
-            "args": {
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("newdomain", {
                 "name": testingTmpData.newDomainName,
                 "creator": publicKey,
                 "issue": {
@@ -90,8 +89,8 @@ describe("APICaller write API test", () => {
                         "weight": 1
                     }]
                 }
-            }
-        });
+            })
+        );
 
         let res = await apiCaller.getDomainDetail(testingTmpData.newDomainName);
         assert(res.name === testingTmpData.newDomainName, "expected right domain name");
@@ -99,8 +98,6 @@ describe("APICaller write API test", () => {
 
     it("issue_tokens", async function () {
         const apiCaller = new EVT({
-            host: "192.168.1.104",
-            port: "8888",
             keyProvider: [ wif, wif2 ],
             endpoint: network
         });

@@ -188,7 +188,11 @@ Get the list of tokens which is owned by `publicKeys`.
 
 - `publicKey`: a array or a single value which represents public keys you want to query
 
-#### Example Response
+#### Response
+
+The response is a array representing the list of tokens belonging to public keys provided. Each token is identified by the `name` and the `domain` it belongs to.
+
+A example:
 
 ```json
 [
@@ -199,51 +203,110 @@ Get the list of tokens which is owned by `publicKeys`.
 ]
 ```
 
-### pushTransaction
+### getManagedGroups(publicKeys)
+
+Get the list of groups which is managed by `publicKeys`.
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `publicKey`: a array or a single value which represents public keys you want to query
+
+#### Response
+
+The response is a array representing the list of groups managed by public keys provided. Each group is identified by the `name`.
+
+A example:
+
+```json
+[
+    {
+        "name": "testgroup"
+    }
+]
+```
+
+### pushTransaction(...actions)
 
 Push a `transaction` to the chain. A `transaction` is composed of some `actions`. Generally a `action` is a interface to a writable API. Almost all the writable API are wrapped in transactions.
 
-You are able to push a transaction by:
-
-```
-apiCaller.pushTransaction(trx);
-```
-
-`trx` is a object with structure as follow:
+`...` is the syntax for `Rest Parameters` in JavaScript's `ES6`. It means you could pass as many parameters as you want to the function, and JavaScript will automatically convert them into a array. So you may use `pushTransaction` like this:
 
 ```js
-{
-    transaction: { // required
-        actions: [ // required
-            { // at least one action object
-                action: <string> // required, action name
-                args: { // required, action's argument
-                    // the detail format of arguments will be shown below
-                }
-            }
-        ]
-    }
-}
+apiCaller.pushTransaction(
+    EVT.EvtAction(....), // the first action
+    EVT.EvtAction(....), // the second action
+    EVT.EvtAction(....), // the third action
+    EVT.EvtAction(....), // other actions
+    ....                 // as more as you want
+);
+```
+
+#### Parameters
+
+Each `action` is either a `EvtAction` instance or a `abi` structure. `EvtAction` is preferred.
+
+A EvtAction can be created like this:
+
+```js
+new EVT.EvtAction(actionName, abiStructure, [domain], [key])
+```
+
+- `actionName`: Required, the name of the action you want to execute. 
+- `abiStructure`: Required, the abi structure of this action. 
+- `domain` & `key`: See below.
+
+You can find all the actions and ABI structure in everiToken [here](https://github.com/everitoken/evt/blob/master/docs/API-References.md#post-v1chaintrx_json_to_digest) and [here](https://github.com/everitoken/evt/blob/master/docs/ABI-References.md);
+
+For each action you should provide `domain` and `key` which are two special values. Each action has its own requirement for these two values. You can see here for detail: https://github.com/everitoken/evt/blob/master/docs/API-References.md#post-v1chaintrx_json_to_digest
+
+For the following actions, you may ignore the `domain` and `key` parameter of the constructor of `EvtAction` (will be filled in automatically):
+- `newdomain`
+- `updatedomain`
+- `newgroup`
+- `updategroup`
+- `issuetoken`
+- `transfer`
+- `destroytoken`
+
+Here is a example to use `pushTransaction` as well as `domain` and `key`.
+
+```js
+// this is a example about how to create a fungible token
+let symbol = "ABC";
+// the value of domain and key should be decided by referring to https://github.com/everitoken/evt/blob/master/docs/API-References.md#post-v1chaintrx_json_to_digest
+
+let domain = "fungible";
+let key = symbol;
+
+// pass EvtAction instance as a action
+await apiCaller.pushTransaction(
+    new EVT.EvtAction("newfungible", {
+        sym: "5," + symbol,
+        creator: publicKey,
+        issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
+        manage: { name: "manage", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
+        total_supply: "100000.00000 " + symbol
+    }, "fungible", symbol)
+);
 ```
 
 The structure of `args` in the action varies between actions. Below are some examples about how to fill out `args`. The structure of `args` is defined in everiToken's ABI. For detail, you may refer to [ABI reference](https://github.com/everitoken/evt/blob/master/docs/ABI-References.md) of everiToken. You should navigate to the link to get the list of actions.
 
 ## Action Examples
 
-These snippets are valid `action` for a transaction for pushing.
-
 ### Create Domain
 ```js
-{
-    "action": "newdomain",
-    "args": {
-        "name": newDomainName,
-        "issuer": "publicKeyOfIssuer",
+await apiCaller.pushTransaction(
+    new EVT.EvtAction("newdomain", {
+        "name": testingTmpData.newDomainName,
+        "creator": publicKey,
         "issue": {
             "name": "issue",
             "threshold": 1,
             "authorizers": [{
-                "ref": "[A] EVT7dwvuZfiNdTbo3aamP8jgq8RD4kzauNkyiQVjxLtAhDHJm9joQ",
+                "ref": "[A] " + publicKey,
                 "weight": 1
             }]
         },
@@ -259,29 +322,29 @@ These snippets are valid `action` for a transaction for pushing.
             "name": "manage",
             "threshold": 1,
             "authorizers": [{
-                "ref": "[A] EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                "ref": "[A] " + publicKey,
                 "weight": 1
             }]
         }
-    }
-}
+    })
+);
 ```
 
 ### Issue Tokens (NFT)
 
 ```js
-{
+await apiCaller.pushTransaction({
     "action": "issuetoken",
     "args": {
-        "domain": "nd",
+        "domain": testingTmpData.newDomainName,
         "names": [
-            "t1",
-            "t2",
-            "t3"
+            testingTmpData.addedTokenNamePrefix + "1",
+            testingTmpData.addedTokenNamePrefix + "2",
+            testingTmpData.addedTokenNamePrefix + "3"
         ],
         "owner": [
-            "EVT5GhNCdXHUER4z3LB1TQBke7JZSyPYiwVznr8vYZXpnBMxj4MsR"
+            Key.privateToPublic(wif)
         ]
     }
-}
+});
 ```

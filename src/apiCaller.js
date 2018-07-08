@@ -318,6 +318,8 @@ class APICaller {
         err.serverError = res.error;
         err.serverMessage = res.message;
 
+        console.log(res);
+
         throw err;
     }
 
@@ -332,10 +334,14 @@ class APICaller {
      * push transaction to everiToken chain
      * @param {any[]} actions actions in the transaction
      */
-    async pushTransaction(...actions) {
-        if (!Array.isArray(actions)) {
-            actions = [ actions ];
+    async pushTransaction() {
+        let actions = [];
+        
+        for (let i = 0; i < arguments.length; ++i) {
+            actions.push(arguments[i]);
         }
+
+        console.log("__actions:" + JSON.stringify(actions, null, 4));
 
         let params = {
             transaction: {
@@ -420,13 +426,12 @@ class APICaller {
 
         // check if it is successful
         if (res && res.processed && res.processed.receipt && res.processed.receipt.status === "executed") {
-            console.log(res);
-            return true;
+            return { transactionId: res.transaction_id };
         }
         else {
             // throw error detail
             if (res && res.error && res.error.details && res.error.details.length) {
-                throw new Error(res.error.what + " (" + res.error.code + "): " + res.error.details.map(r => r.message ? (r.message + "; "): ""));
+                this.__throwServerResponseError(res);
             }
             else {
                 throw new Error("did not receive anything from the chain");
