@@ -305,6 +305,94 @@ A example:
 ]
 ```
 
+### getTransactionDetailById(id)
+
+Get detail information about a transaction by its `id`. 
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `id`: The id to query. `pushTransaction` will return the id of the transaction it created.
+
+#### Response
+
+The response is the detail information about a transaction.
+
+A example:
+
+```json
+{
+  "id": "f0c789933e2b381e88281e8d8e750b561a4d447725fb0eb621f07f219fe2f738",
+  "signatures": [
+    "SIG_K1_K6hWsPBt7VfSrYDBZqCygWT8dbA6R3mpxKPjd3JUh18EQHfU55eVEkHgq8AR5odWjPXvYasZQ1LoNdaLKKhagJXXuXp3Y2"
+  ],
+  "compression": "none",
+  "packed_trx": "bb72345b050016ed2e620001000a13e9b86a6e7100000000000000000000d0d5505206460000000000000000000000000040beabb00105455654000000000003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a970000000008052e74c01000000010100000003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a9700000000000000001000000000094135c6801000000010100000003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a97000000000000000010000e40b5402000000054556540000000000",
+  "transaction": {
+    "expiration": "2018-06-28T05:31:39",
+    "ref_block_num": 5,
+    "ref_block_prefix": 1647242518,
+    "delay_sec": 0,
+    "actions": [{
+        "name": "newfungible",
+        "domain": "fungible",
+        "key": "EVT",
+        "data": {
+          "sym": "5,EVT",
+          "creator": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+          "issue": {
+            "name": "issue",
+            "threshold": 1,
+            "authorizers": [{
+                "ref": "[A] EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                "weight": 1
+              }
+            ]
+          },
+          "manage": {
+            "name": "manage",
+            "threshold": 1,
+            "authorizers": [{
+                "ref": "[A] EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                "weight": 1
+              }
+            ]
+          },
+          "total_supply": "100000.00000 EVT"
+        },
+        "hex_data": "05455654000000000003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a970000000008052e74c01000000010100000003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a9700000000000000001000000000094135c6801000000010100000003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a97000000000000000010000e40b54020000000545565400000000"
+      }
+    ],
+    "transaction_extensions": []
+  }
+}
+```
+
+### getDomainDetail(name)
+
+Get detail information about a domain by its `name`.
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `name`: The name of the domain you want to query
+
+#### Response
+
+The response is the detail information of the domain you queried.
+
+A example:
+
+```json
+[
+    {
+        "name": "testdomain"
+    }
+]
+```
+
 ### pushTransaction(...actions)
 
 Push a `transaction` to the chain. A `transaction` is composed of some `actions`. Generally a `action` is a interface to a writable API. Almost all the writable API are wrapped in transactions.
