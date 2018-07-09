@@ -186,11 +186,11 @@ Get the list of tokens which is owned by `publicKeys`.
 
 #### Parameters
 
-- `publicKey`: a array or a single value which represents public keys you want to query
+- `publicKey`: an array or a single value which represents public keys you want to query
 
 #### Response
 
-The response is a array representing the list of tokens belonging to public keys provided. Each token is identified by the `name` and the `domain` it belongs to.
+The response is an array representing the list of tokens belonging to public keys provided. Each token is identified by the `name` and the `domain` it belongs to.
 
 A example:
 
@@ -211,11 +211,11 @@ Get the list of groups which is managed by `publicKeys`.
 
 #### Parameters
 
-- `publicKey`: a array or a single value which represents public keys you want to query
+- `publicKey`: an array or a single value which represents public keys you want to query
 
 #### Response
 
-The response is a array representing the list of groups managed by public keys provided. Each group is identified by the `name`.
+The response is an array representing the list of groups managed by public keys provided. Each group is identified by the `name`.
 
 A example:
 
@@ -235,11 +235,11 @@ Get the list of domains which is created by `publicKeys`.
 
 #### Parameters
 
-- `publicKey`: a array or a single value which represents public keys you want to query
+- `publicKey`: an array or a single value which represents public keys you want to query
 
 #### Response
 
-The response is a array representing the list of domains created by public keys provided. Each domain is identified by the `name`.
+The response is an array representing the list of domains created by public keys provided. Each domain is identified by the `name`.
 
 A example:
 
@@ -262,13 +262,13 @@ Get the list of actions. Supports filtering by `domain`, `key`, and `action name
 - `params`: a object with the follow members:
   - `domain`: The domain to filter the result. It is required. Some special domains are supported, such as `fungible`
   - `key`: The key to filter the result. The value of it is the same as you provided one in `pushTransaction`. Optional.
-  - `names`: A array to filter the action name. Optional.
+  - `names`: an array to filter the action name. Optional.
   - `skip`: The count to skip in the result. This is for paging.
   - `take`: The count to take after skipping. This is for paging.
 
 #### Response
 
-The response is a array representing the list of actions.
+The response is an array representing the list of actions.
 
 A example:
 
@@ -386,18 +386,197 @@ The response is the detail information of the domain you queried.
 A example:
 
 ```json
-[
-    {
-        "name": "testdomain"
+{
+    "name": "cookie",
+    "creator": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+    "issue_time": "2018-06-09T09:06:27",
+    "issue": {
+        "name": "issue",
+        "threshold": 1,
+        "authorizers": [{
+                "ref": "[A] EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                "weight": 1
+            }
+        ]
+    },
+    "transfer": {
+        "name": "transfer",
+        "threshold": 1,
+        "authorizers": [{
+                "ref": "[G] OWNER",
+                "weight": 1
+            }
+        ]
+    },
+    "manage": {
+        "name": "manage",
+        "threshold": 1,
+        "authorizers": [{
+                "ref": "[A] EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                "weight": 1
+            }
+        ]
     }
-]
+}
+```
+
+### getGroupDetail(name)
+
+Get detail information about a group by its `name`.
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `name`: The name of the group you want to query
+
+#### Response
+
+The response is the detail information of the group you queried.
+
+A example:
+
+```json
+{
+    "name": "testgroup",
+    "key": "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
+    "root": {
+        "threshold": 6,
+        "weight": 0,
+        "nodes": [{
+                "threshold": 1,
+                "weight": 3,
+                "nodes": [{
+                        "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                        "weight": 1
+                    }, {
+                        "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                        "weight": 1
+                    }
+                ]
+            }, {
+                "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                "weight": 3
+            }, {
+                "threshold": 1,
+                "weight": 3,
+                "nodes": [{
+                        "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                        "weight": 1
+                    }, {
+                        "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                        "weight": 1
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+### getTransactionsDetailOfPublicKeys(publickeys, [skip], [take = 10])
+
+Get detail information about transactions about provided `public keys`.
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `publickeys`: The public keys you want to query about, can be an array or a single value (Required)
+- `skip`: The count to skip before taking data from the list, for paging. Optional.
+- `take`: The count to take, for paging. Optional.
+
+#### Response
+
+The response is an array consisting of the detail information of the transactions you queried.
+
+A example:
+
+```json
+[{
+    "id": "0925740e3be034e4ac345461d6f5b95162a7cf1578a7ec3c7b9de0e9f0f84e3c",
+    "signatures": [
+      "SIG_K1_K1G7PJcRaTgw8RBDVvHsj2SEPZTcV5S8KgdrSmpD1oUd6fgVdwD3jSqL7zSkaFAV2zDPsr4pYTK1QkusALsEDGXk4PUC8y"
+    ],
+    "compression": "none",
+    "packed_trx": "9073345baf0105f3a965000100802bebd152e74c000000000000000000000000009f077d000000000000000000000000819e470164000000000000000000000000009f077d030000000000000000000000000000307c0000000000000000000000000000407c0000000000000000000000000000507c010003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a97000",
+    "transaction": {
+      "expiration": "2018-06-28T05:35:12",
+      "ref_block_num": 431,
+      "ref_block_prefix": 1705636613,
+      "actions": [{
+          "name": "issuetoken",
+          "domain": "test",
+          "key": ".issue",
+          "data": {
+            "domain": "test",
+            "names": [
+              "t1",
+              "t2",
+              "t3"
+            ],
+            "owner": [
+              "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX"
+            ]
+          },
+          "hex_data": "000000000000000000000000009f077d030000000000000000000000000000307c0000000000000000000000000000407c0000000000000000000000000000507c010003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a970"
+        }
+      ],
+      "transaction_extensions": []
+    }
+}]
+```
+
+### getFungibleSymbolDetail(name)
+
+Get detail information about a fungible token symbol which has provided `name`.
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `name`: The symbol name to query about, only the name, precision should not be included (required)
+
+#### Response
+
+The response is a abject containing the detail information of the symbols you queried.
+
+A example:
+
+```json
+{
+  "sym": "5,EVT",
+  "creator": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+  "create_time": "2018-06-28T05:31:09",
+  "issue": {
+    "name": "issue",
+    "threshold": 1,
+    "authorizers": [{
+        "ref": "[A] EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+        "weight": 1
+      }
+    ]
+  },
+  "manage": {
+    "name": "manage",
+    "threshold": 1,
+    "authorizers": [{
+        "ref": "[A] EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+        "weight": 1
+      }
+    ]
+  },
+  "total_supply": "100000.00000 EVT",
+  "current_supply": "0.00000 EVT",
+  "metas": []
+}
 ```
 
 ### pushTransaction(...actions)
 
 Push a `transaction` to the chain. A `transaction` is composed of some `actions`. Generally a `action` is a interface to a writable API. Almost all the writable API are wrapped in transactions.
 
-`...` is the syntax for `Rest Parameters` in JavaScript's `ES6`. It means you could pass as many parameters as you want to the function, and JavaScript will automatically convert them into a array. So you may use `pushTransaction` like this:
+`...` is the syntax for `Rest Parameters` in JavaScript's `ES6`. It means you could pass as many parameters as you want to the function, and JavaScript will automatically convert them into an array. So you may use `pushTransaction` like this:
 
 ```js
 apiCaller.pushTransaction(
