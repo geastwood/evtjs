@@ -66,7 +66,7 @@ class APICaller {
         let ret = await res.json();
 
         if (ret && ret.code && ret.message && ret.error) {
-            //console.error("————————request sent: " + JSON.stringify(request, null, 4));
+            console.error("————————request sent: " + url + ": " + JSON.stringify(request, null, 4));
             this.__throwServerResponseError(ret);
         }
         if (!ret) {
@@ -341,7 +341,7 @@ class APICaller {
             actions.push(arguments[i]);
         }
 
-        console.log("__actions:" + JSON.stringify(actions, null, 4));
+        // console.log("__actions:" + JSON.stringify(actions, null, 4));
 
         let params = {
             transaction: {
@@ -422,6 +422,7 @@ class APICaller {
         }
 
         // push transaction
+        // console.log("__body:" + JSON.stringify(body, null, 4));
         var res = await this.__chainPushTransaction(body);
 
         // check if it is successful
@@ -458,13 +459,20 @@ class APICaller {
     }
 
     async __getDigestToSign(transaction) {
-        let ret = await this.__callAPI({
-            url: "/v1/chain/trx_json_to_digest",
-            method: "POST",
-            body: transaction
-        });
+        let ret = null;
+        try {
+            ret = await this.__callAPI({
+                url: "/v1/chain/trx_json_to_digest",
+                method: "POST",
+                body: transaction
+            });
+        }
+        catch (e) {
+            console.log("[__getDigestToSign] trx: \n" + JSON.stringify(transaction, null, 4));
+            throw e;
+        }
 
-        if (ret.digest) {
+        if (ret && ret.digest) {
             return ret;
         }
 

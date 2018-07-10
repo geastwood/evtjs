@@ -54,9 +54,8 @@ describe("EvtKey", () => {
 // ==== part 3: APICaller write API ====
 describe("APICaller write API test", () => {
     it("newdomain", async function () {
-        this.timeout(5000);
         const apiCaller = new EVT({
-            keyProvider: [ wif, wif2 ],
+            keyProvider: wif,
             endpoint: network
         });
 
@@ -99,7 +98,7 @@ describe("APICaller write API test", () => {
 
     it("issue_tokens", async function () {
         const apiCaller = new EVT({
-            keyProvider: [ wif, wif2 ],
+            keyProvider: wif,
             endpoint: network
         });
 
@@ -199,7 +198,7 @@ describe("APICaller write API test", () => {
 
         testingTmpData.newSymbol = randomString();
 
-        await apiCaller.pushTransaction(
+        testingTmpData.newTrxId = (await apiCaller.pushTransaction(
             new EVT.EvtAction("newfungible", {
                 sym: "5," + testingTmpData.newSymbol,
                 creator: publicKey,
@@ -207,7 +206,7 @@ describe("APICaller write API test", () => {
                 manage: { name: "manage", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
                 total_supply: "100000.00000 " + testingTmpData.newSymbol
             }, "fungible", testingTmpData.newSymbol)
-        );
+        )).transactionId;
     });
 });
 
@@ -281,7 +280,7 @@ describe("APICaller read API test", () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getTransactionDetailById("f0c789933e2b381e88281e8d8e750b561a4d447725fb0eb621f07f219fe2f738");
+        var response = await apiCaller.getTransactionDetailById(testingTmpData.newTrxId);
         assert(response.id, "expected id");
         // TODO must have data (after creating transactions)
     });
@@ -304,8 +303,7 @@ describe("APICaller read API test", () => {
         });
 
         var response = await apiCaller.getFungibleSymbolDetail("EVT");
-        //console.log(response);
-        assert(Array.isArray(response), "expected array");
+        assert(response && response.sym, "expected response");
         // TODO must have data (after creating symbol)
     });
 
@@ -315,9 +313,9 @@ describe("APICaller read API test", () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getDomainDetail("EVT");
+        var response = await apiCaller.getDomainDetail(testingTmpData.newDomainName);
         //console.log(response);
-        assert(response && response.issuer, "expected response");
+        assert(response && response.creator, "expected response");
         // TODO must have data (after creating symbol)
     });
 
@@ -327,7 +325,7 @@ describe("APICaller read API test", () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getGroupDetail("testgroup");
+        var response = await apiCaller.getGroupDetail(testingTmpData.newGroupName);
         //console.log(response);
         assert(response && response.root, "expected response");
         // TODO must have data (after creating symbol)
