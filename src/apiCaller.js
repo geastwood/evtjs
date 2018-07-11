@@ -557,7 +557,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
         const isPublic = key.public != null;
 
         if (isPrivate) {
-            keyMap.set(ecc.privateToPublic(key.private), key.private);
+            keyMap.set("EVT" + ecc.privateToPublic(key.private).substr(3), key.private);
         } else {
             keyMap.set(key.public, null);
         }
@@ -579,7 +579,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
 
     // Multiple signature support
     // console.log("get required_keys from" + JSON.stringify(keys.map(key => ecc.privateToPublic(key.private)), null, 4));
-    let apiRes = await apiCaller.__chainGetRequiredKeys({ transaction, available_keys: keys.map(key => ecc.privateToPublic(key.private)) });
+    let apiRes = await apiCaller.__chainGetRequiredKeys({ transaction, available_keys: keys.map(key => "EVT" + ecc.privateToPublic(key.private).substr(3) ) });
     let required_keys = apiRes.required_keys;
 
     // console.log("required_keys: " + JSON.stringify(apiRes, null, 4));
@@ -595,13 +595,21 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
 
     for (let requiredKey of required_keys) {
         // normalize (EOSKey.. => PUB_K1_Key..)
-        requiredKey = ecc.PublicKey(requiredKey).toString();
+        try {
+            requiredKey = ecc.PublicKey(requiredKey).toString();
+        }
+        catch (e) {
+            requiredKey = ecc.PublicKey("EOS" + requiredKey.substr(3)).toString();
+        }
 
         const wif = keyMap.get(requiredKey);
         if (wif) {
             pvts.push(wif);
         } else {
-            missingKeys.push(requiredKey);
+            const wif = keyMap.get("EVT" + requiredKey.substr(3));
+            if (!wif) {
+                missingKeys.push(requiredKey);
+            }
         }
     }
 

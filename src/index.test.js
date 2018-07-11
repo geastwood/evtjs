@@ -55,7 +55,7 @@ describe("EvtKey", () => {
 describe("APICaller write API test", () => {
     it("newdomain", async function () {
         const apiCaller = new EVT({
-            keyProvider: wif,
+            keyProvider: [wif, wif2],
             endpoint: network
         });
 
