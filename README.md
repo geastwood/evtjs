@@ -305,6 +305,29 @@ A example:
 ]
 ```
 
+### getFungibleBalance(address, [symbol])
+
+Get the list of fungible banlance of a user. 
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `address`: The address (public key) you want to query.
+- `symbol`: The symbol you want to query, optional. For example: "5,EVT"
+
+#### Response
+
+The response is an array representing the list of balance.
+
+A example:
+
+```json
+[
+  "2.00000 EVT", "1.00000 PEVT"
+]
+```
+
 ### getTransactionDetailById(id)
 
 Get detail information about a transaction by its `id`. 

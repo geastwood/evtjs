@@ -274,17 +274,6 @@ describe("APICaller read API test", () => {
         assert(Array.isArray(response), "expected array");
     });
 
-    it("getTransactionDetailById", async () => {
-        const apiCaller = EVT({
-            endpoint: network,
-            keyProvider: wif
-        });
-
-        var response = await apiCaller.getTransactionDetailById(testingTmpData.newTrxId);
-        assert(response.id, "expected id");
-        // TODO must have data (after creating transactions)
-    });
-
     it("getTransactionsDetailOfPublicKeys", async () => {
         const apiCaller = EVT({
             endpoint: network,
@@ -329,5 +318,27 @@ describe("APICaller read API test", () => {
         //console.log(response);
         assert(response && response.root, "expected response");
         // TODO must have data (after creating symbol)
+    });
+
+    it("getTransactionDetailById", async () => {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getTransactionDetailById(testingTmpData.newTrxId);
+        assert(response.id, "expected id");
+        // TODO must have data (after creating transactions)
+    });
+
+    it("getFungibleBalance", async () => {
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        var response = await apiCaller.getFungibleBalance(publicKey);
+        assert(Array.isArray(response), "expected array");
+        // TODO must have data (after creating transactions)
     });
 });

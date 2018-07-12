@@ -229,6 +229,51 @@ class APICaller {
     }
 
     /**
+     * get balances of a user's all kinds of fungible tokens. Make sure you have history_plugin enabled on the chain node
+     * @param {string} address the public key of the user you want to query
+     * @param {*} symbol the symbol you want to query, optional
+     */
+    async getFungibleBalance(address, symbol) {
+        if (typeof address !== "string" || !address) throw new Error("invalid address");
+
+        if (!this.__cachedInfo) {
+            await this.getInfo();
+        }
+
+        // If the version is lower than 2.2 (including), then user old API, else use the new API
+        let isNewerVersion = false;
+        if (!this.__cachedInfo.evt_api_version.startsWith("2.0") 
+        && !this.__cachedInfo.evt_api_version.startsWith("2.1")
+        && !this.__cachedInfo.evt_api_version.startsWith("2.2")
+        ) {
+            isNewerVersion = true;
+            throw new Error("The API version of remote net is not compatible with current evtjs's version.");
+        }
+
+        let body = {
+            address
+        };
+
+        if (symbol) {
+            body.symbol = symbol;
+        }
+
+        let res = await this.__callAPI({
+            url: isNewerVersion ? "/v1/evt/get_fungible_balance" : "/v1/evt/get_assets",
+            method: "POST",
+            body,
+            sign: false // no need to sign
+        });
+
+        if (res && Array.isArray(res)) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * get detail information about a group by its name. Make sure you have history_plugin enabled on the chain node
      * @param {*} name the name of the group
      */
