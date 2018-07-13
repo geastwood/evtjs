@@ -1,6 +1,6 @@
 
 
-const ecc = require("eosjs-ecc");
+const ecc = require("./ecc/index");
 
 class EvtKey {
 

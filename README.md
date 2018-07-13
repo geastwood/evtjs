@@ -307,14 +307,14 @@ A example:
 
 ### getFungibleBalance(address, [symbol])
 
-Get the list of fungible banlance of a user. 
+Get the list of fungible balance of a user.
 
 > Make sure you have history_plugin enabled on connected node
 
 #### Parameters
 
 - `address`: The address (public key) you want to query.
-- `symbol`: The symbol you want to query, optional. For example: "5,EVT"
+- `symbol`: The symbol you want to query, optional. For example: "5,EVT".
 
 #### Response
 
@@ -622,7 +622,7 @@ new EVT.EvtAction(actionName, abiStructure, [domain], [key])
 ```
 
 - `actionName`: Required, the name of the action you want to execute. 
-- `abiStructure`: Required, the abi structure of this action. 
+- `abiStructure`: Required, the ABI structure of this action. 
 - `domain` & `key`: See below.
 
 You can find all the actions and ABI structure in everiToken [here](https://github.com/everitoken/evt/blob/master/docs/API-References.md#post-v1chaintrx_json_to_digest) and [here](https://github.com/everitoken/evt/blob/master/docs/ABI-References.md);

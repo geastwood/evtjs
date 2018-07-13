@@ -16,7 +16,7 @@ class EvtAction {
         if (!domain && !key) {
             // use mapper to determine the `domain` and `key` field
             if (!domainKeyMappers[actionName]) {
-                throw new Error(`The action ${actionName} is not supported yet in evtjs`);
+                throw new Error(`For action "${actionName}", parameter "domain" and "key" could not be ignored.`);
             }
             let ret = { };
             domainKeyMappers[actionName]({ action: actionName, args: abi }, ret);

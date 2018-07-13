@@ -1,4 +1,4 @@
-const ecc = require("eosjs-ecc");
+const ecc = require("./ecc/index");
 const { signHash } = ecc;
 const EvtConfig = require("./evtConfig");
 const { fetch } = require("./fetch");
