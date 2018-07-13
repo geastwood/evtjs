@@ -11,7 +11,7 @@ const {
     parseAssetSymbol
 } = require("./format");
 
-/** Configures Fcbuffer for EOS specific structs and types. */
+/** Configures Fcbuffer for EVT specific structs and types. */
 module.exports = (config = {}, extendedSchema) => {
     const structLookup = (lookupName, account) => {
         const cachedCode = new Set(["eosio", "eosio.token"]);
@@ -84,7 +84,7 @@ module.exports = (config = {}, extendedSchema) => {
 };
 
 /**
-  Name eos::types native.hpp
+  Name evt::types native.hpp
 */
 const Name = (validation) => {
     return {
@@ -117,7 +117,7 @@ const Name = (validation) => {
 };
 
 /**
-  Name eos::types native.hpp
+  Name evt::types native.hpp
 */
 const Name128 = (validation) => {
     return {
