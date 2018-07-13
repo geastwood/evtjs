@@ -18,6 +18,7 @@ EvtKey.privateToPublic = function(privateKeyInWif) {
  * Generates a private key for evt and returns a Promise, the return value is a WIF
  */
 EvtKey.randomPrivateKey = async function() {
+    ecc.initialize();
     return await ecc.randomKey();
 };
 
