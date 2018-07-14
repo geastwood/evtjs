@@ -60,7 +60,7 @@ apiCaller.getInfo()
 
 `EvtKey` is a class for everiToken's key management. 
 
-### randomPrivateKey
+### randomPrivateKey()
 
 You can get a random private key by `EVT.EvtKey.randomPrivateKey`:
 
@@ -71,28 +71,50 @@ let key = await EVT.EvtKey.randomPrivateKey();
 // now key is the private key, that is , a wit.
 ```
 
-And then you can convert it to a public key by `privateToPublic`:
+### privateToPublic(privateKey)
+
+After generating a private key, you can convert it to a public key by `privateToPublic`.
+
+#### Parameters
+
+- `privateKey`: the private key you want to convert.
 
 ```js
 let publicKey = EVT.EvtKey.privateToPublic(key);
 ```
 
-### seedPrivateKey
+### seedPrivateKey(seed)
 
-Get a private key from a specific `seed`. The `seed` is a string. For private key's safety, the `seed` must be random enough and must have at least 32 bytes' length.
+Get a private key from a specific `seed`. 
+
+#### Parameters
+
+- `seed`: The `seed` is a string. For private key's safety, the `seed` must be random enough and must have at least 32 bytes' length.
 
 ```js
 let privateKey = EVT.EvtKey.seedPrivateKey('AVeryVeryVeryLongRandomSeedHere');
 ```
 
-### isValidPrivateKey / isValidPublicKey
+### isValidPrivateKey(key) / isValidPublicKey(key)
 
-You can also use `isValidPrivateKey` or `isValidPublicKey` to check a key.
+You can use `isValidPrivateKey` or `isValidPublicKey` to check a key.
+
+#### Parameters
+
+- `key`: The private / public key you want to check.
 
 ```js
     assert(EVT.EvtKey.isValidPrivateKey('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D'), 'should be a valid private');
     assert(EVT.EvtKey.isValidPublicKey('EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND'), 'should be a valid public');
 ```
+
+### random32BytesAsHex()
+
+You may generate a 32-byte-long hex string and it is promised to be safe in cryptography.
+
+### randomName128()
+
+Produces a safe string with a length of 21. This is suitable for use in ABI structure where it requires a `name128` type such as `proposalName` for a suspended transaction.
 
 ## APICaller Usage
 
@@ -793,12 +815,11 @@ await apiCaller.pushTransaction(
 );
 ```
 
-### Issue Tokens (NFT)
+### Issue Non-Fungible Tokens
 
 ```js
-await apiCaller.pushTransaction({
-    "action": "issuetoken",
-    "args": {
+await apiCaller.pushTransaction(
+    new EVT.EvtAction("issuetoken", {
         "domain": testingTmpData.newDomainName,
         "names": [
             testingTmpData.addedTokenNamePrefix + "1",
@@ -808,6 +829,75 @@ await apiCaller.pushTransaction({
         "owner": [
             Key.privateToPublic(wif)
         ]
-    }
-});
+    })
+);
+```
+
+### Create Fungible Symbol
+
+```js
+let newSymbol = randomString();
+let publicKey = xxxxxxxxxxxxxxxxxx; // replace with your public key
+
+let newTrxId = (await apiCaller.pushTransaction(
+    new EVT.EvtAction("newfungible", {
+        sym: "5," + newSymbol,
+        creator: publicKey,
+        issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
+        manage: { name: "manage", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
+        total_supply: "100000.00000 " + newSymbol
+    })
+)).transactionId;
+```
+
+### Create Group
+
+```js
+await apiCaller.pushTransaction(
+    new EVT.EvtAction("newgroup", {
+        "name": testingTmpData.newGroupName,
+        "group": {
+            "name": testingTmpData.newGroupName,
+            "key": Key.privateToPublic(wif),
+            "root": {
+                "threshold": 6,
+                "weight": 0,
+                "nodes": [
+                    {
+                        "threshold": 1,
+                        "weight": 3,
+                        "nodes": [
+                            {
+                                "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                                "weight": 1
+                            },
+                            {
+                                "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                                "weight": 1
+                            }
+                        ]
+                    },
+                    {
+                        "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                        "weight": 3
+                    },
+                    {
+                        "threshold": 1,
+                        "weight": 3,
+                        "nodes": [
+                            {
+                                "key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                                "weight": 1
+                            },
+                            {
+                                "key": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                                "weight": 1
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    })
+);
 ```
