@@ -62,12 +62,22 @@ const domainKeyMappers = {
 
     "newfungible": (action, transfered) => {
         transfered.domain = "fungible";
-        transfered.key = action.args.sym;
+        // remove precision for `key`
+        let splited = action.args.sym.split(",");
+        if (splited.length != 2) {
+            throw new Error("Invalid parameter for sym");
+        }
+        transfered.key = splited[1];
     },
 
     "updfungible": (action, transfered) => {
         transfered.domain = "fungible";
-        transfered.key = action.args.sym;
+        // remove precision for `key`
+        let splited = action.args.sym.split(",");
+        if (splited.length != 2) {
+            throw new Error("Invalid parameter for sym");
+        }
+        transfered.key = splited[1];
     },
 
     "transfer": (action, transfered) => {
@@ -83,6 +93,26 @@ const domainKeyMappers = {
     "evt2pevt": (action, transfered) => {
         transfered.domain = "fungible";
         transfered.key = "EVT";
+    },
+
+    "newsuspend": (action, transfered) => {
+        transfered.domain = "suspend";
+        transfered.key = action.args.name;
+    },
+
+    "aprvsuspend": (action, transfered) => {
+        transfered.domain = "suspend";
+        transfered.key = action.args.name;
+    },
+
+    "cancelsuspend": (action, transfered) => {
+        transfered.domain = "suspend";
+        transfered.key = action.args.name;
+    },
+
+    "execsuspend": (action, transfered) => {
+        transfered.domain = "suspend";
+        transfered.key = action.args.name;
     }
 };
 
