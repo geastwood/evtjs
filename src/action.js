@@ -16,7 +16,7 @@ class EvtAction {
         if (!domain && !key) {
             // use mapper to determine the `domain` and `key` field
             if (!domainKeyMappers[actionName]) {
-                throw new Error(`The action ${actionName} is not supported yet in evtjs`);
+                throw new Error(`For action "${actionName}", parameter "domain" and "key" could not be ignored.`);
             }
             let ret = { };
             domainKeyMappers[actionName]({ action: actionName, args: abi }, ret);
@@ -62,12 +62,22 @@ const domainKeyMappers = {
 
     "newfungible": (action, transfered) => {
         transfered.domain = "fungible";
-        transfered.key = action.args.sym;
+        // remove precision for `key`
+        let splited = action.args.sym.split(",");
+        if (splited.length != 2) {
+            throw new Error("Invalid parameter for sym");
+        }
+        transfered.key = splited[1];
     },
 
     "updfungible": (action, transfered) => {
         transfered.domain = "fungible";
-        transfered.key = action.args.sym;
+        // remove precision for `key`
+        let splited = action.args.sym.split(",");
+        if (splited.length != 2) {
+            throw new Error("Invalid parameter for sym");
+        }
+        transfered.key = splited[1];
     },
 
     "transfer": (action, transfered) => {
@@ -83,6 +93,26 @@ const domainKeyMappers = {
     "evt2pevt": (action, transfered) => {
         transfered.domain = "fungible";
         transfered.key = "EVT";
+    },
+
+    "newsuspend": (action, transfered) => {
+        transfered.domain = "suspend";
+        transfered.key = action.args.name;
+    },
+
+    "aprvsuspend": (action, transfered) => {
+        transfered.domain = "suspend";
+        transfered.key = action.args.name;
+    },
+
+    "cancelsuspend": (action, transfered) => {
+        transfered.domain = "suspend";
+        transfered.key = action.args.name;
+    },
+
+    "execsuspend": (action, transfered) => {
+        transfered.domain = "suspend";
+        transfered.key = action.args.name;
     }
 };
 

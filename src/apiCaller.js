@@ -1,4 +1,4 @@
-const ecc = require("eosjs-ecc");
+const ecc = require("./ecc/index");
 const { signHash } = ecc;
 const EvtConfig = require("./evtConfig");
 const { fetch } = require("./fetch");
@@ -111,6 +111,61 @@ class APICaller {
 
         if (Array.isArray(res)) {
             return res.map(x => { return { name: x }; });
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
+     * Get required keys for suspended transactions
+     * @param {string} proposalName The proposal name you want to sign
+     * @param {string} availableKeys array of public keys you own
+     */
+    async getRequiredKeysForSuspendedTransaction(proposalName, availableKeys) {
+        // check parameters
+        if (!proposalName || (typeof proposalName !== "string")) throw new Error("invalid proposalName");
+        if (!availableKeys || (!Array.isArray(availableKeys))) throw new Error("invalid availableKeys");
+
+        // call APIs
+        let res = await this.__callAPI({
+            url: "/v1/chain/get_suspend_required_keys",
+            method: "POST",
+            body: {
+                name: proposalName,
+                available_keys: availableKeys
+            },
+            sign: false // no need to sign
+        });
+
+        if (res && res.required_keys && Array.isArray(res.required_keys)) {
+            return res.required_keys;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
+     * Get detail information of a suspended transaction
+     * @param {string} proposalName The proposal name you want to query
+     */
+    async getSuspendedTransactionDetail(proposalName) {
+        // check parameters
+        if (!proposalName || (typeof proposalName !== "string")) throw new Error("invalid proposalName");
+
+        // call APIs
+        let res = await this.__callAPI({
+            url: "/v1/evt/get_suspend",
+            method: "POST",
+            body: {
+                name: proposalName
+            },
+            sign: false // no need to sign
+        });
+
+        if (res && res.name && res.proposer) {
+            return res;
         }
         else {
             this.__throwServerResponseError(res);

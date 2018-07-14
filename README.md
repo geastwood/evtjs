@@ -307,14 +307,14 @@ A example:
 
 ### getFungibleBalance(address, [symbol])
 
-Get the list of fungible banlance of a user. 
+Get the list of fungible balance of a user.
 
 > Make sure you have history_plugin enabled on connected node
 
 #### Parameters
 
 - `address`: The address (public key) you want to query.
-- `symbol`: The symbol you want to query, optional. For example: "5,EVT"
+- `symbol`: The symbol you want to query, optional. For example: "5,EVT".
 
 #### Response
 
@@ -595,6 +595,99 @@ A example:
 }
 ```
 
+### getRequiredKeysForSuspendedTransaction(proposalName, availableKeys)
+
+This API is used for getting required keys for suspend transaction. Other than non-suspended transaction, this API will not throw exception when your keys don't satisfies the permission requirements for one action, instead returns the proper keys needed for authorizing the suspended transaction.
+
+#### Parameters
+
+- `proposalName`: The proposal name you want to sign.
+- `availableKeys`: Array of public keys you own.
+
+#### Response
+
+The response is an array representing the list of required keys.
+
+A example:
+
+```json
+[
+    "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"
+]
+```
+
+### getSuspendedTransactionDetail(proposalName)
+
+Get detail information for specific `proposal`.
+
+#### Parameters
+
+- `proposalName`: The proposal name you want to query.
+
+#### Response
+
+The response is an array representing the detail information of a suspended transaction, including the keys which has signed on the transaction and signed signatures.
+
+A example:
+
+```json
+{
+  "name": "suspend3",
+  "proposer": "EVT546WaW3zFAxEEEkYKjDiMvg3CHRjmWX2XdNxEhi69RpdKuQRSK",
+  "status": "proposed",
+  "trx": {
+    "expiration": "2018-07-03T07:34:14",
+    "ref_block_num": 23618,
+    "ref_block_prefix": 1259088709,
+    "actions": [{
+        "name": "newdomain",
+        "domain": "test4",
+        "key": ".create",
+        "data": {
+          "name": "test4",
+          "creator": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+          "issue": {
+            "name": "issue",
+            "threshold": 1,
+            "authorizers": [{
+                "ref": "[A] EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                "weight": 1
+              }
+            ]
+          },
+          "transfer": {
+            "name": "transfer",
+            "threshold": 1,
+            "authorizers": [{
+                "ref": "[G] OWNER",
+                "weight": 1
+              }
+            ]
+          },
+          "manage": {
+            "name": "manage",
+            "threshold": 1,
+            "authorizers": [{
+                "ref": "[A] EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                "weight": 1
+              }
+            ]
+          }
+        },
+        "hex_data": "000000000000000000000000189f077d0002c0ded2bc1f1305fb0faac5e6c03ee3a1924234985427b6167ca569d13df435cf000000008052e74c01000000010100000002c0ded2bc1f1305fb0faac5e6c03ee3a1924234985427b6167ca569d13df435cf000000000000000100000000b298e982a40100000001020000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000094135c6801000000010100000002c0ded2bc1f1305fb0faac5e6c03ee3a1924234985427b6167ca569d13df435cf000000000000000100"
+      }
+    ],
+    "transaction_extensions": []
+  },
+  "signed_keys": [
+    "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"
+  ],
+  "signatures": [
+    "SIG_K1_K1x3vANVU1H9zxKutyRUB4kHKqMLBCaohqPwEsit9oNL8j5SUgMxxgDFA7hwCz9DkrrpaLJSndqcxy3Rmy5qfQw21qHpiJ"
+  ]
+}
+```
+
 ### pushTransaction(...actions)
 
 Push a `transaction` to the chain. A `transaction` is composed of some `actions`. Generally a `action` is a interface to a writable API. Almost all the writable API are wrapped in transactions.
@@ -622,7 +715,7 @@ new EVT.EvtAction(actionName, abiStructure, [domain], [key])
 ```
 
 - `actionName`: Required, the name of the action you want to execute. 
-- `abiStructure`: Required, the abi structure of this action. 
+- `abiStructure`: Required, the ABI structure of this action. 
 - `domain` & `key`: See below.
 
 You can find all the actions and ABI structure in everiToken [here](https://github.com/everitoken/evt/blob/master/docs/API-References.md#post-v1chaintrx_json_to_digest) and [here](https://github.com/everitoken/evt/blob/master/docs/ABI-References.md);
@@ -637,16 +730,16 @@ For the following actions, you may ignore the `domain` and `key` parameter of th
 - `issuetoken`
 - `transfer`
 - `destroytoken`
+- `newsuspend`
+- `aprvsuspend`
+- `cancelsuspend`
+- `execsuspend`
 
-Here is a example to use `pushTransaction` as well as `domain` and `key`.
+Here is a example to use `pushTransaction`.
 
 ```js
 // this is a example about how to create a fungible token
 let symbol = "ABC";
-// the value of domain and key should be decided by referring to https://github.com/everitoken/evt/blob/master/docs/API-References.md#post-v1chaintrx_json_to_digest
-
-let domain = "fungible";
-let key = symbol;
 
 // pass EvtAction instance as a action
 await apiCaller.pushTransaction(
@@ -656,7 +749,7 @@ await apiCaller.pushTransaction(
         issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
         manage: { name: "manage", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
         total_supply: "100000.00000 " + symbol
-    }, "fungible", symbol)
+    })
 );
 ```
 
