@@ -42,6 +42,31 @@ EvtKey.isValidPublicKey = function(key) {
 };
 
 /**
+ * return safe random bytes as hex.
+ */
+EvtKey.random32BytesAsHex = function() {
+    ecc.initialize();
+    return ecc.key_utils.random32ByteBuffer({ safe: true }).toString("hex");
+};
+
+/**
+ * return safe random strings to be used in name128 format.
+ */
+EvtKey.randomName128 = function() {
+    ecc.initialize();
+
+    let buffer = ecc.key_utils.random32ByteBuffer({ safe: true });
+    let range = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-";
+    let ret = "";
+
+    for (let i = 0; i < 21; ++i) {
+        ret += range[buffer.readUInt8(i) % range.length];
+    }
+
+    return ret;
+};
+ 
+/**
  * Check if a public key is valid.
  * @param {*} key wif format of a private key
  */
@@ -50,3 +75,4 @@ EvtKey.isValidPrivateKey = function(key) {
 };
 
 module.exports = EvtKey;
+ 

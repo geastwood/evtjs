@@ -55,7 +55,13 @@ describe("EvtKey", () => {
         assert(!EVT.EvtKey.isValidPublicKey("EOS6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND"), "should not be a valid public");
         assert(!EVT.EvtKey.isValidPublicKey("EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDWFRvsv2FxgND"), "should not be a valid public");
     });
-}); 
+
+    it("randomBytesAndString", () => {
+        assert(EVT.EvtKey.random32BytesAsHex(), "should produce a 32 bytes hex");
+        let name128 = EVT.EvtKey.randomName128();
+        assert(name128.length == 21, "should produce a string with a length of 21");
+    });
+});
 
 // ==== part 3: APICaller write API ====
 describe("APICaller write API test", () => {

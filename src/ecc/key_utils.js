@@ -1,8 +1,8 @@
-const base58 = require('bs58')
-const assert = require('assert')
-const randomBytes = require('randombytes');
+const base58 = require("bs58");
+const assert = require("assert");
+const randomBytes = require("randombytes");
 
-const hash = require('./hash');
+const hash = require("./hash");
 
 module.exports = {
     random32ByteBuffer,
@@ -11,11 +11,11 @@ module.exports = {
     entropyCount: () => entropyCount,
     checkDecode,
     checkEncode
-}
+};
 
-let entropyPos = 0, entropyCount = 0
+let entropyPos = 0, entropyCount = 0;
 
-const externalEntropyArray = randomBytes(101)
+const externalEntropyArray = randomBytes(101);
 
 
 /**
@@ -30,23 +30,23 @@ const externalEntropyArray = randomBytes(101)
     @return a random buffer obtained from the secure random number generator.  Additional entropy is used.
 */
 function random32ByteBuffer({cpuEntropyBits = 0, safe = true} = {}) {
-    assert.equal(typeof cpuEntropyBits, 'number', 'cpuEntropyBits')
-    assert.equal(typeof safe, 'boolean', 'boolean')
+    assert.equal(typeof cpuEntropyBits, "number", "cpuEntropyBits");
+    assert.equal(typeof safe, "boolean", "boolean");
 
     if(safe) {
-      assert(entropyCount >= 128, 'Call initialize() to add entropy')
+        assert(entropyCount >= 128, "Call initialize() to add entropy");
     }
 
     // if(entropyCount > 0) {
     //     console.log(`Additional private key entropy: ${entropyCount} events`)
     // }
 
-    const hash_array = []
-    hash_array.push(randomBytes(32))
-    hash_array.push(Buffer.from(cpuEntropy(cpuEntropyBits)))
-    hash_array.push(externalEntropyArray)
-    hash_array.push(browserEntropy())
-    return hash.sha256(Buffer.concat(hash_array))
+    const hash_array = [];
+    hash_array.push(randomBytes(32));
+    hash_array.push(Buffer.from(cpuEntropy(cpuEntropyBits)));
+    hash_array.push(externalEntropyArray);
+    hash_array.push(browserEntropy());
+    return hash.sha256(Buffer.concat(hash_array));
 }
 
 /**
@@ -70,14 +70,14 @@ function random32ByteBuffer({cpuEntropyBits = 0, safe = true} = {}) {
     </code>
 */
 function addEntropy(...ints) {
-    assert.equal(externalEntropyArray.length, 101, 'externalEntropyArray')
+    assert.equal(externalEntropyArray.length, 101, "externalEntropyArray");
 
-    entropyCount += ints.length
+    entropyCount += ints.length;
     for(const i of ints) {
-        const pos = entropyPos++ % 101
-        const i2 = externalEntropyArray[pos] += i
+        const pos = entropyPos++ % 101;
+        const i2 = externalEntropyArray[pos] += i;
         if(i2 > 9007199254740991)
-            externalEntropyArray[pos] = 0
+            externalEntropyArray[pos] = 0;
     }
 }
 
@@ -91,35 +91,35 @@ function addEntropy(...ints) {
     @return {array} counts gathered by measuring variations in the CPU speed during floating point operations.
 */
 function cpuEntropy(cpuEntropyBits = 128) {
-    let collected = []
-    let lastCount = null
-    let lowEntropySamples = 0
+    let collected = [];
+    let lastCount = null;
+    let lowEntropySamples = 0;
     while(collected.length < cpuEntropyBits) {
-        const count = floatingPointCount()
+        const count = floatingPointCount();
         if(lastCount != null) {
-            const delta = count - lastCount
+            const delta = count - lastCount;
             if(Math.abs(delta) < 1) {
-                lowEntropySamples++
-                continue
+                lowEntropySamples++;
+                continue;
             }
             // how many bits of entropy were in this sample
-            const bits = Math.floor(log2(Math.abs(delta)) + 1)
+            const bits = Math.floor(log2(Math.abs(delta)) + 1);
             if(bits < 4) {
                 if(bits < 2) {
-                    lowEntropySamples++
+                    lowEntropySamples++;
                 }
-                continue
+                continue;
             }
-            collected.push(delta)
+            collected.push(delta);
         }
-        lastCount = count
+        lastCount = count;
     }
     if(lowEntropySamples > 10) {
-        const pct = Number(lowEntropySamples / cpuEntropyBits * 100).toFixed(2)
+        const pct = Number(lowEntropySamples / cpuEntropyBits * 100).toFixed(2);
         // Is this algorithm getting inefficient?
         console.warn(`WARN: ${pct}% low CPU entropy re-sampled`);
     }
-    return collected
+    return collected;
 }
 
 /**
@@ -129,16 +129,16 @@ function cpuEntropy(cpuEntropyBits = 128) {
     predictable in runtime.
 */
 function floatingPointCount() {
-    const workMinMs = 7
-    const d = Date.now()
-    let i = 0, x = 0
+    const workMinMs = 7;
+    const d = Date.now();
+    let i = 0, x = 0;
     while (Date.now() < d + workMinMs + 1) {
-        x = Math.sin(Math.sqrt(Math.log(++i + x)))
+        x = Math.sin(Math.sqrt(Math.log(++i + x)));
     }
-    return i
+    return i;
 }
 
-const log2 = x => Math.log(x) / Math.LN2
+const log2 = x => Math.log(x) / Math.LN2;
 
 /**
     @private
@@ -147,7 +147,7 @@ const log2 = x => Math.log(x) / Math.LN2
     @return {Buffer} 32 bytes
 */
 function browserEntropy() {
-    let entropyStr = Array(randomBytes(101)).join()
+    let entropyStr = Array(randomBytes(101)).join();
     try {
         entropyStr += (new Date()).toString() + " " + window.screen.height + " " + window.screen.width + " " +
             window.screen.colorDepth + " " + " " + window.screen.availHeight + " " + window.screen.availWidth + " " +
@@ -159,11 +159,11 @@ function browserEntropy() {
         }
     } catch(error) {
         //nodejs:ReferenceError: window is not defined
-        entropyStr += hash.sha256((new Date()).toString())
+        entropyStr += hash.sha256((new Date()).toString());
     }
 
     const b = new Buffer(entropyStr);
-    entropyStr += b.toString('binary') + " " + (new Date()).toString();
+    entropyStr += b.toString("binary") + " " + (new Date()).toString();
 
     let entropy = entropyStr;
     const start_t = Date.now();
@@ -179,18 +179,18 @@ function browserEntropy() {
   @return {string} checksum encoded base58 string
 */
 function checkEncode(keyBuffer, keyType = null) {
-  assert(Buffer.isBuffer(keyBuffer), 'expecting keyBuffer<Buffer>')
-  if(keyType === 'sha256x2') { // legacy
-    const checksum = hash.sha256(hash.sha256(keyBuffer)).slice(0, 4)
-    return base58.encode(Buffer.concat([keyBuffer, checksum]))
-  } else {
-    const check = [keyBuffer]
-    if(keyType) {
-        check.push(Buffer.from(keyType))
+    assert(Buffer.isBuffer(keyBuffer), "expecting keyBuffer<Buffer>");
+    if(keyType === "sha256x2") { // legacy
+        const checksum = hash.sha256(hash.sha256(keyBuffer)).slice(0, 4);
+        return base58.encode(Buffer.concat([keyBuffer, checksum]));
+    } else {
+        const check = [keyBuffer];
+        if(keyType) {
+            check.push(Buffer.from(keyType));
+        }
+        const checksum = hash.ripemd160(Buffer.concat(check)).slice(0, 4);
+        return base58.encode(Buffer.concat([keyBuffer, checksum]));
     }
-    const checksum = hash.ripemd160(Buffer.concat(check)).slice(0, 4)
-    return base58.encode(Buffer.concat([keyBuffer, checksum]))
-  }
 }
 
 /**
@@ -199,27 +199,27 @@ function checkEncode(keyBuffer, keyType = null) {
   @return {string} checksum encoded base58 string
 */
 function checkDecode(keyString, keyType = null) {
-    assert(keyString != null, 'private key expected')
-    const buffer = new Buffer(base58.decode(keyString))
-    const checksum = buffer.slice(-4)
-    const key = buffer.slice(0, -4)
+    assert(keyString != null, "private key expected");
+    const buffer = new Buffer(base58.decode(keyString));
+    const checksum = buffer.slice(-4);
+    const key = buffer.slice(0, -4);
 
-    let newCheck
-    if(keyType === 'sha256x2') { // legacy
-        newCheck = hash.sha256(hash.sha256(key)).slice(0, 4) // WIF (legacy)
+    let newCheck;
+    if(keyType === "sha256x2") { // legacy
+        newCheck = hash.sha256(hash.sha256(key)).slice(0, 4); // WIF (legacy)
     } else {
-      const check = [key]
-      if(keyType) {
-          check.push(Buffer.from(keyType))
-      }
-      newCheck = hash.ripemd160(Buffer.concat(check)).slice(0, 4) //PVT
+        const check = [key];
+        if(keyType) {
+            check.push(Buffer.from(keyType));
+        }
+        newCheck = hash.ripemd160(Buffer.concat(check)).slice(0, 4); //PVT
     }
 
     if (checksum.toString() !== newCheck.toString()) {
-        throw new Error('Invalid checksum, ' +
-            `${checksum.toString('hex')} != ${newCheck.toString('hex')}`
-        )
+        throw new Error("Invalid checksum, " +
+            `${checksum.toString("hex")} != ${newCheck.toString("hex")}`
+        );
     }
 
-    return key
+    return key;
 }
