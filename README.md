@@ -850,7 +850,7 @@ let newTrxId = (await apiCaller.pushTransaction(
 )).transactionId;
 ```
 
-## Create Group
+### Create Group
 
 ```js
 await apiCaller.pushTransaction(
