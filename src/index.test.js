@@ -116,9 +116,8 @@ describe("APICaller write API test", () => {
 
         testingTmpData.addedTokenNamePrefix = "tk" + ((new Date()).valueOf() / 500);
 
-        await apiCaller.pushTransaction({
-            "action": "issuetoken",
-            "args": {
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("issuetoken", {
                 "domain": testingTmpData.newDomainName,
                 "names": [
                     testingTmpData.addedTokenNamePrefix + "1",
@@ -128,8 +127,8 @@ describe("APICaller write API test", () => {
                 "owner": [
                     Key.privateToPublic(wif)
                 ]
-            }
-        });
+            })
+        );
     });
 
     it("new_group", async function () {
@@ -140,9 +139,8 @@ describe("APICaller write API test", () => {
 
         testingTmpData.newGroupName = "g" + parseInt((new Date()).valueOf() / 5000);
 
-        await apiCaller.pushTransaction({
-            "action": "newgroup",
-            "args": {
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("newgroup", {
                 "name": testingTmpData.newGroupName,
                 "group": {
                     "name": testingTmpData.newGroupName,
@@ -186,8 +184,8 @@ describe("APICaller write API test", () => {
                         ]
                     }
                 }
-            }
-        });
+            })
+        );
     });
 
     it("new_fungible", async function () {
