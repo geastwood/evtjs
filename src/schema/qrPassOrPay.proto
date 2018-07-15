@@ -1,0 +1,14 @@
+
+package evtjs;
+syntax = "proto3";
+
+message PassOrPayMessage {
+    int32 version = 0; // version
+    bytes signature = 1;
+    int32 flag = 2;    // extended flag
+    int64 time = 3;
+    string domainName = 10;
+    string tokenName = 11;
+    string symbol = 12;
+    string maxAmount = 13; 
+}

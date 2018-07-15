@@ -7,12 +7,17 @@ let trans = {
 
 };*/
 
-async function test() {
-    const ecc = require("./ecc/index");
+const utils = require("./evtUtils");
 
-    let ret = await ecc.randomKey();
-    let pub = ecc.privateToPublic(ret);
-    console.log(pub);
+async function test() {
+    utils.getEveriPassText({ privateKey: "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", domainName: "testdomain", tokenName: "testtoken" }, (err, res) => {
+        console.log(res);
+    });
+
+    utils.getEveriPassImage({ privateKey: "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", domainName: "testdomain", tokenName: "testtoken" }, (err, res) => {
+        console.log(res);
+    });
 }
 
 test();
+ 

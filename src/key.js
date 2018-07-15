@@ -75,4 +75,3 @@ EvtKey.isValidPrivateKey = function(key) {
 };
 
 module.exports = EvtKey;
- 
