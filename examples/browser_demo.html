@@ -45,9 +45,10 @@
             }
             window.generatePass = async function run() {
                 try {
-                    EVT.Utils.getEveriPassImage( { privateKey: "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", domainName: "testdomain", tokenName: "testtoken" }, res => {
+                    let time = new Date().valueOf();
+                    EVT.Utils.getEveriPassImage( { privateKey: "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", domainName: "testdomain", tokenName: "testtoken" }, (err, res) => {
                         document.getElementById("pass").setAttribute("src", res);
-                        // document.getElementById("passText").innerHTML = res;
+                        document.getElementById("passText").innerHTML = (new Date().valueOf() - time) + " ms";
                     });
                 }
                 catch(e) {

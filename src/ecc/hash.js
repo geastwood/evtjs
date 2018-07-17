@@ -1,5 +1,5 @@
-const createHash = require('create-hash')
-const createHmac = require('create-hmac')
+const createHash = require("create-hash");
+const createHmac = require("create-hmac");
 
 /** @namespace hash */
 
@@ -8,7 +8,7 @@ const createHmac = require('create-hmac')
     @return {string|Buffer} - Buffer when resultEncoding is null, or string
 */
 function sha1(data, resultEncoding) {
-    return createHash('sha1').update(data).digest(resultEncoding)
+    return createHash("sha1").update(data).digest(resultEncoding);
 }
 
 /** @arg {string|Buffer} data
@@ -16,7 +16,9 @@ function sha1(data, resultEncoding) {
     @return {string|Buffer} - Buffer when resultEncoding is null, or string
 */
 function sha256(data, resultEncoding) {
-    return createHash('sha256').update(data).digest(resultEncoding)
+    let ret = createHash("sha256").update(data).digest(resultEncoding);
+
+    return ret;
 }
 
 /** @arg {string|Buffer} data
@@ -24,15 +26,15 @@ function sha256(data, resultEncoding) {
     @return {string|Buffer} - Buffer when resultEncoding is null, or string
 */
 function sha512(data, resultEncoding) {
-    return createHash('sha512').update(data).digest(resultEncoding)
+    return createHash("sha512").update(data).digest(resultEncoding);
 }
 
 function HmacSHA256(buffer, secret) {
-    return createHmac('sha256', secret).update(buffer).digest()
+    return createHmac("sha256", secret).update(buffer).digest();
 }
 
 function ripemd160(data) {
-    return createHash('rmd160').update(data).digest()
+    return createHash("rmd160").update(data).digest();
 }
 
 // function hash160(buffer) {
@@ -57,4 +59,4 @@ module.exports = {
     // hash160: hash160,
     // hash256: hash256,
     // HmacSHA512: HmacSHA512
-}
+};
