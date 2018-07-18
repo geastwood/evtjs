@@ -108,13 +108,13 @@ You can use `isValidPrivateKey` or `isValidPublicKey` to check a key.
     assert(EVT.EvtKey.isValidPublicKey('EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND'), 'should be a valid public');
 ```
 
-### random32BytesAsHex() => Promise<string>
+### random32BytesAsHex() => Promise&lt;string>
 
 You may generate a 32-byte-long hex string and it is promised to be safe in cryptography.
 
 > This is a `async` function. Please use `then` or `await` for the result accordingly.
 
-### randomName128() => Promise<string>
+### randomName128() => Promise&lt;string>
 
 Produces a safe string with a length of 21. This is suitable for use in ABI structure where it requires a `name128` type such as `proposalName` for a suspended transaction.
 
