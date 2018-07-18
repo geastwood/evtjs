@@ -180,7 +180,9 @@ EvtUtils.getEveriPassText = function(params, callback) {
     let text = `evt://p?${EvtUtils.b2dec(Buffer.concat(byteSegments))}`;
 
     // calculate the signature
+    let time = new Date().valueOf();
     let sig = ecc.sign(text, params.privateKey);
+    console.log("[getEveriPassText] sign +" + (new Date().valueOf() - time) + " ms");
     let sigBuf = ecc.Signature.from(sig).toBuffer();
     text += "'" + EvtUtils.b2dec(sigBuf);
  
@@ -198,6 +200,7 @@ EvtUtils.getEVTQrImage = function(qrParams, imgParams, callback) {
         intervalId = setInterval(() => EvtUtils.getEVTQrImage(qrParams, Object.assign(imgParams, { autoReload: false }), callback), 5000);
     }
 
+    
     EvtUtils.getEveriPassText(qrParams, (err, res) => {
         if (err) {
             callback(err);

@@ -4,6 +4,7 @@ const EvtConfig = require("./evtConfig");
 const { fetch } = require("./fetch");
 const ByteBuffer = require("bytebuffer");
 const EvtAction = require("./action");
+const Logger = require("./logger");
 
 /**
  * APICaller for everiToken
@@ -52,8 +53,7 @@ class APICaller {
             request.body.signatures = sigs;
         }
 
-        // console.log("fetch: " + url);
-        // console.log("fetch: " + JSON.stringify(request, null, 4));
+        Logger.verbose("[fetch] begin sending request: " + url + ": " + JSON.stringify(request, null, 4));
 
         var res = await fetch(url, {
             method: request.method,
@@ -66,7 +66,6 @@ class APICaller {
         let ret = await res.json();
 
         if (ret && ret.code && ret.message && ret.error) {
-            console.error("————————request sent: " + url + ": " + JSON.stringify(request, null, 4));
             this.__throwServerResponseError(ret);
         }
         if (!ret) {
@@ -441,8 +440,6 @@ class APICaller {
         err.serverError = res.error;
         err.serverMessage = res.message;
 
-        console.log(res);
-
         throw err;
     }
 
@@ -464,8 +461,6 @@ class APICaller {
             actions.push(arguments[i]);
         }
 
-        // console.log("__actions:" + JSON.stringify(actions, null, 4));
-
         let params = {
             transaction: {
                 actions: actions
@@ -485,8 +480,6 @@ class APICaller {
         if (!this.__cachedInfo) {
             await this.getInfo();
         }
-
-        //console.log("body:______" + JSON.stringify(body, null, 4));
 
         for (let i = 0; i < body.transaction.actions.length; ++i) {
             if (!(body.transaction.actions[i] instanceof EvtAction)) {
@@ -591,7 +584,7 @@ class APICaller {
             });
         }
         catch (e) {
-            console.log("[__getDigestToSign] trx: \n" + JSON.stringify(transaction, null, 4));
+            // console.log("[__getDigestToSign] trx: \n" + JSON.stringify(transaction, null, 4));
             throw e;
         }
 

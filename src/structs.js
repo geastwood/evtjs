@@ -45,7 +45,6 @@ module.exports = (config = {}, extendedSchema) => {
     const override = Object.assign({},
         authorityOverride,
         abiOverride,
-        wasmCodeOverride(config),
         actionDataOverride(structLookup, forceActionDataHex),
         config.override
     );
@@ -445,28 +444,6 @@ const abiOverride = ({
         }
         if(Buffer.isBuffer(value)) {
             return JSON.parse(value.toString());
-        }
-    }
-});
-
-const wasmCodeOverride = config => ({
-    "setcode.code.fromObject": ({object, result}) => {
-        const {binaryen} = config;
-        assert(binaryen != null, "required: config.binaryen = require(\"binaryen\")");
-        try {
-            const code = object.code.toString();
-            if(/^\s*\(module/.test(code)) {
-                if(config.debug) {
-                    console.log("Assembling WASM..");
-                }
-                const wasm = Buffer.from(binaryen.parseText(code).emitBinary());
-                result.code = wasm;
-            } else {
-                result.code = object.code;
-            }
-        } catch(error) {
-            console.error(error, object.code);
-            throw error;
         }
     }
 });

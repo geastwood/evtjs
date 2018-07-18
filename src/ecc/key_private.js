@@ -264,9 +264,7 @@ let initialized = false, unitTested = false;
   @return {Promise}
 */
 function initialize() {
-    console.log("[key_private] initialize, current entropy: " + keyUtils.entropyCount()); //TODO
     if(initialized) {
-        console.log("[key_private] initialized, return"); //TODO
         return;
     }
 

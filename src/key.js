@@ -45,7 +45,6 @@ EvtKey.isValidPublicKey = function(key) {
  * return safe random bytes as hex.
  */
 EvtKey.random32BytesAsHex = async function() {
-    console.log("[EvtKey] random32BytesAsHex"); //TODO
     await ecc.initialize();
     return ecc.key_utils.random32ByteBuffer({ safe: true }).toString("hex");
 };
@@ -54,7 +53,6 @@ EvtKey.random32BytesAsHex = async function() {
  * return a promise that resolves a safe random string to be used in name128 format.
  */
 EvtKey.randomName128 = async function() {
-    console.log("[EvtKey] randomName128"); //TODO
     await ecc.initialize();
 
     let buffer = ecc.key_utils.random32ByteBuffer({ safe: true });
