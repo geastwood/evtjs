@@ -126,7 +126,7 @@ Produces a safe string with a length of 21. This is suitable for use in ABI stru
 
 ### Initialization
 
-Before calling APICaller, you must initialize a instance of APICaller and pass a `keyProvider` for it. You can use `EvtKey` to generate a valid one.
+Before calling APICaller, you must initialize a instance of it.
 
 A APICaller object could be created like this:
 
@@ -138,7 +138,7 @@ var apiCaller = EVT(args);
 #### Parameters
 
 - `args`: a object, the following fields are required:
-  - `keyProvider`: keyProvider should be string representing private key, or a function which returns the private key or a `Promise` that will resolves with the private key for a async function
+  - `keyProvider`: keyProvider should be string or a array of string representing private keys, or a function which returns one private key or one array of several keys or a `Promise` that will resolves with one private key or one array of several key.
   - `endpoint`: a object to specify the endpoint of the node to be connected
 
 Here are several example of `keyProvider`:
@@ -147,18 +147,25 @@ Here are several example of `keyProvider`:
 // keyProvider is the private key
 let keyProvider = '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D';
 
+// keyProvider is the array of private key
+let keyProvider = [ '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D', '5KjJUS14wBNgHGRW1NYPFgfJotnS6jvwv7wzvfc75zAqfPWYmhD' ];
+
 // keyProvider is a function
 let keyProvider = function() {
-    return '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D';
+    return [
+        '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D', '5KjJUS14wBNgHGRW1NYPFgfJotnS6jvwv7wzvfc75zAqfPWYmhD'
+    ];
 }
 
 // keyProvider is a async function
 let keyProvider = function() {
     return new Promise((res, rej) => {
-        res('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D');
+        res('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D'); // or a array
     });
 }
 ```
+
+If you provide a array instead of a single key, `evtjs` will choose which keys should be used for signing. `evtjs` supports `multisign` so it may use more than one keys for signing a transaction.
 
 A example of `endpoint`:
 
