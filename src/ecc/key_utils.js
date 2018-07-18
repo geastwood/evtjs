@@ -34,7 +34,7 @@ function random32ByteBuffer({cpuEntropyBits = 0, safe = true} = {}) {
     assert.equal(typeof safe, "boolean", "boolean");
 
     if(safe) {
-        assert(entropyCount >= 128, "Call initialize() to add entropy");
+        assert(entropyCount >= 128, "Call initialize() to add entropy (current: " + entropyCount + ")");
     }
 
     // if(entropyCount > 0) {
