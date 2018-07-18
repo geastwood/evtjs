@@ -213,40 +213,14 @@ Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {
     let b2 = new Buffer(ecSignature.r.toArray());
     let b3 = new Buffer(ecSignature.s.toArray());
 
+    if (b2.length !== 32) { b2 = Buffer.concat([ new Buffer([ 0 ]), b2 ]); console.log("added b2"); }
+    if (b3.length !== 32) { b3 = Buffer.concat([ new Buffer([ 0 ]), b3 ]); console.log("added b3"); }
+
+    /*console.log(b1);
+    console.log(b2);
+    console.log(b3);*/
+
     return Signature.fromBuffer(Buffer.concat([ b1, b2, b3 ]));
-    
-    // old
-    if(typeof dataSha256 === "string") {
-        dataSha256 = Buffer.from(dataSha256, encoding);
-    }
-    if( dataSha256.length !== 32 || ! Buffer.isBuffer(dataSha256) )
-        throw new Error("dataSha256: 32 byte buffer requred");
-
-    privateKey = PrivateKey(privateKey);
-    assert(privateKey, "privateKey required");
-
-    var der, e, ecsignature, i, lenR, lenS, nonce;
-    i = null;
-    nonce = 0;
-    e = BigInteger.fromBuffer(dataSha256);
-
-    while (true) {
-        ecsignature = ecdsa.sign(curve, dataSha256, privateKey.d, nonce++);
-        der = ecsignature.toDER();
-        lenR = der[3];
-        lenS = der[5 + lenR];
-        if (lenR === 32 && lenS === 32) {
-            i = ecdsa.calcPubKeyRecoveryParam(curve, e, ecsignature, privateKey.toPublic().Q);
-            i += 4;  // compressed
-            i += 27; // compact  //  24 or 27 :( forcing odd-y 2nd key candidate)
-            break;
-        }
-        if (nonce % 10 === 0) {
-            console.log("WARN: " + nonce + " attempts to find canonical signature");
-        }
-    }
-
-    return Signature(ecsignature.r, ecsignature.s, i);
 };
 
 Signature.fromBuffer = function(buf) {

@@ -21,6 +21,11 @@ EvtUtils.b2dec = function(buffer) {
         ret = "0" + ret;
     }
 
+    if (EvtUtils.dec2b(ret).length !== buffer.length) {
+        console.log(buffer);
+        console.log(EvtUtils.dec2b(ret));
+    }
+
     return ret;
 };
 
@@ -131,13 +136,17 @@ function parseSegments(buffer) {
  * @param {string} text 
  */
 function parseQRCode(text) {
-    if (!text.startsWith("evt://p?")) return null;
-    let rawText = text.substr(8);
-
-    let textSplited = rawText.split("'");
+    let textSplited = text.split("'");
     if (textSplited.length !== 2) return null;
 
-    return parseSegments(EvtUtils.dec2b(textSplited[0]));
+    if (!textSplited[0].startsWith("evt://p?")) return null;
+    let rawText = textSplited[0].substr(8);
+
+    // validate signature
+    let signature = ecc.Signature.fromBuffer(EvtUtils.dec2b(textSplited[1]));
+    let publicKey = signature.recover(textSplited[0], "utf8").toString();
+
+    return { segment: parseSegments(EvtUtils.dec2b(rawText)), publicKey };
 }
 
 /**
@@ -152,16 +161,17 @@ EvtUtils.getEveriPassText = function(params, callback) {
 
     // list of available typeKey:
     // typeKey      description
-    // 41           flag for everiPay / everiPass
-    //      1       everiPass
-    //      2       everiPay
-    //      4       should destory the NFT after validate the token in everiPass
+    // 41           flag
+    //      1       protocol version 1 (required)
+    //      2       everiPass
+    //      4       everiPay
+    //      8       should destory the NFT after validate the token in everiPass
     // 42           unix timestamp in seconds
     // 91           domain name to be validated in everiPass
     // 92           token  name to be validated in everiPass
 
     // add segments
-    byteSegments.push(createSegment(41, 1 + 4));                                    // everiPass
+    byteSegments.push(createSegment(41, 1 + 2 + 8));                                // everiPass
     byteSegments.push(createSegment(42, parseInt(new Date().valueOf() / 1000)));    // timestamp
     if (params.domainName) byteSegments.push(createSegment(91, params.domainName)); // domainName for everiPass
     if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));   // tokenName for everiPass
@@ -169,15 +179,10 @@ EvtUtils.getEveriPassText = function(params, callback) {
     // convert buffer of segments to text using base10
     let text = `evt://p?${EvtUtils.b2dec(Buffer.concat(byteSegments))}`;
 
-    
-
     // calculate the signature
     let sig = ecc.sign(text, params.privateKey);
     let sigBuf = ecc.Signature.from(sig).toBuffer();
     text += "'" + EvtUtils.b2dec(sigBuf);
-
-    console.log(text);
-    console.log(parseQRCode(text));
  
     // callback
     callback(null, text);
@@ -187,16 +192,30 @@ EvtUtils.getEveriPassText = function(params, callback) {
  * get everiPass's qr code image address from specific private key and token name
  * @param {object} params the params of the pass
  */
-EvtUtils.getEveriPassImage = function(params, callback) {
-    EvtUtils.getEveriPassText(params, (err, res) => {
+EvtUtils.getEVTQrImage = function(qrParams, imgParams, callback) {
+    let intervalId;
+    if (imgParams.autoReload) {
+        intervalId = setInterval(() => EvtUtils.getEVTQrImage(qrParams, Object.assign(imgParams, { autoReload: false }), callback), 5000);
+    }
+
+    EvtUtils.getEveriPassText(qrParams, (err, res) => {
         if (err) {
             callback(err);
         }
 
-        qrcode.toDataURL(res, { errorCorrectionLevel: "Q" }, (err, res) => {
-            callback(err, res);
-        });
+        if (imgParams.canvas) {
+            qrcode.toCanvas(imgParams.canvas, res, { errorCorrectionLevel: "Q", scale: 8, "color": { dark: "#3d226d" } }, (err) => {
+                callback(err, { rawText: res } );
+            });
+        }
+        else {
+            qrcode.toDataURL(res, { errorCorrectionLevel: "Q", scale: 8, "color": { dark: "#3d226d" } }, (err, url) => {
+                callback(err, { dataUrl: url, rawText: res } );
+            });
+        }
     });
+    
+    return intervalId;
 };
 
 module.exports = EvtUtils;
