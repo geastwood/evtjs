@@ -217,6 +217,29 @@ class APICaller {
     }
 
     /**
+     * get specific token's detail information.
+     * @param {string} domain the domain to query
+     * @param {string} name the name to query
+     */
+    async getToken(domain, name) {
+        let res = await this.__callAPI({
+            url: "/v1/evt/get_token",
+            method: "POST",
+            body: {
+                domain, name
+            },
+            sign: false // no need to sign
+        });
+
+        if (!res.code || !res.error) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * Query actions by domain, key and action names. Make sure you have history_plugin enabled on the chain node
      * @param {*} params
      */

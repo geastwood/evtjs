@@ -22,6 +22,7 @@ const { APICaller } = require("./apiCaller");
 const EvtConfig = require("./evtConfig");
 const EvtKey = require("./key");
 const EvtAction = require("./action");
+const Utils = require("./evtUtils");
 
 // Global EVT Object for exporting
 let EVT = function(config) {
@@ -33,7 +34,8 @@ EVT = Object.assign(EVT, {
     APICaller,
     EvtConfig,
     EvtKey,
-    EvtAction
+    EvtAction,
+    Utils
 });
 
 module.exports = EVT;

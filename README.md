@@ -1,5 +1,7 @@
 # EVTJS
 
+ ![node-support](https://img.shields.io/badge/node-%3E6.0.0-brightgreen.svg) ![browser](https://img.shields.io/badge/browser-supported-brightgreen.svg) ![npm](https://img.shields.io/npm/v/evtjs.svg) ![language](https://img.shields.io/badge/language-javascript-orange.svg) ![license](https://img.shields.io/npm/l/evtjs.svg)
+
 General purpose API Binding for the everiToken blockchain. Supports `node` and `browser`.
 
 ## Install
@@ -108,19 +110,23 @@ You can use `isValidPrivateKey` or `isValidPublicKey` to check a key.
     assert(EVT.EvtKey.isValidPublicKey('EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND'), 'should be a valid public');
 ```
 
-### random32BytesAsHex()
+### random32BytesAsHex() => Promise&lt;string>
 
 You may generate a 32-byte-long hex string and it is promised to be safe in cryptography.
 
-### randomName128()
+> This is a `async` function. Please use `then` or `await` for the result accordingly.
+
+### randomName128() => Promise&lt;string>
 
 Produces a safe string with a length of 21. This is suitable for use in ABI structure where it requires a `name128` type such as `proposalName` for a suspended transaction.
+
+> This is a `async` function. Please use `then` or `await` for the result accordingly.
 
 ## APICaller Usage
 
 ### Initialization
 
-Before calling APICaller, you must initialize a instance of APICaller and pass a `keyProvider` for it. You can use `EvtKey` to generate a valid one.
+Before calling APICaller, you must initialize a instance of it.
 
 A APICaller object could be created like this:
 
@@ -132,7 +138,7 @@ var apiCaller = EVT(args);
 #### Parameters
 
 - `args`: a object, the following fields are required:
-  - `keyProvider`: keyProvider should be string representing private key, or a function which returns the private key or a `Promise` that will resolves with the private key for a async function
+  - `keyProvider`: keyProvider should be string or a array of string representing private keys, or a function which returns one private key or one array of several keys or a `Promise` that will resolves with one private key or one array of several key.
   - `endpoint`: a object to specify the endpoint of the node to be connected
 
 Here are several example of `keyProvider`:
@@ -141,18 +147,25 @@ Here are several example of `keyProvider`:
 // keyProvider is the private key
 let keyProvider = '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D';
 
+// keyProvider is the array of private key
+let keyProvider = [ '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D', '5KjJUS14wBNgHGRW1NYPFgfJotnS6jvwv7wzvfc75zAqfPWYmhD' ];
+
 // keyProvider is a function
 let keyProvider = function() {
-    return '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D';
+    return [
+        '5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D', '5KjJUS14wBNgHGRW1NYPFgfJotnS6jvwv7wzvfc75zAqfPWYmhD'
+    ];
 }
 
 // keyProvider is a async function
 let keyProvider = function() {
     return new Promise((res, rej) => {
-        res('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D');
+        res('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D'); // or a array
     });
 }
 ```
+
+If you provide a array instead of a single key, `evtjs` will choose which keys should be used for signing automatically by calling everiToken's API `get_required_keys`. `evtjs` supports `multisign` so it may use more than one keys for signing on a transaction.
 
 A example of `endpoint`:
 
