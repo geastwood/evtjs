@@ -165,7 +165,7 @@ let keyProvider = function() {
 }
 ```
 
-If you provide a array instead of a single key, `evtjs` will choose which keys should be used for signing. `evtjs` supports `multisign` so it may use more than one keys for signing a transaction.
+If you provide a array instead of a single key, `evtjs` will choose which keys should be used for signing automatically by calling everiToken's API `get_required_keys`. `evtjs` supports `multisign` so it may use more than one keys for signing on a transaction.
 
 A example of `endpoint`:
 
