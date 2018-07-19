@@ -56,7 +56,7 @@ NEVER SHOW IT TO ANY OTHER PEOPLE</pre>
                 window.generatePass = async function run() {
                     try {
                         let time = new Date().valueOf();
-                        EVT.Utils.getEVTQrImage( { privateKey: "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", domainName: "testdomain", tokenName: "testtoken" }, 
+                        EVT.Utils.getEVTQrImage( { keyProvider: [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ" ], domainName: "testdomain", tokenName: "testtoken" }, 
                         { autoReload: true }, (err, res) => {
                             // canvas: document.getElementById("canvas"), 
                             document.getElementById("pass").setAttribute("src", res.dataUrl);

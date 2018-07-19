@@ -19,8 +19,6 @@ module.exports = {
      * @param {*} options 
      */
     fetch(url, options) {
-        let timeStart = new Date().valueOf();
-        
         if (typeof window === "object" && typeof window.fetch === "function") {
             // Browser with fetch support
             if (options.headers) {
@@ -63,7 +61,7 @@ module.exports = {
                     });
 
                     response.on("end", () => {
-                        logger.verbose("[+" + (new Date().valueOf() - timeStart) + " ms] " + response.statusCode + " " + url);
+                        logger.verbose("[fetch] finished " + response.statusCode + " " + url);
 
                         var parsedResObj = {
                             json: async function getJSON() {

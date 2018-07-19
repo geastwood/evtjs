@@ -12,7 +12,6 @@ const EVT = require(".");
 
 const wif = "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ";
 const publicKey = EVT.EvtKey.privateToPublic(wif);
-
 const hash = require("./ecc/hash");
 const privatekey = require("./ecc/key_private");
 

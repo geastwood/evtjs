@@ -149,13 +149,36 @@ function parseQRCode(text) {
     return { segment: parseSegments(EvtUtils.dec2b(rawText)), publicKey };
 }
 
+function isFunction(functionToCheck) {
+    return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+}
+
 /**
  * get everiPass's text from specific private key and token name
  * @param {object} params the params of the pass
  */
-EvtUtils.getEveriPassText = function(params, callback) {
+EvtUtils.getEveriPassText = async function(params) {
     if (!params) throw new Error("Invalid params");
-    if (!params.privateKey) throw new Error("privateKey is required");
+    if (!params.keyProvider) throw new Error("keyProvider is required");
+
+    if (!Array.isArray(params.keyProvider)) {
+        params.keyProvider = [ params.keyProvider ];
+    }
+
+    if (params.keyProvider.length > 3) {
+        throw new Error("Exceed max private key limit: 3");
+    }
+
+    for (let i = 0; i < params.keyProvider.length; ++i) {
+        if (isFunction(params.keyProvider[i])) {
+            params.keyProvider[i] = params.keyProvider[i]();
+        }
+        params.keyProvider[i] = await Promise.resolve(params.keyProvider[i]);
+
+        if (!params.keyProvider[i] || (typeof params.keyProvider[i] !== "string")) {
+            throw new Error("invalid private key found");
+        }
+    }
 
     let byteSegments = [ ];
 
@@ -180,14 +203,18 @@ EvtUtils.getEveriPassText = function(params, callback) {
     let text = `evt://p?${EvtUtils.b2dec(Buffer.concat(byteSegments))}`;
 
     // calculate the signature
-    let time = new Date().valueOf();
-    let sig = ecc.sign(text, params.privateKey);
-    console.log("[getEveriPassText] sign +" + (new Date().valueOf() - time) + " ms");
-    let sigBuf = ecc.Signature.from(sig).toBuffer();
-    text += "'" + EvtUtils.b2dec(sigBuf);
- 
-    // callback
-    callback(null, text);
+    let sigBufs = [];
+
+    for (let i = 0; i < params.keyProvider.length; ++i) {
+        let sig = ecc.sign(text, params.keyProvider[i]);
+        sigBufs.push(ecc.Signature.from(sig).toBuffer());
+    }
+    
+    text += "'" + EvtUtils.b2dec(Buffer.concat(sigBufs));
+    
+    return {
+        rawText: text
+    }
 };
 
 /**
@@ -200,24 +227,34 @@ EvtUtils.getEVTQrImage = function(qrParams, imgParams, callback) {
         intervalId = setInterval(() => EvtUtils.getEVTQrImage(qrParams, Object.assign(imgParams, { autoReload: false }), callback), 5000);
     }
 
+    let errorCorrectionLevel = "Q";
     
-    EvtUtils.getEveriPassText(qrParams, (err, res) => {
-        if (err) {
-            callback(err);
+    EvtUtils.getEveriPassText(qrParams)
+    .then((res) => {
+        console.log(res.rawText);
+
+        if (res.rawText.length > 300) {
+            errorCorrectionLevel = "M";
+        }
+        if (res.rawText.length > 400) {
+            errorCorrectionLevel = "L";
         }
 
         if (imgParams.canvas) {
-            qrcode.toCanvas(imgParams.canvas, res, { errorCorrectionLevel: "Q", scale: 8, "color": { dark: "#3d226d" } }, (err) => {
-                callback(err, { rawText: res } );
+            qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 8, "color": { dark: "#3d226d" } }, (err) => {
+                callback(err, { rawText: res.rawText } );
             });
         }
         else {
-            qrcode.toDataURL(res, { errorCorrectionLevel: "Q", scale: 8, "color": { dark: "#3d226d" } }, (err, url) => {
-                callback(err, { dataUrl: url, rawText: res } );
+            qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 8, "color": { dark: "#3d226d" } }, (err, url) => {
+                callback(err, { dataUrl: url, rawText: res.rawText } );
             });
         }
+    })
+    .catch((e) => {
+        callback(e);
     });
-    
+
     return intervalId;
 };
 

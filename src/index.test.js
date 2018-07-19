@@ -2,6 +2,7 @@
 const assert = require("assert");
 const EVT = require(".");
 const Key = require("./key");
+const logger = require("./logger");
 
 const wif = "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ";
 const wif2 = "5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i";
@@ -11,6 +12,7 @@ const testingTmpData = {
     newDomainName: null,
     addedTokenNamePrefix: null
 };
+logger.writeLog = true;
 
 /*const network = {
     host: "testnet1.everitoken.io",
@@ -20,7 +22,7 @@ const testingTmpData = {
 
 const network = {
     host: "118.31.58.10",
-    port: 8888,
+    port: 8889,
     protocol: "http"
 };
 
@@ -66,72 +68,6 @@ describe("EvtKey", () => {
 
 // ==== part 3: APICaller write API ====
 describe("APICaller write API test", () => {
-    it("newdomain", async function () {
-        const apiCaller = new EVT({
-            keyProvider: [wif, wif2],
-            endpoint: network
-        });
-
-        testingTmpData.newDomainName = "nd" + (new Date()).valueOf();
-
-        await apiCaller.pushTransaction(
-            new EVT.EvtAction("newdomain", {
-                "name": testingTmpData.newDomainName,
-                "creator": publicKey,
-                "issue": {
-                    "name": "issue",
-                    "threshold": 1,
-                    "authorizers": [{
-                        "ref": "[A] " + publicKey,
-                        "weight": 1
-                    }]
-                },
-                "transfer": {
-                    "name": "transfer",
-                    "threshold": 1,
-                    "authorizers": [{
-                        "ref": "[G] OWNER",
-                        "weight": 1
-                    }]
-                },
-                "manage": {
-                    "name": "manage",
-                    "threshold": 1,
-                    "authorizers": [{
-                        "ref": "[A] " + publicKey,
-                        "weight": 1
-                    }]
-                }
-            })
-        );
-
-        let res = await apiCaller.getDomainDetail(testingTmpData.newDomainName);
-        assert(res.name === testingTmpData.newDomainName, "expected right domain name");
-    });
-
-    it("issue_tokens", async function () {
-        const apiCaller = new EVT({
-            keyProvider: wif,
-            endpoint: network
-        });
-
-        testingTmpData.addedTokenNamePrefix = "tk" + ((new Date()).valueOf() / 500);
-
-        await apiCaller.pushTransaction(
-            new EVT.EvtAction("issuetoken", {
-                "domain": testingTmpData.newDomainName,
-                "names": [
-                    testingTmpData.addedTokenNamePrefix + "1",
-                    testingTmpData.addedTokenNamePrefix + "2",
-                    testingTmpData.addedTokenNamePrefix + "3"
-                ],
-                "owner": [
-                    Key.privateToPublic(wif)
-                ]
-            })
-        );
-    });
-
     it("new_group", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
@@ -185,6 +121,72 @@ describe("APICaller write API test", () => {
                         ]
                     }
                 }
+            })
+        );
+    });
+
+    it("newdomain", async function () {
+        const apiCaller = new EVT({
+            keyProvider: [wif, wif2],
+            endpoint: network
+        });
+
+        testingTmpData.newDomainName = "nd" + (new Date()).valueOf();
+
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("newdomain", {
+                "name": testingTmpData.newDomainName,
+                "creator": publicKey,
+                "issue": {
+                    "name": "issue",
+                    "threshold": 1,
+                    "authorizers": [{
+                        "ref": "[A] " + publicKey,
+                        "weight": 1
+                    }]
+                },
+                "transfer": {
+                    "name": "transfer",
+                    "threshold": 1,
+                    "authorizers": [{
+                        "ref": "[G] .OWNER",
+                        "weight": 1
+                    }]
+                },
+                "manage": {
+                    "name": "manage",
+                    "threshold": 1,
+                    "authorizers": [{
+                        "ref": "[A] " + publicKey,
+                        "weight": 1
+                    }]
+                }
+            })
+        );
+
+        let res = await apiCaller.getDomainDetail(testingTmpData.newDomainName);
+        assert(res.name === testingTmpData.newDomainName, "expected right domain name");
+    });
+
+    it("issue_tokens", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        testingTmpData.addedTokenNamePrefix = "tk" + ((new Date()).valueOf() / 500);
+
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("issuetoken", {
+                "domain": testingTmpData.newDomainName,
+                "names": [
+                    testingTmpData.addedTokenNamePrefix + "1",
+                    testingTmpData.addedTokenNamePrefix + "2",
+                    testingTmpData.addedTokenNamePrefix + "3"
+                ],
+                "owner": [
+                    Key.privateToPublic(wif)
+                ]
             })
         );
     });

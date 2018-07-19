@@ -87,8 +87,8 @@ class APICaller {
         this.__cachedInfo = info;
 
         // check version of remote net
-        if (!info.evt_api_version.startsWith("2.")) {
-            throw new Error("The API version of remote net is not compatible with current evtjs's version.");
+        if (!info.evt_api_version.startsWith("2.") && !info.evt_api_version.startsWith("3.")) {
+            throw new Error(`[Fatal] The API version of remote net (${info.evt_api_version}) is not compatible with current evtjs's version. Please upgrade your evtjs's version.`);
         }
 
         return info;
@@ -196,8 +196,9 @@ class APICaller {
     /**
      * get owned token list for accounts. Make sure you have history_plugin enabled on the chain node
      * @param {*} publicKeys a array or a single value which represents public keys you want to query
+     * @param {boolean} groupByDomain whether group the returned values by domain, only avaiable for chain version >= 3
      */
-    async getOwnedTokens(publicKeys) {
+    async getOwnedTokens(publicKeys, groupByDomain = false) {
         let res = await this.__callAPI({
             url: "/v1/history/get_tokens",
             method: "POST",
@@ -208,10 +209,28 @@ class APICaller {
         });
 
         if (Array.isArray(res)) {
+            if (groupByDomain) throw new Error("chain version < 3 not support group by domain");
+            
+            // chain version < 3
             return res.map(x => { return { name: x.substr(x.lastIndexOf("-") + 1), domain: x.substr(0, x.lastIndexOf("-")) }; });
         }
-        else {
+        else if (res.error) {
             this.__throwServerResponseError(res);
+        }
+        else {
+            if (groupByDomain) {
+                return res;
+            }
+            // chain version >= 3
+            let ret = [ ];
+
+            for (let key in res) {
+                for (let value of res[key]) {
+                    ret.push({ name: value, domain: key });
+                }
+            }
+
+            return ret;
         }
     }
 
@@ -324,7 +343,6 @@ class APICaller {
         && !this.__cachedInfo.evt_api_version.startsWith("2.2")
         ) {
             isNewerVersion = true;
-            throw new Error("The API version of remote net is not compatible with current evtjs's version.");
         }
 
         let body = {
@@ -439,6 +457,8 @@ class APICaller {
         err.httpCode = res.code;
         err.serverError = res.error;
         err.serverMessage = res.message;
+
+        Logger.verbose("[__throwServerResponseError] node's response return error:\n" + JSON.stringify(res, null, 4));
 
         throw err;
     }

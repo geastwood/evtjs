@@ -51,17 +51,17 @@ const domainKeyMappers = {
     },
 
     "newgroup": (action, transfered) => {
-        transfered.domain = "group";
+        transfered.domain = ".group";
         transfered.key = action.args.name;
     },
 
     "updategroup": (action, transfered) => {
-        transfered.domain = "group";
+        transfered.domain = ".group";
         transfered.key = action.args.name;
     },
 
     "newfungible": (action, transfered) => {
-        transfered.domain = "fungible";
+        transfered.domain = ".fungible";
         // remove precision for `key`
         let splited = action.args.sym.split(",");
         if (splited.length != 2) {
@@ -71,7 +71,7 @@ const domainKeyMappers = {
     },
 
     "updfungible": (action, transfered) => {
-        transfered.domain = "fungible";
+        transfered.domain = ".fungible";
         // remove precision for `key`
         let splited = action.args.sym.split(",");
         if (splited.length != 2) {
@@ -91,27 +91,27 @@ const domainKeyMappers = {
     },
 
     "evt2pevt": (action, transfered) => {
-        transfered.domain = "fungible";
+        transfered.domain = ".fungible";
         transfered.key = "EVT";
     },
 
     "newsuspend": (action, transfered) => {
-        transfered.domain = "suspend";
+        transfered.domain = ".suspend";
         transfered.key = action.args.name;
     },
 
     "aprvsuspend": (action, transfered) => {
-        transfered.domain = "suspend";
+        transfered.domain = ".suspend";
         transfered.key = action.args.name;
     },
 
     "cancelsuspend": (action, transfered) => {
-        transfered.domain = "suspend";
+        transfered.domain = ".suspend";
         transfered.key = action.args.name;
     },
 
     "execsuspend": (action, transfered) => {
-        transfered.domain = "suspend";
+        transfered.domain = ".suspend";
         transfered.key = action.args.name;
     }
 };
