@@ -1007,7 +1007,7 @@ EVT.EvtLink.getEVTLinkQrImage(
             alert(e.message);
             return;
         }
-        document.getElementById("pass").setAttribute("src", res.dataUrl););
+        document.getElementById("pass").setAttribute("src", res.dataUrl);
     }
 );
 ```
