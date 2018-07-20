@@ -5,7 +5,7 @@ const BigInteger = require("bigi");
 
 const qrPrefix = "https://evt.li/";
 
-class EvtUtils {
+class EvtLink {
 
 }
 
@@ -13,7 +13,7 @@ class EvtUtils {
  * Convert a buffer to base10 representation.
  * @param {Buffer} buffer The buffer-like object to be converted.
  */
-EvtUtils.b2dec = function(buffer) {
+EvtLink.b2dec = function(buffer) {
     if (buffer.length == 0) return "";
     let ret = BigInteger.fromBuffer(buffer).toString(10);
     if (ret == "0") ret = "";
@@ -30,7 +30,7 @@ EvtUtils.b2dec = function(buffer) {
  * Convert a base10 representation to buffer.
  * @param {string} base10 string.
  */
-EvtUtils.dec2b = function(base10) {
+EvtLink.dec2b = function(base10) {
     // get count of 0
     let zeroCount = 0, i = 0;
 
@@ -145,12 +145,12 @@ function parseQRCode(text) {
         while (textSplited[1].length > 0) {
             let current = textSplited[1].substr(0, 65);
             textSplited[1] = textSplited[1].substr(65);
-            let signature = ecc.Signature.fromBuffer(EvtUtils.dec2b(current));
+            let signature = ecc.Signature.fromBuffer(EvtLink.dec2b(current));
             publicKeys.push(signature.recover(textSplited[0], "utf8").toString());
         }
     }
 
-    return { segment: parseSegments(EvtUtils.dec2b(rawText)), publicKeys };
+    return { segment: parseSegments(EvtLink.dec2b(rawText)), publicKeys };
 }
 
 function isFunction(functionToCheck) {
@@ -179,7 +179,7 @@ async function getQRCode(segments, params) {
         }
     }
 
-    let text = `${qrPrefix}${EvtUtils.b2dec(Buffer.concat(segments))}`;
+    let text = `${qrPrefix}${EvtLink.b2dec(Buffer.concat(segments))}`;
 
     if (params.keyProvider && params.keyProvider.length > 0) {
         let sigBufs = [];
@@ -189,7 +189,7 @@ async function getQRCode(segments, params) {
             sigBufs.push(ecc.Signature.from(sig).toBuffer());
         }
         
-        text += "-" + EvtUtils.b2dec(Buffer.concat(sigBufs));
+        text += "-" + EvtLink.b2dec(Buffer.concat(sigBufs));
     }
 
     return text;
@@ -199,7 +199,7 @@ async function getQRCode(segments, params) {
  * get QRCode's decoded text
  * @param {object} params the text of qr code
  */
-EvtUtils.parseQRCode = function(text) {
+EvtLink.parseEvtLink = async function(text) {
     return parseQRCode(text);
 };
 
@@ -223,7 +223,7 @@ EvtUtils.parseQRCode = function(text) {
  * get everiPass's text from specific private key and token name
  * @param {object} params the params of the pass
  */
-EvtUtils.getEveriPassText = async function(params) {
+EvtLink.getEveriPassText = async function(params) {
     if (!params) throw new Error("Invalid params");
 
     let byteSegments = [ ];
@@ -248,7 +248,7 @@ EvtUtils.getEveriPassText = async function(params) {
  * get everiPay's text from specific private key and token name
  * @param {object} params the params of the everiPay QRCode
  */
-EvtUtils.getEveriPayText = async function(params) {
+EvtLink.getEveriPayText = async function(params) {
     if (!params) throw new Error("Invalid params");
 
     let byteSegments = [ ];
@@ -274,7 +274,7 @@ EvtUtils.getEveriPayText = async function(params) {
  * get everiPass's collection qr code
  * @param {object} params the params of the pass
  */
-EvtUtils.getCollectionQRText = async function(params) {
+EvtLink.getAddressCodeTextForReceiver = async function(params) {
     if (!params) throw new Error("Invalid params");
 
     let byteSegments = [ ];
@@ -299,10 +299,10 @@ EvtUtils.getCollectionQRText = async function(params) {
  * get everiPass's qr code image address from specific private key and token name
  * @param {object} params the params of the pass
  */
-EvtUtils.getEVTQrImage = function(qrType, qrParams, imgParams, callback) {
+EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
     let intervalId;
     if (imgParams.autoReload) {
-        intervalId = setInterval(() => EvtUtils.getEVTQrImage(qrType, qrParams, Object.assign(imgParams, { autoReload: false }), callback), 5000);
+        intervalId = setInterval(() => EvtLink.getEVTQrImage(qrType, qrParams, Object.assign(imgParams, { autoReload: false }), callback), 5000);
     }
 
     let errorCorrectionLevel = "Q";
@@ -310,10 +310,10 @@ EvtUtils.getEVTQrImage = function(qrType, qrParams, imgParams, callback) {
 
     switch (qrType) {
     case "everiPass":
-        func = EvtUtils.getEveriPassText;
+        func = EvtLink.getEveriPassText;
         break;
     case "collection":
-        func = EvtUtils.getCollectionQRText;
+        func = EvtLink.getCollectionQRText;
         break;
     default:
         throw new Error("invalid QR Type");
@@ -348,4 +348,4 @@ EvtUtils.getEVTQrImage = function(qrType, qrParams, imgParams, callback) {
     return intervalId;
 };
 
-module.exports = EvtUtils;
+module.exports = EvtLink;

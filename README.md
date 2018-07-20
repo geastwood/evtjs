@@ -737,7 +737,7 @@ A example:
 
 ### getEstimatedChargeForTransaction(transaction, signatureCount) => Promise
 
-return accurate charge for one transaction. 
+return estimated amount of `transaction fee` for one transaction. 
 
 #### Parameters
 
@@ -950,4 +950,86 @@ await apiCaller.pushTransaction(
         }
     })
 );
+```
+
+## EvtLink
+
+`EvtLink` is the place to generate and parse QR Codes using `EVT Link`'s syntax. `EVT Link` can be used for `everiPass`, `everiPay`, `Address Code for Recever`.
+
+For further information, read [Documentation for EvtLink / everiPass / everiPay](TODO).
+
+### Including
+
+You can get the singleton of `EvtLink` class by:
+
+```js
+let evtLink = EVT.EvtLink;
+```
+
+### parseEvtLink(text) => Promise
+
+Parse a `EvtLink` and return its information. `parseEveriPass` and `parseEveriPay` is preferred for everiPass / everiPay's link's parsing as it gives you a more clear result.
+
+#### Response
+
+A object with two key: `segments` for parsed list of segments, and `publicKeys` as a array of public keys who signed on the code.
+
+### getEveriPassText(params) => Promise
+
+Generate a `EvtLink` for everiPass.
+
+> If you want to get the image of the QR Code, please use `getEVTLinkQrImage` and pass `qrParams`'s value the same as `params` in this function and set `qrType` to `everiPass`.
+
+#### Parameters
+
+- `params`: A object with available keys as follow (all are required):
+  - `autoDestroying`: (boolean) Whether the NFT should be destroyed after use.
+  - `domainName`: The domain name to be used.
+  - `tokenName`: The token name to be used.
+
+#### Response
+
+```json
+{
+    "rawText": "https://evt.li/4747475658950104269227838067567628671578913008937599991051573226362789922825582-1443972880752087086281887680855802732519465663208942501663263181540543494817289428342198848085427085151498181462304538183995668650135069275689270162401724873927437039324599193368504637187075930345305371928111210517909782421005517574032138754357637265041294332862749651476330602523800565536786456308573880121527762"
+}
+```
+
+### getEveriPayText(params) => Promise
+
+Generate a `EvtLink` for everiPay.
+
+> If you want to get the image of the QR Code, please use `getEVTLinkQrImage` and pass `qrParams`'s value the same as `params` in this function and set `qrType` to `everiPay`.
+
+#### Parameters
+
+- `params`: A object with available keys as follow:
+  - `symbol`: The symbol for payment, for example: "5,EVT".
+  - `maxAmount`: Max amount for charge. The real value is related with the symbol's precision. For example, EVT symbol has a precision of 5, if you set `maxAmount` to 100, the real max value will be `0.001` (Optional)
+
+#### Response
+
+```json
+{
+    "rawText": "https://evt.li/4747475658950104269227838067567628671578913008937599991051573226362789922825582-1443972880752087086281887680855802732519465663208942501663263181540543494817289428342198848085427085151498181462304538183995668650135069275689270162401724873927437039324599193368504637187075930345305371928111210517909782421005517574032138754357637265041294332862749651476330602523800565536786456308573880121527762"
+}
+```
+
+### getAddressCodeTextForReceiver(params) => Promise
+
+Generate a `EvtLink` for `Address Code For Receiver`.
+
+> If you want to get the image of the QR Code, please use `getEVTLinkQrImage` and pass `qrParams`'s value the same as `params` in this function and set `qrType` to `addressOfReceiver`.
+
+#### Parameters
+
+- `params`: A object with available keys as follow:
+  - `address`: The address of the receiver as a string starting with `EVT`.
+
+#### Response
+
+```json
+{
+    "rawText": "https://evt.li/4747475658950104269227838067567628671578913008937599991051573226362789922825582-144397288075208708628188768085580"
+}
 ```
