@@ -57,23 +57,21 @@ NEVER SHOW IT TO ANY OTHER PEOPLE</pre>
                     try {
                         let time = new Date().valueOf();
                         EVT.QR.getEVTQrImage(
-                            "everiPass", 
+                            "collection", 
                             {
-                                keyProvider: [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ" ],
-                                domainName: "testdomain",
-                                tokenName: "testtoken",
-                                autoDestroying: true
+                                address: "EVT76uLwUD5t6fkob9Rbc9UxHgdTVshNceyv2hmppw4d82j2zYRpa"
                             },
                             { 
                                 autoReload: true
                             },
                             (err, res) => {
                                 if (err) {
-                                    alert(e.message);
+                                    alert(err.message);
                                     return;
                                 }
                                 // canvas: document.getElementById("canvas"), 
                                 document.getElementById("pass").setAttribute("src", res.dataUrl);
+                                console.log(EVT.QR.parseQRCode(res.rawText));
                                 // document.getElementById("passText").innerHTML = res.rawText.substr(8);
                         });
                     }
