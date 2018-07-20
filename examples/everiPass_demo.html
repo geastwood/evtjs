@@ -74,6 +74,9 @@ NEVER SHOW IT TO ANY OTHER PEOPLE</pre>
                                 }
                                 // canvas: document.getElementById("canvas"), 
                                 document.getElementById("pass").setAttribute("src", res.dataUrl);
+                                EVT.EvtLink.parseEvtLink(res.rawText).then(res => {
+                                    console.log(JSON.stringify(res, null, 4))
+                                });
                                 // document.getElementById("passText").innerHTML = res.rawText.substr(8);
                         });
                     }

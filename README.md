@@ -970,13 +970,105 @@ You can get the singleton of `EvtLink` class by:
 let evtLink = EVT.EvtLink;
 ```
 
+### getEVTLinkQrImage(qrType, qrParams, imgParams, callback) => Number
+
+Generate a QR Code Image for any type of `Evt Link`.
+
+#### Parameters
+- `qrType`: can be one of `everiPass`, `everiPay`, `addressOfReceiver`.
+- `qrParams`: The same as the `param` parameter of `getEveriPassText`, `getEveriPayText` and `getAddressCodeTextForReceiver`. Please refer to them.
+- `imgPrams`: Has a key named `autoReload`, normally you should set it to true.
+- `callback`: A function with two parameters: `error` and `response`. `response` contains `dataUrl` for image and `rawText` for the raw value of `EvtLink`.
+
+#### Response
+A object consisting of:
+
+- `intervalId`, can be used to cancel reloading by `clearInterval`.
+- `autoReloadInterval`: the timespan (ms) to reload the image automatically, currently it's fixed at 5000ms.
+
+#### Example
+
+Here is a full example showing how to generate a QR Code of `everiPass`.
+
+```js
+EVT.EvtLink.getEVTLinkQrImage(
+    "everiPass", 
+    {
+        keyProvider: [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ" ],
+        domainName: "testdomain",
+        tokenName: "testtoken",
+        autoDestroying: true
+    },
+    { 
+        autoReload: true
+    },
+    (err, res) => {
+        if (err) {
+            alert(e.message);
+            return;
+        }
+        document.getElementById("pass").setAttribute("src", res.dataUrl););
+    }
+);
+```
+
 ### parseEvtLink(text) => Promise
 
-Parse a `EvtLink` and return its information. `parseEveriPass` and `parseEveriPay` is preferred for everiPass / everiPay's link's parsing as it gives you a more clear result.
+Parse a `EvtLink` and return its information.
 
 #### Response
 
 A object with two key: `segments` for parsed list of segments, and `publicKeys` as a array of public keys who signed on the code.
+
+For example:
+```json
+{
+    "segments": [
+        {
+            "typeKey": 41,
+            "value": 8,
+            "bufferLength": 5
+        },
+        {
+            "typeKey": 42,
+            "value": 1532115998,
+            "bufferLength": 5
+        },
+        {
+            "typeKey": 91,
+            "value": "testdomain",
+            "bufferLength": 12
+        },
+        {
+            "typeKey": 92,
+            "value": "testtoken",
+            "bufferLength": 11
+        }
+    ],
+    "publicKeys": [
+        "EVT8HdQYD1xfKyD7Hyu2fpBUneamLMBXmP3qsYX6HoTw7yonpjWyC",
+        "EVT8HdQYD1xfKyD7Hyu2fpBUneamLMBXmP3qsYX6HoTw7yonpjWyC"
+    ]
+}
+```
+
+Here is a brief reference of common used `typeKey` for convenient. For detail please refer to the document of `Evt Link`.
+
+| typeId | flag | description |
+| --- | --- | --- |
+| `41` | | (uint32) flag (available values can be used together by adding) |
+|  |    1    |   protocol version 1 (required)
+|   |   2    |   everiPass
+|   |   4    |   everiPay
+|   |   8    |   should destory the NFT after validate the token in everiPass
+|   |   16   |   address code for recever
+| `42` | | (uint32) unix timestamp in seconds |
+| `43` | | (uint32) max allowed amount for everiPay |
+| `91` | | (string) domain name to be validated in everiPass |
+| `92` | | (string) token name to be validated in everiPass |
+| `93` | | (string) symbol name to be paid in everiPay (for example: "5,EVT") |
+| `94` | | (string) max allowed amount for payment (optionl, string format remained only for amount >= 2 ^ 32) |
+| `95` | | (string) public key (address) for receiving points or coins |
 
 ### getEveriPassText(params) => Promise
 
@@ -1038,41 +1130,3 @@ Generate a `EvtLink` for `Address Code For Receiver`.
 }
 ```
 
-### getEVTLinkQrImage(qrType, qrParams, imgParams, callback) => Number
-
-Generate a QR Code Image for any type of `Evt Link`.
-
-#### Parameters
-- `qrType`: can be one of `everiPass`, `everiPay`, `addressOfReceiver`.
-- `qrParams`: The same as the `param` parameter of `getEveriPassText`, `getEveriPayText` and `getAddressCodeTextForReceiver`.
-- `imgPrams`: Has a key named `autoReload`, normally you should set it to true.
-- `callback`: A function with two parameters: `error` and `response`. `response` contains `dataUrl` for image and `rawText` for the raw value of `EvtLink`.
-
-#### Response
-The intervalId, can be used to cancel reloading by `clearInterval`.
-
-### Example
-
-Here is a full example showing how to generate a QR Code of `everiPass`.
-
-```js
-EVT.EvtLink.getEVTLinkQrImage(
-    "everiPass", 
-    {
-        keyProvider: [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ" ],
-        domainName: "testdomain",
-        tokenName: "testtoken",
-        autoDestroying: true
-    },
-    { 
-        autoReload: true
-    },
-    (err, res) => {
-        if (err) {
-            alert(e.message);
-            return;
-        }
-        document.getElementById("pass").setAttribute("src", res.dataUrl););
-    }
-);
-```

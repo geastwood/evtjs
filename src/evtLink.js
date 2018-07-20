@@ -139,18 +139,27 @@ function parseQRCode(text) {
     if (!textSplited[0].startsWith(qrPrefix)) return null;
     let rawText = textSplited[0].substr(qrPrefix.length);
 
+    console.log("[parseQRCode] raw:" + rawText);
+    console.log("[parseQRCode] textSplited:" + JSON.stringify(textSplited, null, 4));
+
     // validate signature
     let publicKeys = [ ];
     if (textSplited[1]) {
-        while (textSplited[1].length > 0) {
-            let current = textSplited[1].substr(0, 65);
-            textSplited[1] = textSplited[1].substr(65);
-            let signature = ecc.Signature.fromBuffer(EvtLink.dec2b(current));
+        let buf = EvtLink.dec2b(textSplited[1]);
+        let i = 0;
+
+        console.log(buf);
+
+        while (i * 65 < buf.length) {
+            let current = new Buffer(65);
+            buf.copy(current, 0, i * 65, i * 65 + 65);
+            let signature = ecc.Signature.fromBuffer(current);
             publicKeys.push(signature.recover(textSplited[0], "utf8").toString());
+            ++i;
         }
     }
 
-    return { segment: parseSegments(EvtLink.dec2b(rawText)), publicKeys };
+    return { segments: parseSegments(EvtLink.dec2b(rawText)), publicKeys };
 }
 
 function isFunction(functionToCheck) {
@@ -200,6 +209,7 @@ async function getQRCode(segments, params) {
  * @param {object} params the text of qr code
  */
 EvtLink.parseEvtLink = async function(text) {
+    console.log("[parseEvtLink] " + text);
     return parseQRCode(text);
 };
 
@@ -302,7 +312,7 @@ EvtLink.getAddressCodeTextForReceiver = async function(params) {
 EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
     let intervalId;
     if (imgParams.autoReload) {
-        intervalId = setInterval(() => EvtLink.getEVTQrImage(qrType, qrParams, Object.assign(imgParams, { autoReload: false }), callback), 5000);
+        intervalId = setInterval(() => EvtLink.getEVTLinkQrImage(qrType, qrParams, Object.assign(imgParams, { autoReload: false }), callback), 5000);
     }
 
     let errorCorrectionLevel = "Q";
@@ -348,7 +358,7 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
             callback(e);
         });
 
-    return intervalId;
+    return { intervalId, autoReloadInterval: 5000 };
 };
 
 module.exports = EvtLink;
