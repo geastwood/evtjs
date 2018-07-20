@@ -191,7 +191,7 @@ let endpoint = {
 };
 ```
 
-### getInfo()
+### getInfo() => Promise
 
 get basic information from block chain.
 
@@ -225,7 +225,7 @@ Some important return values are as follow:
 
 - `head_block_*` and `last_irreversible_block_*`: Represents information for last block / last irreversible block. This is used by other calls automatically by the library.
 
-### getOwnedTokens(publicKeys)
+### getOwnedTokens(publicKeys) => Promise
 
 Get the list of tokens which is owned by `publicKeys`.
 
@@ -250,7 +250,7 @@ A example:
 ]
 ```
 
-### getManagedGroups(publicKeys)
+### getManagedGroups(publicKeys) => Promise
 
 Get the list of groups which is managed by `publicKeys`.
 
@@ -274,7 +274,7 @@ A example:
 ]
 ```
 
-### getCreatedDomains(publicKeys)
+### getCreatedDomains(publicKeys) => Promise
 
 Get the list of domains which is created by `publicKeys`.
 
@@ -298,7 +298,7 @@ A example:
 ]
 ```
 
-### getActions(params)
+### getActions(params) => Promise
 
 Get the list of actions. Supports filtering by `domain`, `key`, and `action name`.
 
@@ -352,7 +352,7 @@ A example:
 ]
 ```
 
-### getFungibleBalance(address, [symbol])
+### getFungibleBalance(address, [symbol]) => Promise
 
 Get the list of fungible balance of a user.
 
@@ -375,7 +375,7 @@ A example:
 ]
 ```
 
-### getTransactionDetailById(id)
+### getTransactionDetailById(id) => Promise
 
 Get detail information about a transaction by its `id`. 
 
@@ -439,7 +439,7 @@ A example:
 }
 ```
 
-### getDomainDetail(name)
+### getDomainDetail(name) => Promise
 
 Get detail information about a domain by its `name`.
 
@@ -490,7 +490,7 @@ A example:
 }
 ```
 
-### getGroupDetail(name)
+### getGroupDetail(name) => Promise
 
 Get detail information about a group by its `name`.
 
@@ -544,7 +544,7 @@ A example:
 }
 ```
 
-### getTransactionsDetailOfPublicKeys(publickeys, [skip], [take = 10])
+### getTransactionsDetailOfPublicKeys(publickeys, [skip], [take = 10]) => Promise
 
 Get detail information about transactions about provided `public keys`.
 
@@ -597,7 +597,7 @@ A example:
 }]
 ```
 
-### getFungibleSymbolDetail(name)
+### getFungibleSymbolDetail(name) => Promise
 
 Get detail information about a fungible token symbol which has provided `name`.
 
@@ -642,7 +642,7 @@ A example:
 }
 ```
 
-### getRequiredKeysForSuspendedTransaction(proposalName, availableKeys)
+### getRequiredKeysForSuspendedTransaction(proposalName, availableKeys) => Promise
 
 This API is used for getting required keys for suspend transaction. Other than non-suspended transaction, this API will not throw exception when your keys don't satisfies the permission requirements for one action, instead returns the proper keys needed for authorizing the suspended transaction.
 
@@ -663,7 +663,7 @@ A example:
 ]
 ```
 
-### getSuspendedTransactionDetail(proposalName)
+### getSuspendedTransactionDetail(proposalName) => Promise
 
 Get detail information for specific `proposal`.
 
@@ -735,7 +735,27 @@ A example:
 }
 ```
 
-### pushTransaction(...actions)
+### getEstimatedChargeForTransaction(transaction, signatureCount) => Promise
+
+return accurate charge for one transaction. 
+
+#### Parameters
+
+- `transaction`: A transaction structure (See everiToken's ABI Documentation for detail) which will be estimated.
+- `signatureCount`: A number representing the count of signatures that will be on the transaction.
+
+#### Response
+
+```js
+{
+    `charge`: 10005
+}
+```
+
+#### Important
+The response value should multiply by 0.00001 for the real value. For example, `10005` means `0.10005 EVT / PEVT`.
+
+### pushTransaction([config], ...actions) => Promise
 
 Push a `transaction` to the chain. A `transaction` is composed of some `actions`. Generally a `action` is a interface to a writable API. Almost all the writable API are wrapped in transactions.
 
@@ -743,6 +763,7 @@ Push a `transaction` to the chain. A `transaction` is composed of some `actions`
 
 ```js
 apiCaller.pushTransaction(
+    { maxCharge: 100000 },   // config
     new EVT.EvtAction(....), // the first action
     new EVT.EvtAction(....), // the second action
     new EVT.EvtAction(....), // the third action
@@ -753,7 +774,10 @@ apiCaller.pushTransaction(
 
 #### Parameters
 
-Each `action` is either a `EvtAction` instance or a `abi` structure. `EvtAction` is preferred.
+- `config`: A object consisting of some valid fields (optional):
+  - `maxCharge`: For any transaction that needs transaction fee, you must provide this argument to limit the max amount of fee you may charge.
+  - `payer`: Specify which user should pay for transaction fee. it's optional and will be automatically filled with the key in keyProvider (if only one key is provided in that) if you don't pass a value.
+- `actions`: Each `action` is either a `EvtAction` instance or a `abi` structure. `EvtAction` is preferred.
 
 A EvtAction can be created like this:
 
@@ -790,6 +814,7 @@ let symbol = "ABC";
 
 // pass EvtAction instance as a action
 await apiCaller.pushTransaction(
+    { maxCharge: 10000 },
     new EVT.EvtAction("newfungible", {
         sym: "5," + symbol,
         creator: publicKey,
