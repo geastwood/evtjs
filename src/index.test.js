@@ -22,7 +22,7 @@ logger.writeLog = true;
 
 const network = {
     host: "118.31.58.10",
-    port: 8889,
+    port: 8888,
     protocol: "http"
 };
 
@@ -77,6 +77,7 @@ describe("APICaller write API test", () => {
         testingTmpData.newGroupName = "g" + parseInt((new Date()).valueOf() / 5000);
 
         await apiCaller.pushTransaction(
+            { maxCharge: 1000, payer: EVT.EvtKey.getNullAddress() },
             new EVT.EvtAction("newgroup", {
                 "name": testingTmpData.newGroupName,
                 "group": {
@@ -134,6 +135,7 @@ describe("APICaller write API test", () => {
         testingTmpData.newDomainName = "nd" + (new Date()).valueOf();
 
         await apiCaller.pushTransaction(
+            { payer: EVT.EvtKey.getNullAddress(), maxCharge: 1000 },
             new EVT.EvtAction("newdomain", {
                 "name": testingTmpData.newDomainName,
                 "creator": publicKey,

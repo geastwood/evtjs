@@ -133,7 +133,7 @@ function parseSegments(buffer) {
  * @param {string} text 
  */
 function parseQRCode(text) {
-    let textSplited = text.split("'");
+    let textSplited = text.split("-");
     if (textSplited.length > 2) return null;
 
     if (!textSplited[0].startsWith(qrPrefix)) return null;
@@ -189,7 +189,7 @@ async function getQRCode(segments, params) {
             sigBufs.push(ecc.Signature.from(sig).toBuffer());
         }
         
-        text += "'" + EvtUtils.b2dec(Buffer.concat(sigBufs));
+        text += "-" + EvtUtils.b2dec(Buffer.concat(sigBufs));
     }
 
     return text;

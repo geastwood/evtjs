@@ -101,6 +101,10 @@ let privateKey = EVT.EvtKey.seedPrivateKey('AVeryVeryVeryLongRandomSeedHere');
 
 You can use `isValidPrivateKey` or `isValidPublicKey` to check a key.
 
+### isValidAddress(address)
+
+You can use `isValidAddress` to check if a `address` is valid. a `addres` is valid if it is a `public key` or it's equal to `Null Address` or it is a special generated address.
+
 #### Parameters
 
 - `key`: The private / public key you want to check.
@@ -121,6 +125,14 @@ You may generate a 32-byte-long hex string and it is promised to be safe in cryp
 Produces a safe string with a length of 21. This is suitable for use in ABI structure where it requires a `name128` type such as `proposalName` for a suspended transaction.
 
 > This is a `async` function. Please use `then` or `await` for the result accordingly.
+
+### getNullAddress()
+
+Return a string representing a null address. 
+
+The response of this function is always `"EVT00000000000000000000000000000000000000000000000000"`.
+
+Null address is used for representing destroyed tokens and non-updatable groups.
 
 ## APICaller Usage
 
@@ -461,7 +473,7 @@ A example:
         "name": "transfer",
         "threshold": 1,
         "authorizers": [{
-                "ref": "[G] OWNER",
+                "ref": "[G] .OWNER",
                 "weight": 1
             }
         ]
@@ -694,7 +706,7 @@ A example:
             "name": "transfer",
             "threshold": 1,
             "authorizers": [{
-                "ref": "[G] OWNER",
+                "ref": "[G] .OWNER",
                 "weight": 1
               }
             ]
@@ -804,7 +816,7 @@ await apiCaller.pushTransaction(
             "name": "issue",
             "threshold": 1,
             "authorizers": [{
-                "ref": "[A] " + publicKey,
+                "ref": "[A] " + publicKey,s
                 "weight": 1
             }]
         },
@@ -812,7 +824,7 @@ await apiCaller.pushTransaction(
             "name": "transfer",
             "threshold": 1,
             "authorizers": [{
-                "ref": "[G] OWNER",
+                "ref": "[G] .OWNER",
                 "weight": 1
             }]
         },

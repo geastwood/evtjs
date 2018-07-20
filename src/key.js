@@ -42,6 +42,21 @@ EvtKey.isValidPublicKey = function(key) {
 };
 
 /**
+ * Check if a address is valid.
+ * @param {*} key address
+ */
+EvtKey.isValidAddress = function(address) {
+    if (typeof address !== "string" || address.length < 8) return false;
+    if (!address.startsWith("EVT")) return false;
+
+    if (address === "EVT00000000000000000000000000000000000000000000000000") return true;
+    if (address.length == 53 && address[3] == "0") return true;
+
+    return ecc.isValidPublic("EVT" + address.substr(3)) || ecc.isValidPublic("EOS" + address.substr(3));
+};
+
+
+/**
  * return safe random bytes as hex.
  */
 EvtKey.random32BytesAsHex = async function() {
@@ -72,6 +87,13 @@ EvtKey.randomName128 = async function() {
  */
 EvtKey.isValidPrivateKey = function(key) {
     return ecc.isValidPrivate(key);
+};
+
+/**
+ * return the address representing a null address.
+ */
+EvtKey.getNullAddress = function() {
+    return "EVT00000000000000000000000000000000000000000000000000";
 };
 
 module.exports = EvtKey;

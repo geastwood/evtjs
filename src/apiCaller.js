@@ -303,6 +303,29 @@ class APICaller {
     }
 
     /**
+     * Get estimated charge for a transaction
+     * @param {*} transaction the transaction to be estimated
+     * @param {} signatureCount the count of signature that will be used on the transaction
+     */
+    async getEstimatedChargeForTransaction(transaction, signatureCount) {
+        if (typeof transaction !== "object" || !transaction) throw new Error("invalid transaction");
+
+        let res = await this.__callAPI({
+            url: "/v1/chain/get_charge",
+            method: "POST",
+            body: { transaction, sigs_num: signatureCount },
+            sign: false // no need to sign
+        });
+
+        if (res && res.charge) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * get detail information about a domain by its name. Make sure you have history_plugin enabled on the chain node
      * @param {*} name the name of the domain
      */
@@ -475,9 +498,15 @@ class APICaller {
      * @param {any[]} actions actions in the transaction
      */
     async pushTransaction() {
-        let actions = [];
+        let actions = [ ];
+        let trxConf = null;
+
+        if (arguments.length > 0 && !(arguments[0] instanceof EvtAction) && !arguments[0].action) {
+            // config found
+            trxConf = arguments[0];
+        }
         
-        for (let i = 0; i < arguments.length; ++i) {
+        for (let i = trxConf ? 1 : 0; i < arguments.length; ++i) {
             actions.push(arguments[i]);
         }
 
@@ -537,9 +566,18 @@ class APICaller {
         body.transaction = Object.assign(body.transaction, {
             "expiration": expiration,
             "ref_block_num": last_irreversible_block_num,
-            "ref_block_prefix": last_irreversible_block_prefix,
-            "delay_sec": 0,
+            "ref_block_prefix": last_irreversible_block_prefix
         });
+
+        if (trxConf) {
+            if (trxConf.maxCharge) {
+                body.transaction.max_charge = trxConf.maxCharge;
+            }
+
+            if (trxConf.payer) {
+                body.transaction.payer = trxConf.payer;
+            }
+        }
 
         // calculate signatures
         if (params.sign) {
