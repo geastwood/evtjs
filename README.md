@@ -1037,3 +1037,42 @@ Generate a `EvtLink` for `Address Code For Receiver`.
     "rawText": "https://evt.li/4747475658950104269227838067567628671578913008937599991051573226362789922825582-144397288075208708628188768085580"
 }
 ```
+
+### getEVTLinkQrImage(qrType, qrParams, imgParams, callback) => Number
+
+Generate a QR Code Image for any type of `Evt Link`.
+
+#### Parameters
+- `qrType`: can be one of `everiPass`, `everiPay`, `addressOfReceiver`.
+- `qrParams`: The same as the `param` parameter of `getEveriPassText`, `getEveriPayText` and `getAddressCodeTextForReceiver`.
+- `imgPrams`: Has a key named `autoReload`, normally you should set it to true.
+- `callback`: A function with two parameters: `error` and `response`. `response` contains `dataUrl` for image and `rawText` for the raw value of `EvtLink`.
+
+#### Response
+The intervalId, can be used to cancel reloading by `clearInterval`.
+
+### Example
+
+Here is a full example showing how to generate a QR Code of `everiPass`.
+
+```js
+EVT.EvtLink.getEVTLinkQrImage(
+    "everiPass", 
+    {
+        keyProvider: [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ" ],
+        domainName: "testdomain",
+        tokenName: "testtoken",
+        autoDestroying: true
+    },
+    { 
+        autoReload: true
+    },
+    (err, res) => {
+        if (err) {
+            alert(e.message);
+            return;
+        }
+        document.getElementById("pass").setAttribute("src", res.dataUrl););
+    }
+);
+```

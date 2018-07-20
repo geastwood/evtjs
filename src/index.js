@@ -21,7 +21,7 @@ const { APICaller } = require("./apiCaller");
 const EvtConfig = require("./evtConfig");
 const EvtKey = require("./key");
 const EvtAction = require("./action");
-const evtLink = require("./evtLink");
+const EvtLink = require("./evtLink");
 
 // Global EVT Object for exporting
 let EVT = function(config) {

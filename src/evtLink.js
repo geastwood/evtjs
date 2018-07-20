@@ -312,8 +312,11 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
     case "everiPass":
         func = EvtLink.getEveriPassText;
         break;
-    case "collection":
-        func = EvtLink.getCollectionQRText;
+    case "everiPay":
+        func = EvtLink.getEveriPayText;
+        break;
+    case "addressOfReceiver":
+        func = EvtLink.getAddressCodeTextForReceiver;
         break;
     default:
         throw new Error("invalid QR Type");
