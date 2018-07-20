@@ -5,6 +5,7 @@ const { fetch } = require("./fetch");
 const ByteBuffer = require("bytebuffer");
 const EvtAction = require("./action");
 const Logger = require("./logger");
+const EvtKey = require("./key");
 
 /**
  * APICaller for everiToken
@@ -505,6 +506,26 @@ class APICaller {
             // config found
             trxConf = arguments[0];
         }
+
+        if (!trxConf || !trxConf.payer) {
+            // get payer automatically
+            trxConf = trxConf || { };
+
+            if (this.config.keyProvider) {
+                let kp = this.config.keyProvider;
+                if (!Array.isArray(kp)) {
+                    kp = [ kp ];
+                }
+
+                if (kp.length == 1) {
+                    if (kp[0].apply) {
+                        kp[0] = kp[0]();
+                    }
+
+                    trxConf.payer = EvtKey.privateToPublic(kp[0]);
+                }
+            }
+        }
         
         for (let i = trxConf ? 1 : 0; i < arguments.length; ++i) {
             actions.push(arguments[i]);
@@ -731,7 +752,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
         const isPublic = key.public != null;
 
         if (isPrivate) {
-            keyMap.set("EVT" + ecc.privateToPublic(key.private).substr(3), key.private);
+            keyMap.set(EvtKey.privateToPublic(key.private), key.private);
         } else {
             keyMap.set(key.public, null);
         }
@@ -753,7 +774,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
 
     // Multiple signature support
     // console.log("get required_keys from" + JSON.stringify(keys.map(key => ecc.privateToPublic(key.private)), null, 4));
-    let apiRes = await apiCaller.__chainGetRequiredKeys({ transaction, available_keys: keys.map(key => "EVT" + ecc.privateToPublic(key.private).substr(3) ) });
+    let apiRes = await apiCaller.__chainGetRequiredKeys({ transaction, available_keys: keys.map(key => EvtKey.privateToPublic(key.private) ) });
     let required_keys = apiRes.required_keys;
 
     // console.log("required_keys: " + JSON.stringify(apiRes, null, 4));
