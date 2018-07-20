@@ -322,7 +322,7 @@ A example:
 ```json
 [{
     "name": "newfungible",
-    "domain": "fungible",
+    "domain": ".fungible",
     "key": "EVT",
     "trx_id": "f0c789933e2b381e88281e8d8e750b561a4d447725fb0eb621f07f219fe2f738",
     "data": {
@@ -406,7 +406,7 @@ A example:
     "delay_sec": 0,
     "actions": [{
         "name": "newfungible",
-        "domain": "fungible",
+        "domain": ".fungible",
         "key": "EVT",
         "data": {
           "sym": "5,EVT",
@@ -834,6 +834,7 @@ The response is a object containing a value named `transactionId` if succeed. Or
 ### Create Domain
 ```js
 await apiCaller.pushTransaction(
+    { maxCharge: 10000, payer: "EVTXXXXXXXXXXXXXXXXXXXXXXXXXX" },
     new EVT.EvtAction("newdomain", {
         "name": testingTmpData.newDomainName,
         "creator": publicKey,
@@ -841,7 +842,7 @@ await apiCaller.pushTransaction(
             "name": "issue",
             "threshold": 1,
             "authorizers": [{
-                "ref": "[A] " + publicKey,s
+                "ref": "[A] " + publicKey,
                 "weight": 1
             }]
         },
@@ -869,6 +870,7 @@ await apiCaller.pushTransaction(
 
 ```js
 await apiCaller.pushTransaction(
+    { maxCharge: 10000, payer: "EVTXXXXXXXXXXXXXXXXXXXXXXXXXX" },
     new EVT.EvtAction("issuetoken", {
         "domain": testingTmpData.newDomainName,
         "names": [
@@ -890,6 +892,7 @@ let newSymbol = randomString();
 let publicKey = xxxxxxxxxxxxxxxxxx; // replace with your public key
 
 let newTrxId = (await apiCaller.pushTransaction(
+    { maxCharge: 10000, payer: "EVTXXXXXXXXXXXXXXXXXXXXXXXXXX" },
     new EVT.EvtAction("newfungible", {
         sym: "5," + newSymbol,
         creator: publicKey,
@@ -904,6 +907,7 @@ let newTrxId = (await apiCaller.pushTransaction(
 
 ```js
 await apiCaller.pushTransaction(
+    { maxCharge: 10000, payer: "EVTXXXXXXXXXXXXXXXXXXXXXXXXXX" },
     new EVT.EvtAction("newgroup", {
         "name": testingTmpData.newGroupName,
         "group": {
