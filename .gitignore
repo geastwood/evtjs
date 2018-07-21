@@ -67,3 +67,6 @@ lib/
 
 #mac
 .DS_Store
+
+#vs code
+.vscode
