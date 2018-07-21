@@ -68,6 +68,16 @@ describe("EvtKey", () => {
 
 // ==== part 3: APICaller write API ====
 describe("APICaller write API test", () => {
+    it("empty actions", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        await apiCaller.pushTransaction(
+        );
+    });
+
     it("new_group", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
