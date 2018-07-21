@@ -801,10 +801,13 @@ For the following actions, you may ignore the `domain` and `key` parameter of th
 - `issuetoken`
 - `transfer`
 - `destroytoken`
+- `newfungible`
+- `updfungible`
 - `newsuspend`
 - `aprvsuspend`
 - `cancelsuspend`
 - `execsuspend`
+- `evt2pevt`
 
 Here is a example to use `pushTransaction`.
 

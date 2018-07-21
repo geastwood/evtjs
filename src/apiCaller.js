@@ -511,18 +511,34 @@ class APICaller {
             // get payer automatically
             trxConf = trxConf || { };
 
+            console.log("1");
+
             if (this.config.keyProvider) {
                 let kp = this.config.keyProvider;
                 if (!Array.isArray(kp)) {
                     kp = [ kp ];
                 }
 
+                console.log(kp);
+
                 if (kp.length == 1) {
                     if (kp[0].apply) {
                         kp[0] = kp[0]();
                     }
 
-                    trxConf.payer = EvtKey.privateToPublic(kp[0]);
+                    if (kp[0].then) {
+                        kp[0] = await kp[0];
+                    }
+
+                    if (Array.isArray(kp[0])) {
+                        if (kp[0].length == 1) {
+                            kp[0] = kp[0][0];
+                        }
+                    }
+
+                    if (kp[0] && typeof kp[0] == "string") {
+                        trxConf.payer = EvtKey.privateToPublic(kp[0]);
+                    }
                 }
             }
         }
