@@ -39,21 +39,6 @@ class APICaller {
     async __callAPI(request) {
         var url = this.config.endpoint.protocol + "://" + this.config.endpoint.host + ":" + this.config.endpoint.port + request.url;
 
-        request.sign = request.sign == undefined ? true : request.sign;
-
-        if (request.sign && request.__fixedSignature) {
-            // add signature
-            const signBuf = Buffer.from("2800f0f3f88ce2b4a8c6ce4c20a91f5a7e3647fa73894e9d2bc4cc61b6bda1be", "hex");
-            let sigs = await this.__signTransaction(signBuf, request.body || { }, request.__fixedKeyToUse);
-
-            if (!Array.isArray(sigs)) {
-                sigs = [ sigs ];
-            }
-            
-            request.body = request.body || { };
-            request.body.signatures = sigs;
-        }
-
         Logger.verbose("[fetch] begin sending request: " + url + ": " + JSON.stringify(request, null, 4));
 
         var res = await fetch(url, {
@@ -487,11 +472,33 @@ class APICaller {
         throw err;
     }
 
-    async __fixedSignatureCall(args, fixedDataToSign = "everiWallet", fixedKeyToUse = null) {
-        args.__fixedSignature = fixedDataToSign;
-        args.__fixedKeyToUse = fixedKeyToUse;
+    /**
+     * Calculate the value of keyProvider
+     * @param {string | string[] | function} keyProvider
+     * @returns {string[]}
+     */
+    async __calcKeyProvider(keyProvider, trx) {
+        if (!keyProvider) { return []; }
 
-        return await this.__callAPI(args);
+        // if keyProvider is function
+        if (keyProvider.apply && keyProvider.call) {
+            keyProvider = keyProvider( { transaction: trx });
+        }
+
+        // resolve for Promise
+        keyProvider = await Promise.resolve(keyProvider);
+
+        if (!Array.isArray(keyProvider)) {
+            keyProvider = [ keyProvider ];
+        }
+
+        for (let key of keyProvider) {
+            if (!EvtKey.isValidPrivateKey(key)) {
+                throw new Error("Invalid private key");
+            }
+        }
+
+        return keyProvider;
     }
 
     /**
@@ -500,52 +507,38 @@ class APICaller {
      */
     async pushTransaction() {
         let actions = [ ];
-        let trxConf = null;
+        let hasConfig = false;
 
+        // default config
+        let trxConf = {
+            maxCharge: 100000000  
+        };
+
+        // check and copy config from parameters
         if (arguments.length > 0 && !(arguments[0] instanceof EvtAction) && !arguments[0].action) {
             // config found
-            trxConf = arguments[0];
+            Object.assign(trxConf, arguments[0]);
+            hasConfig = true;
         }
 
-        if (!trxConf || !trxConf.payer) {
-            // get payer automatically
-            trxConf = trxConf || { };
+        // calculate and cache private keys
+        let privateKeys = await this.__calcKeyProvider(this.config.keyProvider, null);
 
-            console.log("1");
-
-            if (this.config.keyProvider) {
-                let kp = this.config.keyProvider;
-                if (!Array.isArray(kp)) {
-                    kp = [ kp ];
-                }
-
-                console.log(kp);
-
-                if (kp.length == 1) {
-                    if (kp[0].apply) {
-                        kp[0] = kp[0]();
-                    }
-
-                    if (kp[0].then) {
-                        kp[0] = await kp[0];
-                    }
-
-                    if (Array.isArray(kp[0])) {
-                        if (kp[0].length == 1) {
-                            kp[0] = kp[0][0];
-                        }
-                    }
-
-                    if (kp[0] && typeof kp[0] == "string") {
-                        trxConf.payer = EvtKey.privateToPublic(kp[0]);
-                    }
-                }
-            }
+        // set default payer if user provided only one private key
+        if (!trxConf.payer && privateKeys.length == 1) {
+            trxConf.payer = EvtKey.privateToPublic(privateKeys[0]);
         }
         
-        for (let i = trxConf ? 1 : 0; i < arguments.length; ++i) {
+        for (let i = (hasConfig ? 1 : 0); i < arguments.length; ++i) {
             actions.push(arguments[i]);
         }
+
+        // check arguments
+        if (actions.length == 0) {
+            throw new Error("At least 1 action needed");
+        }
+        if (trxConf.maxCharge == null || !Number.isInteger(trxConf.maxCharge)) throw new Error("maxCharge is required and must be a integer greater than or eqaul to 0");
+        if (trxConf.payer == null || !EvtKey.isValidAddress(trxConf.payer)) throw new Error("payer is required and must be a valid address as a string");
 
         let params = {
             transaction: {
@@ -606,15 +599,9 @@ class APICaller {
             "ref_block_prefix": last_irreversible_block_prefix
         });
 
-        if (trxConf) {
-            if (trxConf.maxCharge) {
-                body.transaction.max_charge = trxConf.maxCharge;
-            }
-
-            if (trxConf.payer) {
-                body.transaction.payer = trxConf.payer;
-            }
-        }
+        // add payer and maxCharge to the transaction
+        body.transaction.max_charge = trxConf.maxCharge;
+        body.transaction.payer = trxConf.payer;
 
         // calculate signatures
         if (params.sign) {
@@ -623,7 +610,7 @@ class APICaller {
 
             // sign
             const signBuf = new Buffer(digestRes, "hex");
-            let sigs = await this.__signTransaction(signBuf, body.transaction);
+            let sigs = await this.__signTransaction(signBuf, body.transaction, privateKeys);
 
             if (!Array.isArray(sigs)) {
                 sigs = [ sigs ];
@@ -665,8 +652,14 @@ class APICaller {
         this.__throwServerResponseError(ret);
     }
 
-    __signTransaction(buf, transaction, keyToUse) {
-        return this.config.signProvider({signHash, buf, transaction, keyToUse});
+    /**
+     * 
+     * @param {Buffer} buf 
+     * @param {object} transaction 
+     * @param {string[]} privateKeys 
+     */
+    __signTransaction(buf, transaction, privateKeys) {
+        return this.config.signProvider({signHash, buf, transaction, privateKeys});
     }
 
     async __getDigestToSign(transaction) {
@@ -716,41 +709,23 @@ class APICaller {
   If only one key is available, the blockchain API calls are skipped and that
   key is used to sign the transaction.
 */
-const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, transaction, keyToUse }) {
-    const { keyProvider } = config;
+const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, transaction, privateKeys }) {
+    let keys = privateKeys;
 
-    if (!keyProvider) {
-        // console.log("config" + JSON.stringify(config, null, 4));
+    if (!keys) {
         throw new TypeError("This transaction requires a config.keyProvider for signing");
     }
 
-    let keys = keyProvider;
-    if (typeof keyProvider === "function") {
-        keys = keyProvider({ transaction });
-    }
-
-    // keyProvider may return keys or Promise<keys>
-    keys = await Promise.resolve(keys);
-
-    if (!Array.isArray(keys)) {
-        keys = [ keys ];
-    }
-
     keys = keys.map(key => {
-        try {
-            // normalize format (WIF => PVT_K1_base58privateKey)
-            return { private: ecc.PrivateKey(key).toString() };
-        } catch (e) {
-            // normalize format (EOSKey => PUB_K1_base58publicKey)
-            return { public: ecc.PublicKey(key).toString() };
-        }
-        assert(false, "expecting public or private keys from keyProvider");
+        return {
+            private: ecc.PrivateKey(key).toString(),
+            public: EvtKey.privateToPublic(ecc.PrivateKey(key).toString())
+        };
     });
 
     if (!keys.length) {
         throw new Error("missing key, check your keyProvider");
     }
-
 
     // simplify default signing #17
     if (keys.length === 1 && keys[0].private) {
@@ -760,80 +735,35 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
         return ret;
     }
 
-    const keyMap = new Map();
-
-    // keys are either public or private keys
-    for (const key of keys) {
-        const isPrivate = key.private != null;
-        const isPublic = key.public != null;
-
-        if (isPrivate) {
-            keyMap.set(EvtKey.privateToPublic(key.private), key.private);
-        } else {
-            keyMap.set(key.public, null);
-        }
-    }
-
-    const pubkeys = Array.from(keyMap.keys());
-
-    if (keyToUse) {
-        const pvt = keyMap[keyToUse];
-
-        if (pvt) {
-            var ret = signHash(buf, pvt);
-            
-            return ret;
-        }
-
-        throw new Error("the key provided is not found");
-    }
-
     // Multiple signature support
-    // console.log("get required_keys from" + JSON.stringify(keys.map(key => ecc.privateToPublic(key.private)), null, 4));
-    let apiRes = await apiCaller.__chainGetRequiredKeys({ transaction, available_keys: keys.map(key => EvtKey.privateToPublic(key.private) ) });
+    Logger.verbose("[defaultSignProvider] get required_keys, available keys: " + JSON.stringify(keys.map(key => key.public ), null, 4));
+    let apiRes = await apiCaller.__chainGetRequiredKeys({ transaction, available_keys: keys.map(key => key.public ) });
     let required_keys = apiRes.required_keys;
 
-    // console.log("required_keys: " + JSON.stringify(apiRes, null, 4));
-
-    /*return eos.getRequiredKeys(transaction, pubkeys).then(({ required_keys }) => {
-        if (!required_keys.length) {
-            throw new Error('missing required keys for ' + JSON.stringify(transaction))
-        }*/
+    Logger.verbose("[defaultSignProvider] got required_keys: " + JSON.stringify(apiRes, null, 4));
 
     const pvts = [], missingKeys = [];
 
-    // required_keys = pubkeys[0]; // assume that we need only the first key, will be changed in the future TODO
-
     for (let requiredKey of required_keys) {
-        // normalize (EOSKey.. => PUB_K1_Key..)
-        try {
-            requiredKey = ecc.PublicKey(requiredKey).toString();
-        }
-        catch (e) {
-            requiredKey = ecc.PublicKey("EOS" + requiredKey.substr(3)).toString();
-        }
+        let wifs = keys.filter(x => x.public == requiredKey);
 
-        const wif = keyMap.get(requiredKey);
-        if (wif) {
-            pvts.push(wif);
+        if (wifs.length == 1) {
+            pvts.push(wifs[0].private);
         } else {
-            const wif = keyMap.get("EVT" + requiredKey.substr(3));
-            if (!wif) {
-                missingKeys.push(requiredKey);
-            }
+            missingKeys.push(requiredKey);
         }
     }
 
     if (missingKeys.length !== 0) {
-        assert(typeof keyProvider === "function",
-            "keyProvider function is needed for private key lookup");
+        throw new Error("missingKeys for required_key");
 
         // const pubkeys = missingKeys.map(key => ecc.PublicKey(key).toStringLegacy())
-        keyProvider({ pubkeys: missingKeys })
-            .forEach(pvt => { pvts.push(pvt); });
+        //keyProvider({ pubkeys: missingKeys })
+        //    .forEach(pvt => { pvts.push(pvt); });
     }
 
     const sigs = [];
+    console.log("pvts:______" + JSON.stringify(pvts, null, 4));
     for (const pvt of pvts) {
         sigs.push(signHash(buf, pvt));
     }
