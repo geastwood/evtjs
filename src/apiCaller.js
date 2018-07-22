@@ -458,6 +458,24 @@ class APICaller {
     }
 
     /**
+     * Get header state of head block.
+     */
+    async getHeadBlockHeaderState() {
+        let res = await this.__callAPI({
+            url: "/v1/chain/get_head_block_header_state",
+            method: "GET",
+            sign: false // no need to sign
+        });
+
+        if (!res.error) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * wrap the exception returned from server side
      * @param {*} res 
      */

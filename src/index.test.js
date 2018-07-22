@@ -256,6 +256,15 @@ describe("APICaller read API test", () => {
         assert(response.chain_id, "expected chain_id");
     });
 
+    it("getHeadBlockHeaderState", async function() {
+        const apiCaller = EVT({
+            endpoint: network
+        });
+
+        var response = await apiCaller.getHeadBlockHeaderState();
+        assert(response.block_num, "expected block_num");
+    });
+
     it("getCreatedDomains", async function () {
         const apiCaller = EVT({
             endpoint: network,

@@ -56,8 +56,8 @@ NEVER SHOW IT TO ANY OTHER PEOPLE</pre>
                 window.generatePass = async function run() {
                     try {
                         let time = new Date().valueOf();
-                        EVT.QR.getEVTQrImage(
-                            "collection", 
+                        EVT.EvtLink.getEVTLinkQrImage(
+                            "addressOfReceiver", 
                             {
                                 address: "EVT76uLwUD5t6fkob9Rbc9UxHgdTVshNceyv2hmppw4d82j2zYRpa"
                             },

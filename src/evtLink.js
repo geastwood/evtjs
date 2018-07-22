@@ -40,8 +40,9 @@ EvtLink.dec2b = function(base10) {
     }
     
     let buf = new BigInteger(base10, 10).toBuffer(0);
+    let ret = Buffer.concat([ Buffer.alloc(zeroCount, 0), buf ]);
 
-    return Buffer.concat([ Buffer.alloc(zeroCount, 0), buf ]);
+    return ret;
 };
 
 /**
@@ -140,8 +141,8 @@ function parseQRCode(text) {
     if (!textSplited[0].startsWith(qrPrefix)) return null;
     let rawText = textSplited[0].substr(qrPrefix.length);
 
-    console.log("[parseQRCode] raw:" + rawText);
-    console.log("[parseQRCode] textSplited:" + JSON.stringify(textSplited, null, 4));
+    // console.log("[parseQRCode] raw:" + rawText);
+    // console.log("[parseQRCode] textSplited:" + JSON.stringify(textSplited, null, 4));
 
     // validate signature
     let publicKeys = [ ];
@@ -149,7 +150,7 @@ function parseQRCode(text) {
         let buf = EvtLink.dec2b(textSplited[1]);
         let i = 0;
 
-        console.log(buf);
+        // console.log(buf);
 
         while (i * 65 < buf.length) {
             let current = new Buffer(65);
@@ -161,10 +162,6 @@ function parseQRCode(text) {
     }
 
     return { segments: parseSegments(EvtLink.dec2b(rawText)), publicKeys };
-}
-
-function isFunction(functionToCheck) {
-    return functionToCheck && {}.toString.call(functionToCheck) === "[object Function]";
 }
 
 /**
@@ -226,7 +223,7 @@ async function getQRCode(segments, params) {
  * @param {object} params the text of qr code
  */
 EvtLink.parseEvtLink = async function(text) {
-    console.log("[parseEvtLink] " + text);
+    // console.log("[parseEvtLink] " + text);
     return parseQRCode(text);
 };
 
@@ -351,8 +348,6 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
     
     func(qrParams)
         .then((res) => {
-            console.log(res.rawText);
-
             if (res.rawText.length > 300) {
                 errorCorrectionLevel = "M";
             }
