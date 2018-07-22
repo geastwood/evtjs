@@ -74,8 +74,12 @@ describe("APICaller write API test", () => {
             endpoint: network
         });
 
-        await apiCaller.pushTransaction(
-        );
+        try { await apiCaller.pushTransaction(); }
+        catch (e) {
+            return;
+        }
+
+        assert(true, "expected exception");
     });
 
     it("new_group", async function () {
@@ -87,7 +91,7 @@ describe("APICaller write API test", () => {
         testingTmpData.newGroupName = "g" + parseInt((new Date()).valueOf() / 5000);
 
         await apiCaller.pushTransaction(
-            { maxCharge: 1000, payer: EVT.EvtKey.getNullAddress() },
+            { maxCharge: 1000 },
             new EVT.EvtAction("newgroup", {
                 "name": testingTmpData.newGroupName,
                 "group": {
@@ -145,7 +149,7 @@ describe("APICaller write API test", () => {
         testingTmpData.newDomainName = "nd" + (new Date()).valueOf();
 
         await apiCaller.pushTransaction(
-            { payer: EVT.EvtKey.getNullAddress(), maxCharge: 1000 },
+            { maxCharge: 1000, payer: publicKey },
             new EVT.EvtAction("newdomain", {
                 "name": testingTmpData.newDomainName,
                 "creator": publicKey,
