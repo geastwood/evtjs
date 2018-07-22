@@ -2,6 +2,7 @@
 const ecc = require("./ecc/index");
 const qrcode = require("qrcode");
 const BigInteger = require("bigi");
+const EvtKey = require("./key");
 
 const qrPrefix = "https://evt.li/";
 
@@ -166,25 +167,41 @@ function isFunction(functionToCheck) {
     return functionToCheck && {}.toString.call(functionToCheck) === "[object Function]";
 }
 
+/**
+ * Calculate the value of keyProvider
+ * @param {string | string[] | function} keyProvider
+ * @returns {string[]}
+ */
+async function __calcKeyProvider(keyProvider) {
+    if (!keyProvider) { return []; }
+
+    // if keyProvider is function
+    if (keyProvider.apply && keyProvider.call) {
+        keyProvider = keyProvider();
+    }
+
+    // resolve for Promise
+    keyProvider = await Promise.resolve(keyProvider);
+
+    if (!Array.isArray(keyProvider)) {
+        keyProvider = [ keyProvider ];
+    }
+
+    for (let key of keyProvider) {
+        if (!EvtKey.isValidPrivateKey(key)) {
+            throw new Error("Invalid private key");
+        }
+    }
+
+    return keyProvider;
+}
+
 async function getQRCode(segments, params) {
     if (params.keyProvider) {
-        if (!Array.isArray(params.keyProvider)) {
-            params.keyProvider = [ params.keyProvider ];
-        }
+        params.keyProvider = await __calcKeyProvider(params.keyProvider);
 
         if (params.keyProvider.length > 3) {
             throw new Error("Exceed max private key limit: 3");
-        }
-
-        for (let i = 0; i < params.keyProvider.length; ++i) {
-            if (isFunction(params.keyProvider[i])) {
-                params.keyProvider[i] = params.keyProvider[i]();
-            }
-            params.keyProvider[i] = await Promise.resolve(params.keyProvider[i]);
-
-            if (!params.keyProvider[i] || (typeof params.keyProvider[i] !== "string")) {
-                throw new Error("invalid private key found");
-            }
         }
     }
 
