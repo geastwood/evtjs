@@ -125,6 +125,7 @@ function parseSegments(buffer) {
         let seg = parseSegment(buffer, pointer);
         segments.push(seg);
         pointer += seg.bufferLength;
+        delete seg.bufferLength;
     }
 
     return segments;
@@ -146,6 +147,7 @@ function parseQRCode(text) {
 
     // validate signature
     let publicKeys = [ ];
+    let signatures = [ ];
     if (textSplited[1]) {
         let buf = EvtLink.dec2b(textSplited[1]);
         let i = 0;
@@ -156,12 +158,13 @@ function parseQRCode(text) {
             let current = new Buffer(65);
             buf.copy(current, 0, i * 65, i * 65 + 65);
             let signature = ecc.Signature.fromBuffer(current);
+            signatures.push(signature.toString());
             publicKeys.push(signature.recover(textSplited[0], "utf8").toString());
             ++i;
         }
     }
 
-    return { segments: parseSegments(EvtLink.dec2b(rawText)), publicKeys };
+    return { segments: parseSegments(EvtLink.dec2b(rawText)), publicKeys, signatures };
 }
 
 /**
@@ -257,7 +260,7 @@ EvtLink.getEveriPassText = async function(params) {
     }
 
     // add segments
-    byteSegments.push(createSegment(41, (1 + 2 + params.autoDestroying ? 8 : 0) ));  // everiPass
+    byteSegments.push(createSegment(41, (1 + 2 + (params.autoDestroying ? 8 : 0)) ));// everiPass
     byteSegments.push(createSegment(42, parseInt(new Date().valueOf() / 1000)));     // timestamp
     if (params.domainName) byteSegments.push(createSegment(91, params.domainName));  // domainName for everiPass
     if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));    // tokenName for everiPass
@@ -356,12 +359,12 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
             }
 
             if (imgParams.canvas) {
-                qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 8, "color": { dark: "#3d226d" } }, (err) => {
+                qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#3d226d" } }, (err) => {
                     callback(err, { rawText: res.rawText } );
                 });
             }
             else {
-                qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 8, "color": { dark: "#3d226d" } }, (err, url) => {
+                qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#3d226d" } }, (err, url) => {
                     callback(err, { dataUrl: url, rawText: res.rawText } );
                 });
             }

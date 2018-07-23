@@ -6,6 +6,7 @@ const logger = require("./logger");
 
 const wif = "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ";
 const wif2 = "5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i";
+const wif3 = "5K3nUWxfkUjfLQu9PL6NZLKWV41PiFyuQdrckArA59jz19M6zgq";
 const publicKey = EVT.EvtKey.privateToPublic(wif);
 
 const testingTmpData = {
@@ -255,7 +256,7 @@ describe("APICaller write API test", () => {
     });
 });
 
-// ==== part 3: APICaller read API ====
+// ==== part 4: APICaller read API ====
 describe("APICaller read API test", () => {
     // get evt chain version
     it("getInfo", async function () {
@@ -416,5 +417,39 @@ describe("APICaller read API test", () => {
         //var response = await apiCaller.getSuspendedTransactionDetail("test");
         //assert(Array.isArray(response), "expected array");
         // TODO must have data (after creating transactions)
+    });
+});
+
+
+// ==== part 5: EvtLink ====
+describe("EvtLink", () => {
+    let evtLink = EVT.EvtLink;
+
+    it("b2dec", async () => {
+        let dec1 = evtLink.b2dec(new Buffer([ 0, 0, 0, 2, 41, 109, 0, 82, 0 ]));
+        let dec2 = evtLink.b2dec(new Buffer([ 0 ]));
+        let dec3 = evtLink.b2dec(new Buffer([ ]));
+        
+        assert(dec1 === "0002376945652224", "should produce right dec");
+        assert(dec2 === "0", "should produce right dec");
+        assert(dec3 === "", "should produce right dec");
+    });
+
+    it("everiPass", async () => {
+        let link = await evtLink.getEveriPassText({
+            autoDestroying: true,
+            domainName: testingTmpData.newDomainName,
+            tokenName: testingTmpData.addedTokenNamePrefix + "1",
+            keyProvider: [ wif, wif2, wif3 ]
+        });
+        
+        let parsed = await evtLink.parseEvtLink(link.rawText);
+        
+        assert(link.rawText && link.rawText.startsWith("https://evt.li/"), "should produce a EvtLink");
+        assert(parsed.segments.length === 4, "struct is wrong");
+        assert(parsed.segments[0].value === 11, "flag is wrong: ");
+
+        logger.verbose("[everiPass] " + link.rawText);
+        logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
     });
 });
