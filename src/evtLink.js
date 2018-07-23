@@ -141,6 +141,7 @@ function parseQRCode(text) {
 
     if (!textSplited[0].startsWith(qrPrefix)) return null;
     let rawText = textSplited[0].substr(qrPrefix.length);
+    let segmentsBytes = EvtLink.dec2b(rawText);
 
     // console.log("[parseQRCode] raw:" + rawText);
     // console.log("[parseQRCode] textSplited:" + JSON.stringify(textSplited, null, 4));
@@ -159,12 +160,12 @@ function parseQRCode(text) {
             buf.copy(current, 0, i * 65, i * 65 + 65);
             let signature = ecc.Signature.fromBuffer(current);
             signatures.push(signature.toString());
-            publicKeys.push(signature.recover(textSplited[0], "utf8").toString());
+            publicKeys.push(signature.recover(segmentsBytes).toString());
             ++i;
         }
     }
 
-    return { segments: parseSegments(EvtLink.dec2b(rawText)), publicKeys, signatures };
+    return { segments: parseSegments(segmentsBytes), publicKeys, signatures };
 }
 
 /**
@@ -205,13 +206,14 @@ async function getQRCode(segments, params) {
         }
     }
 
-    let text = `${qrPrefix}${EvtLink.b2dec(Buffer.concat(segments))}`;
+    let segmentsBytes = Buffer.concat(segments);
+    let text = `${qrPrefix}${EvtLink.b2dec(segmentsBytes)}`;
 
     if (params.keyProvider && params.keyProvider.length > 0) {
         let sigBufs = [];
 
         for (let i = 0; i < params.keyProvider.length; ++i) {
-            let sig = ecc.sign(text, params.keyProvider[i]);
+            let sig = ecc.sign(segmentsBytes, params.keyProvider[i]);
             sigBufs.push(ecc.Signature.from(sig).toBuffer());
         }
         
