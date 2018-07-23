@@ -225,6 +225,82 @@ Some important return values are as follow:
 
 - `head_block_*` and `last_irreversible_block_*`: Represents information for last block / last irreversible block. This is used by other calls automatically by the library.
 
+### getHeadBlockHeaderState() => Promise
+
+Get header state of head block of current everiToken chain. This is useful if you want to get some information from the chain node. For example, you can get server's current `timestamp`.
+
+#### Response
+
+Here is an example:
+
+```json
+{
+    "id": "00008f4001f64c7d0aaa21220bb111b5e1db0a75587b022284a9cd945921d1ee",
+    "block_num": 36672,
+    "header": {
+        "timestamp": "2018-07-23T08:18:03.000",
+        "producer": "evt",
+        "confirmed": 0,
+        "previous": "00008f3f72803da575e85f8477346543029d7c407d58bdd2703c9306f1727761",
+        "transaction_mroot": "0000000000000000000000000000000000000000000000000000000000000000",
+        "action_mroot": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schedule_version": 0,
+        "header_extensions": [],
+        "producer_signature": "SIG_K1_K5jEdrTZ6NFi6NVd6rKv97Lwxegwnzi4pHcNhJn2hL6X2JL7DK73fakioCYcDiHB74ouX1wkeQicKX5hnrEZ54dFPvpkYJ"
+    },
+    "dpos_proposed_irreversible_blocknum": 36672,
+    "dpos_irreversible_blocknum": 36671,
+    "bft_irreversible_blocknum": 0,
+    "pending_schedule_lib_num": 0,
+    "pending_schedule_hash": "b6dfee2073f7863993ed3ebc33c4781fb7c0beedff7b5478bff7111a71fd9df4",
+    "pending_schedule": {
+        "version": 0,
+        "producers": []
+    },
+    "active_schedule": {
+        "version": 0,
+        "producers": [
+            {
+                "producer_name": "evt",
+                "block_signing_key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"
+            }
+        ]
+    },
+    "blockroot_merkle": {
+        "_active_nodes": [
+            "00008f3f72803da575e85f8477346543029d7c407d58bdd2703c9306f1727761",
+            "14903e37ffc3c312f1913c6f5bdcfe0534622630492d7ec309cf9650f36c2e43",
+            "f6a956062e72352f9cc55c1c8ea976a4c815ea805d003d510b15b77a9f79850a",
+            "c46df6cf6bf778b0c67f4baee6b565f82fbcd68d2e341855e556da4a722ec0f2",
+            "8dd090093a15d4fff1fe8ee93c7a4dc8ba95d6a30ddf1bfd6a65e064671c88ab",
+            "475a4e690ccb2efd4bfb083dae25795d6baef43edfb6d3b711b0d5f1064357bb",
+            "8485b584bc26f5bb7df9db686d0501acca38959d5bde35a0e392514497bcee5e",
+            "6bce5e13a200b1b1671161e8f825508dd8189620d83ad1c6c389725d1a26c2b9",
+            "b1cbf65e93f33a945d305172c3d41f56f3b9b470c9963c18f3edff41e24df6d2",
+            "6e47ee8c118c61a8b5d17dcfccbe66083256dcf55c7136ac9c3de47e570a61c2",
+            "18569ad93482be45a7fb925df9e531cdc16639849f0a3b43a55ae67d2ac97118",
+            "e08e415237bafbb170b9099fc54f3b203806e844005dfe6de362d196b3f30f12"
+        ],
+        "_node_count": 36671
+    },
+    "producer_to_last_produced": [
+        [
+            "evt",
+            36672
+        ]
+    ],
+    "producer_to_last_implied_irb": [
+        [
+            "evt",
+            36671
+        ]
+    ],
+    "block_signing_key": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+    "confirm_count": [],
+    "confirmations": []
+}
+```
+
 ### getOwnedTokens(publicKeys) => Promise
 
 Get the list of tokens which is owned by `publicKeys`.
@@ -1130,6 +1206,62 @@ Generate a `EvtLink` for `Address Code For Receiver`.
 ```json
 {
     "rawText": "https://evt.li/4747475658950104269227838067567628671578913008937599991051573226362789922825582-144397288075208708628188768085580"
+}
+```
+
+## Handling Errors
+
+`evtjs` may throw two kinds of `Error`s. One is `ServerError`, another is `ClientError`. You can check if it is a `ServerError` by checking the value of `isServerError` of the error like this:
+
+```js
+try {
+    // Do something about evtjs
+}
+catch (error) {
+    if (error.isServerError) { //
+        // server Error
+    }
+    else {
+        // client Error
+    }
+}
+```
+
+Each server error has several properties.
+
+- `httpCode`: The http code of server's response.
+- `serverError`: The error code of everiToken public chain.
+- `serverMessage`: The message of the error.
+- `serverMessage`: The short message of the error.
+- `rawServerError`: The original error object.
+
+It's commended to check the error code via `serverError` property and show user-friendly message to user according to this code.
+
+### rawServerError
+
+`rawServerError` gives you the chance to parse the error by yourself or to get detailed information of the error.
+
+In most cases you don't need this field as we already give you enough information in the Error.
+
+Here is a example of `rawServerError`:
+
+```json
+{
+    "code": 500,
+    "message": "Internal Service Error",
+    "error": {
+        "code": 3100003,
+        "name": "unknown_transaction_exception",
+        "what": "unknown transaction",
+        "details": [
+            {
+                "message": "Cannot find transaction",
+                "file": "history_plugin.cpp",
+                "line_number": 248,
+                "method": "get_block_id_by_trx_id"
+            }
+        ]
+    }
 }
 ```
 

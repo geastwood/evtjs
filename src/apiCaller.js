@@ -290,16 +290,25 @@ class APICaller {
 
     /**
      * Get estimated charge for a transaction
-     * @param {*} transaction the transaction to be estimated
-     * @param {} signatureCount the count of signature that will be used on the transaction
      */
-    async getEstimatedChargeForTransaction(transaction, signatureCount) {
-        if (typeof transaction !== "object" || !transaction) throw new Error("invalid transaction");
+    async getEstimatedChargeForTransaction() {
+        /** @type Array */
+        let args = [].slice.call(arguments);
+        if (args.length == 0) throw new Error("invalid arguments");
+        if (args[0] instanceof EvtAction) {
+            args = [ { } ].concat(args);
+        }
+
+        args[0].__estimateCharge = true;
+
+        let p = await this.pushTransaction.apply(this, args);
+
+        console.log("______p:" + JSON.stringify(p, null, 4));
 
         let res = await this.__callAPI({
             url: "/v1/chain/get_charge",
             method: "POST",
-            body: { transaction, sigs_num: signatureCount },
+            body: { transaction: p.body, sigs_num: p.privateKeys.length },
             sign: false // no need to sign
         });
  
@@ -480,10 +489,20 @@ class APICaller {
      * @param {*} res 
      */
     __throwServerResponseError(res) {
-        let err = new Error(`[${res.code} ${res.message}] (${(res.error || {}).code}) ${(res.error || {}).name}: ${(res.error || {}).what}`);
+        let details = "";
+
+        if (res.error && res.error.details && Array.isArray(res.error.details)) {
+            for (let detail of res.error.details) {
+                details += `\nat ${detail.file}::${detail.method}: ${detail.message} (line ${detail.line_number})`;
+            }
+        }
+
+        let err = new Error(`[${res.code} ${res.message}] (${(res.error || {}).code}) ${(res.error || {}).name}: ${(res.error || {}).what} ${details}`);
         err.httpCode = res.code;
         err.serverError = res.error;
         err.serverMessage = res.message;
+        err.rawServerError = res;
+        err.isServerError = true;
 
         Logger.verbose("[__throwServerResponseError] node's response return error:\n" + JSON.stringify(res, null, 4));
 
@@ -620,6 +639,10 @@ class APICaller {
         // add payer and maxCharge to the transaction
         body.transaction.max_charge = trxConf.maxCharge;
         body.transaction.payer = trxConf.payer;
+
+        if (trxConf.__estimateCharge) {
+            return { body, privateKeys };
+        }
 
         // calculate signatures
         if (params.sign) {

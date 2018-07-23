@@ -192,6 +192,20 @@ describe("APICaller write API test", () => {
 
         testingTmpData.addedTokenNamePrefix = "tk" + ((new Date()).valueOf() / 500);
 
+        let charge = await apiCaller.getEstimatedChargeForTransaction(new EVT.EvtAction("issuetoken", {
+            "domain": testingTmpData.newDomainName,
+            "names": [
+                testingTmpData.addedTokenNamePrefix + "1",
+                testingTmpData.addedTokenNamePrefix + "2",
+                testingTmpData.addedTokenNamePrefix + "3"
+            ],
+            "owner": [
+                Key.privateToPublic(wif)
+            ]
+        }));
+
+        console.log("charge: " + charge);
+
         await apiCaller.pushTransaction(
             new EVT.EvtAction("issuetoken", {
                 "domain": testingTmpData.newDomainName,
