@@ -1,5 +1,6 @@
 const createHash = require("create-hash");
 const createHmac = require("create-hmac");
+const sha256f = require("../sha256.min");
 
 /** @namespace hash */
 

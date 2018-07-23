@@ -254,7 +254,10 @@ EvtLink.parseEvtLink = async function(text) {
  * Get a cryptography-strong unique link id that is mostly unique.
  */
 EvtLink.getUniqueLinkId = async function() {
-    return randomBytes(16);
+    let time = new Date().getTime();
+    let ret = randomBytes(16);
+    console.log(new Date().getTime() - time);
+    return ret;
 };
 
 /**
@@ -371,12 +374,12 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
             }
 
             if (imgParams.canvas) {
-                qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#3d226d" } }, (err) => {
+                qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#003d226d" } }, (err) => {
                     callback(err, { rawText: res.rawText } );
                 });
             }
             else {
-                qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#3d226d" } }, (err, url) => {
+                qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#003d226d" } }, (err, url) => {
                     callback(err, { dataUrl: url, rawText: res.rawText } );
                 });
             }
