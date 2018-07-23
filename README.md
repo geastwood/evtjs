@@ -1139,7 +1139,7 @@ Here is a brief reference of common used `typeKey` for convenient. For detail pl
 |  |    1    |   protocol version 1 (required)
 |   |   2    |   everiPass
 |   |   4    |   everiPay
-|   |   8    |   should destory the NFT after validate the token in everiPass
+|   |   8    |   should destory the NFT after validating the token in everiPass
 |   |   16   |   address code for recever
 | `42` | | (uint32) unix timestamp in seconds |
 | `43` | | (uint32) max allowed amount for everiPay |
