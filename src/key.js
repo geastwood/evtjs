@@ -65,6 +65,14 @@ EvtKey.random32BytesAsHex = async function() {
 };
 
 /**
+ * return safe random bytes.
+ */
+EvtKey.random32Bytes = async function() {
+    await ecc.initialize();
+    return ecc.key_utils.random32ByteBuffer({ safe: true });
+};
+
+/**
  * return a promise that resolves a safe random string to be used in name128 format.
  */
 EvtKey.randomName128 = async function() {

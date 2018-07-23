@@ -446,7 +446,7 @@ describe("EvtLink", () => {
         let parsed = await evtLink.parseEvtLink(link.rawText);
         
         assert(link.rawText && link.rawText.startsWith("https://evt.li/"), "should produce a EvtLink");
-        assert(parsed.segments.length === 4, "struct is wrong");
+        assert(parsed.segments.length === 5, "struct is wrong");
         assert(parsed.segments[0].value === 11, "flag is wrong: ");
         assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");
 

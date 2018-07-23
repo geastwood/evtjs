@@ -3,6 +3,7 @@ const ecc = require("./ecc/index");
 const qrcode = require("qrcode");
 const BigInteger = require("bigi");
 const EvtKey = require("./key");
+const randomBytes = require("randombytes");
 
 const qrPrefix = "https://evt.li/";
 
@@ -247,6 +248,14 @@ EvtLink.parseEvtLink = async function(text) {
 // 93           symbol name to be paid in everiPay (for example: "5,EVT")
 // 94           max allowed amount for payment (optionl, string format remained only for amount >= 2 ^ 32)
 // 95           public key (address) for receiving points or coins
+// 156          global-unique link id
+
+/**
+ * Get a cryptography-strong unique link id that is mostly unique.
+ */
+EvtLink.getUniqueLinkId = async function() {
+    return randomBytes(16);
+};
 
 /**
  * get everiPass's text from specific private key and token name
@@ -266,6 +275,7 @@ EvtLink.getEveriPassText = async function(params) {
     byteSegments.push(createSegment(42, parseInt(new Date().valueOf() / 1000)));     // timestamp
     if (params.domainName) byteSegments.push(createSegment(91, params.domainName));  // domainName for everiPass
     if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));    // tokenName for everiPass
+    byteSegments.push(createSegment(156, await EvtLink.getUniqueLinkId() ));         // random link id
 
     // convert buffer of segments to text using base10
     return {
