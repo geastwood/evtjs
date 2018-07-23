@@ -811,14 +811,13 @@ A example:
 }
 ```
 
-### getEstimatedChargeForTransaction(transaction, signatureCount) => Promise
+### getEstimatedChargeForTransaction([config], ...action) => Promise
 
 return estimated amount of `transaction fee` for one transaction. 
 
 #### Parameters
 
-- `transaction`: A transaction structure (See everiToken's ABI Documentation for detail) which will be estimated.
-- `signatureCount`: A number representing the count of signatures that will be on the transaction.
+The parameters are the same as `pushTransaction`. Please refer to it.
 
 #### Response
 
@@ -826,6 +825,25 @@ return estimated amount of `transaction fee` for one transaction.
 {
     `charge`: 10005
 }
+```
+
+#### Example
+
+```js
+let ret = await apiCaller.getEstimatedChargeForTransaction(
+    new EVT.EvtAction("issuetoken", {
+        "domain": "test",
+        "names": [
+            "test1",
+            "test2"
+        ],
+        "owner": [
+            "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"
+        ]
+    })
+);
+
+console.log((ret.charge * 0.00001) + " EVT");
 ```
 
 #### Important

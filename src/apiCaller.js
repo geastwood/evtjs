@@ -303,12 +303,10 @@ class APICaller {
 
         let p = await this.pushTransaction.apply(this, args);
 
-        console.log("______p:" + JSON.stringify(p, null, 4));
-
         let res = await this.__callAPI({
             url: "/v1/chain/get_charge",
             method: "POST",
-            body: { transaction: p.body, sigs_num: p.privateKeys.length },
+            body: { transaction: p.body.transaction, sigs_num: p.privateKeys.length },
             sign: false // no need to sign
         });
  
