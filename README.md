@@ -1133,7 +1133,7 @@ For example:
 
 Here is a brief reference of common used `typeKey` for convenient. For detail please refer to the document of `Evt Link`.
 
-| typeId | flag | description |
+| typeKey | flag | description |
 | --- | --- | --- |
 | `41` | | (uint32) flag (available values can be used together by adding) |
 |  |    1    |   protocol version 1 (required)
