@@ -4,8 +4,11 @@ const qrcode = require("qrcode");
 const BigInteger = require("bigi");
 const EvtKey = require("./key");
 const randomBytes = require("randombytes");
-
 const qrPrefix = "https://evt.li/";
+
+const anyBase = require('any-base'),
+dec2hex = anyBase(anyBase.DEC, anyBase.HEX),
+shortId = anyBase(anyBase.DEC, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-+!@#$^'),
 
 class EvtLink {
 
@@ -17,7 +20,7 @@ class EvtLink {
  */
 EvtLink.b2dec = function(buffer) {
     if (buffer.length == 0) return "";
-    let ret = BigInteger.fromBuffer(buffer).toString(10);
+    let ret = BigInteger.fromBuffer(buffer).toString(baseUsed);
     if (ret == "0") ret = "";
 
     let i = 0;
@@ -25,7 +28,7 @@ EvtLink.b2dec = function(buffer) {
         ret = "0" + ret;
     }
 
-    return ret;
+    return ret.toUpperCase();
 };
 
 /**
@@ -40,7 +43,7 @@ EvtLink.dec2b = function(base10) {
         zeroCount++;
     }
     
-    let buf = new BigInteger(base10, 10).toBuffer(0);
+    let buf = new BigInteger(base10.toLowerCase(), baseUsed).toBuffer(0);
     let ret = Buffer.concat([ Buffer.alloc(zeroCount, 0), buf ]);
 
     return ret;
@@ -380,12 +383,12 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
             }
 
             if (imgParams.canvas) {
-                qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#3d226d" } }, (err) => {
+                qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#000000" } }, (err) => {
                     callback(err, { rawText: res.rawText } );
                 });
             }
             else {
-                qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#3d226d" } }, (err, url) => {
+                qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#000000" } }, (err, url) => {
                     callback(err, { dataUrl: url, rawText: res.rawText } );
                 });
             }

@@ -303,10 +303,17 @@ class APICaller {
 
         let p = await this.pushTransaction.apply(this, args);
 
+        // Get required keys
+        Logger.verbose("[getEstimatedChargeForTransaction] get required_keys, available keys: " + JSON.stringify(p.publicKeys, null, 4));
+        let apiRes = await this.__chainGetRequiredKeys({ transaction: p.body.transaction, available_keys: p.publicKeys });
+        let required_keys = apiRes.required_keys;
+
+        Logger.verbose("[getEstimatedChargeForTransaction] got required_keys: " + JSON.stringify(required_keys, null, 4));
+
         let res = await this.__callAPI({
             url: "/v1/chain/get_charge",
             method: "POST",
-            body: { transaction: p.body.transaction, sigs_num: p.privateKeys.length },
+            body: { transaction: p.body.transaction, sigs_num: required_keys.length },
             sign: false // no need to sign
         });
  
@@ -537,6 +544,35 @@ class APICaller {
     }
 
     /**
+     * Calculate the value of publicKeyProvider
+     * @param {string | string[] | function} keyProvider
+     * @returns {string[]}
+     */
+    async __calcPublicKeyProvider(keyProvider) {
+        if (!keyProvider) { return []; }
+
+        // if keyProvider is function
+        if (keyProvider.apply && keyProvider.call) {
+            keyProvider = keyProvider();
+        }
+
+        // resolve for Promise
+        keyProvider = await Promise.resolve(keyProvider);
+
+        if (!Array.isArray(keyProvider)) {
+            keyProvider = [ keyProvider ];
+        }
+
+        for (let key of keyProvider) {
+            if (!EvtKey.isValidPublicKey(key)) {
+                throw new Error("Invalid public key");
+            }
+        }
+
+        return keyProvider;
+    }
+
+    /**
      * push transaction to everiToken chain
      * @param {any[]} actions actions in the transaction
      */
@@ -557,7 +593,17 @@ class APICaller {
         }
 
         // calculate and cache private keys
-        let privateKeys = await this.__calcKeyProvider(this.config.keyProvider, null);
+        let privateKeys = [];
+        let publicKeys = [];
+
+        // user can use availablePublicKeys in config for estimate, or use keyProvider as a backup
+        if (!trxConf.__estimateCharge || !trxConf.availablePublicKeys) {
+            privateKeys = await this.__calcKeyProvider(this.config.keyProvider, null);
+            publicKeys = privateKeys.map(x => EvtKey.privateToPublic(x));
+        }
+        else {
+            publicKeys = await this.__calcPublicKeyProvider(trxConf.availablePublicKeys);
+        }
 
         // set default payer if user provided only one private key
         if (!trxConf.payer && privateKeys.length == 1) {
@@ -639,7 +685,7 @@ class APICaller {
         body.transaction.payer = trxConf.payer;
 
         if (trxConf.__estimateCharge) {
-            return { body, privateKeys };
+            return { body, publicKeys };
         }
 
         // calculate signatures
