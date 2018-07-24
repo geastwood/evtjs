@@ -1067,6 +1067,10 @@ You can get the singleton of `EvtLink` class by:
 let evtLink = EVT.EvtLink;
 ```
 
+### getUniqueLinkId() => Promise
+
+Return a new unique `linkId` string. For `everiPay / everiPass`, you must provide the same `LinkId`, unless you're sure the transaction has been processed by continuously checking for that link id's result (if network is available) or you must change link id by user's click (and show a tip saying there is a risk of double charing if he/she is using everiPay and has paid once).
+
 ### getEVTLinkQrImage(qrType, qrParams, imgParams, callback) => Number
 
 Generate a QR Code Image for any type of `Evt Link`.
@@ -1088,13 +1092,16 @@ A object consisting of:
 Here is a full example showing how to generate a QR Code of `everiPass`.
 
 ```js
+let linkId = await EVT.EvtLink.getUniqueLinkId();
+
 EVT.EvtLink.getEVTLinkQrImage(
     "everiPass", 
     {
         keyProvider: [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ" ],
         domainName: "testdomain",
         tokenName: "testtoken",
-        autoDestroying: true
+        autoDestroying: true,
+        linkId
     },
     { 
         autoReload: true
@@ -1120,32 +1127,55 @@ A object with two key: `segments` for parsed list of segments, and `publicKeys` 
 For example:
 ```json
 {
-    "segments": [
-        {
-            "typeKey": 41,
-            "value": 8,
-            "bufferLength": 5
-        },
-        {
-            "typeKey": 42,
-            "value": 1532115998,
-            "bufferLength": 5
-        },
-        {
-            "typeKey": 91,
-            "value": "testdomain",
-            "bufferLength": 12
-        },
-        {
-            "typeKey": 92,
-            "value": "testtoken",
-            "bufferLength": 11
-        }
-    ],
-    "publicKeys": [
-        "EVT8HdQYD1xfKyD7Hyu2fpBUneamLMBXmP3qsYX6HoTw7yonpjWyC",
-        "EVT8HdQYD1xfKyD7Hyu2fpBUneamLMBXmP3qsYX6HoTw7yonpjWyC"
-    ]
+  "segments": [
+    {
+      "typeKey": 41,
+      "value": 11
+    },
+    {
+      "typeKey": 42,
+      "value": 1532413494
+    },
+    {
+      "typeKey": 91,
+      "value": "testdomain"
+    },
+    {
+      "typeKey": 92,
+      "value": "testtoken"
+    },
+    {
+      "typeKey": 156,
+      "value": [
+          220,
+          178,
+          159,
+          254,
+          169,
+          136,
+          34,
+          185,
+          65,
+          18,
+          98,
+          248,
+          71,
+          246,
+          18,
+          102
+        ]
+    }
+  ],
+  "publicKeys": [
+    "EVT8HdQYD1xfKyD7Hyu2fpBUneamLMBXmP3qsYX6HoTw7yonpjWyC",
+    "EVT6MYSkiBHNDLxE6JfTmSA1FxwZCgBnBYvCo7snSQEQ2ySBtpC6s",
+    "EVT7bUYEdpHiKcKT9Yi794MiwKzx5tGY3cHSh4DoCrL4B2LRjRgnt"
+  ],
+  "signatures": [
+    "SIG_K1_KWvwzRSLgJQJbvTGEoo5TqKwSiSHJnPfKBct6H1ArfVrQsWUEuy1eK6p6cvCpsEnbZbm89ffqKNu8BbQwkyW4pL8C7s7QW",
+    "SIG_K1_KfkVBKNvDKXhPksdvAMhDViooMt4fRhsSnh5Bx9VqcKoeAf8ZnKo1MPQZMV7rskgTbu36nGjh6jpRf6rLoHEvLrzGgn1ub",
+    "SIG_K1_K36D1VmoWrzEqi8uQ1ysT3wagj1HcrrCUwo582hQRGV39Q7xT3J3BgigypvqJtNQjUzgmrNEaSrS81AAbe2EFeBXTvckSR"
+  ]
 }
 ```
 
@@ -1166,6 +1196,7 @@ Here is a brief reference of common used `typeKey` for convenient. For detail pl
 | `93` | | (string) symbol name to be paid in everiPay (for example: "5,EVT") |
 | `94` | | (string) max allowed amount for payment (optionl, string format remained only for amount >= 2 ^ 32) |
 | `95` | | (string) public key (address) for receiving points or coins |
+| `156` | | (byte string) link id(128-bit) |
 
 ### getEveriPassText(params) => Promise
 
@@ -1199,6 +1230,7 @@ Generate a `EvtLink` for everiPay.
 - `params`: A object with available keys as follow:
   - `symbol`: The symbol for payment, for example: "5,EVT".
   - `maxAmount`: Max amount for charge. The real value is related with the symbol's precision. For example, EVT symbol has a precision of 5, if you set `maxAmount` to 100, the real max value will be `0.001` (Optional)
+  - `linkId`: The linkId to use. It's very important to follow the rules of generating a new linkId. See `getUniqueLinkId` for detail.
 
 #### Response
 

@@ -254,10 +254,9 @@ EvtLink.parseEvtLink = async function(text) {
  * Get a cryptography-strong unique link id that is mostly unique.
  */
 EvtLink.getUniqueLinkId = async function() {
-    let time = new Date().getTime();
     let ret = randomBytes(16);
-    console.log(new Date().getTime() - time);
-    return ret;
+
+    return ret.toString("hex");
 };
 
 /**
@@ -272,13 +271,16 @@ EvtLink.getEveriPassText = async function(params) {
     if (params.autoDestroying !== true && params.autoDestroying !== false) {
         throw new Error("Must specify the value of autoDestroying");
     }
+    if (!params.linkId || params.linkId.length !== 32) {
+        throw new Error("linkId is required");
+    }
 
     // add segments
     byteSegments.push(createSegment(41, (1 + 2 + (params.autoDestroying ? 8 : 0)) ));// everiPass
     byteSegments.push(createSegment(42, parseInt(new Date().valueOf() / 1000)));     // timestamp
     if (params.domainName) byteSegments.push(createSegment(91, params.domainName));  // domainName for everiPass
     if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));    // tokenName for everiPass
-    byteSegments.push(createSegment(156, await EvtLink.getUniqueLinkId() ));         // random link id
+    byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));         // random link id 
 
     // convert buffer of segments to text using base10
     return {
@@ -298,6 +300,9 @@ EvtLink.getEveriPayText = async function(params) {
     if (!params.symbol) {
         throw new Error("Must specify the value of symbol");
     }
+    if (!params.linkId || params.linkId.length !== 32) {
+        throw new Error("linkId is required");
+    }
 
     // add segments
     byteSegments.push(createSegment(41, (1 + 4) ));  // everiPay
@@ -305,6 +310,7 @@ EvtLink.getEveriPayText = async function(params) {
     byteSegments.push(createSegment(93, params.symbol));  // symbol for everiPay
     if (params.maxAmount && params.maxAmount < 4294967295) byteSegments.push(createSegment(43, params.maxAmount));  // max amount
     if (params.maxAmount && params.maxAmount >= 4294967295) byteSegments.push(createSegment(94, params.maxAmount.toString()));  // max amount
+    byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));         // random link id 
 
     // convert buffer of segments to text using base10
     return {
@@ -374,12 +380,12 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
             }
 
             if (imgParams.canvas) {
-                qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#003d226d" } }, (err) => {
+                qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#3d226d" } }, (err) => {
                     callback(err, { rawText: res.rawText } );
                 });
             }
             else {
-                qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#003d226d" } }, (err, url) => {
+                qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#3d226d" } }, (err, url) => {
                     callback(err, { dataUrl: url, rawText: res.rawText } );
                 });
             }

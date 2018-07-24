@@ -52,30 +52,36 @@
 OR BEING SCANNED BY CORRECT SCANNERS
 NEVER SHOW IT TO ANY OTHER PEOPLE</pre>
         <script>
-            document.addEventListener("DOMContentLoaded", function(event) {
+            document.addEventListener("DOMContentLoaded", async function(event) {
+                let linkId = await EVT.EvtLink.getUniqueLinkId();
+
+                console.log("linkId: " + linkId);
+
                 window.generatePass = async function run() {
                     try {
                         let time = new Date().valueOf();
                         EVT.EvtLink.getEVTLinkQrImage(
                             "everiPass",
                             {
-                                keyProvider: "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", // [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i", "5K3nUWxfkUjfLQu9PL6NZLKWV41PiFyuQdrckArA59jz19M6zgq" ],
+                                keyProvider: [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i", "5K3nUWxfkUjfLQu9PL6NZLKWV41PiFyuQdrckArA59jz19M6zgq" ],
                                 domainName: "testdomain",
                                 tokenName: "testtoken",
-                                autoDestroying: true
+                                autoDestroying: true,
+                                linkId
                             },
                             {
                                 autoReload: true
                             },
                             (err, res) => {
                                 if (err) {
-                                    alert(e.message);
+                                    alert(err.message);
                                     return;
                                 }
                                 // canvas: document.getElementById("canvas"), 
                                 document.getElementById("pass").setAttribute("src", res.dataUrl);
+                                console.log(res.rawText);
                                 EVT.EvtLink.parseEvtLink(res.rawText).then(res => {
-                                    console.log(JSON.stringify(res, null, 4))
+                                    console.log(JSON.stringify(res, null, 2));
                                 });
                                 // document.getElementById("passText").innerHTML = res.rawText.substr(8);
                         });
