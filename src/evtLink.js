@@ -1,7 +1,7 @@
 
 const ecc = require("./ecc/index");
 const qrcode = require("qrcode");
-const BigInteger = require("bigi");
+const BigInteger = require("./bigi");
 const EvtKey = require("./key");
 const randomBytes = require("randombytes");
 const qrPrefix = "https://evt.li/";

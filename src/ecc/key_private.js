@@ -1,7 +1,7 @@
 const ecurve = require("ecurve");
 const Point = ecurve.Point;
 const secp256k1 = ecurve.getCurveByName("secp256k1");
-const BigInteger = require("bigi");
+const BigInteger = require("../bigi");
 const assert = require("assert");
 
 const hash = require("./hash");
