@@ -5,13 +5,9 @@ const BigInteger = require("bigi");
 const EvtKey = require("./key");
 const randomBytes = require("randombytes");
 const qrPrefix = "https://evt.li/";
-
-const anyBase = require('any-base'),
-dec2hex = anyBase(anyBase.DEC, anyBase.HEX),
-shortId = anyBase(anyBase.DEC, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-+!@#$^'),
+const baseUsed = 42;
 
 class EvtLink {
-
 }
 
 /**
@@ -28,6 +24,8 @@ EvtLink.b2dec = function(buffer) {
         ret = "0" + ret;
     }
 
+    //console.log("+++" + ret);
+
     return ret.toUpperCase();
 };
 
@@ -36,14 +34,23 @@ EvtLink.b2dec = function(buffer) {
  * @param {string} base10 string.
  */
 EvtLink.dec2b = function(base10) {
+    // return Buffer.from(base10, "base64");
     // get count of 0
     let zeroCount = 0, i = 0;
 
     while (base10[i++] === "0") {
         zeroCount++;
     }
+
+    let alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$+-/:*";
+    let b10bn = new BigInteger();
+    let baseBN = BigInteger.fromHex("2a");
+
+    for (let i = 0; i < base10.length; ++i) {
+        b10bn = b10bn.multiply(baseBN).add(new BigInteger(alphabet.indexOf(base10[i]).toString(), 10));
+    }
     
-    let buf = new BigInteger(base10.toLowerCase(), baseUsed).toBuffer(0);
+    let buf = b10bn.toBuffer(0);
     let ret = Buffer.concat([ Buffer.alloc(zeroCount, 0), buf ]);
 
     return ret;
@@ -52,19 +59,28 @@ EvtLink.dec2b = function(base10) {
 /**
  * create a buffer representing a segment.
  * Different typeKey has different data type, this is the detail:
- * 0   - 40    1-byte unsigned integer
- * 41  - 90   4-byte unsigned integer
- * 91  - 155  string
- * 156 - 180  byte string
- * > 180     remained
+ * 0   - 20    1-byte unsigned integer
+ * 21  - 40    2-byte unsigned integer (BE)
+ * 41  - 90    4-byte unsigned integer (BE)
+ * 91  - 155   string
+ * 156 - 165   uuid
+ * 166 - 180   byte string
+ * > 180      remained
  * 
  * @param {*} typeKey the typeKey, different key has different type and meanings (0 - 254)
  * @param {*} value the value, must has the right data type according to typeKey
  */
 function createSegment(typeKey, value) {
     // 1-byte unsigned integer
-    if (typeKey <= 40) {
+    if (typeKey <= 20) {
         return (new Buffer([ typeKey, value ]));
+    }
+    // 2-byte unsigned integer
+    if (typeKey <= 40) {
+        let content = new Buffer(3);
+        content.writeUInt8(typeKey, 0);
+        content.writeUInt16BE(value, 1);
+        return (content);
     }
     // 4-byte unsigned integer
     else if (typeKey <= 90) {
@@ -79,11 +95,18 @@ function createSegment(typeKey, value) {
         let header = new Buffer([ typeKey, content.length ]);
         return (Buffer.concat([ header, content ]));
     }
+    // uuid
+    else if (typeKey <= 165) {
+        return (Buffer.concat([ new Buffer( [ typeKey ] ), value ]));
+    }
     // byte string
     else if (typeKey <= 180) {
         let content = value;
         let header = new Buffer([ typeKey, content.length ]);
         return (Buffer.concat([ header, content ]));
+    }
+    else {
+        throw new Error("typeKey not supported");
     }
 }
 
@@ -97,8 +120,11 @@ function parseSegment(buffer, offset) {
 
     if (typeKey == null) return null;
 
-    if (typeKey <= 40) {
+    if (typeKey <= 20) {
         return { typeKey: typeKey, value: buffer[offset + 1], bufferLength: 2 };
+    }
+    if (typeKey <= 40) {
+        return { typeKey: typeKey, value: buffer.readUInt16BE(offset + 1), bufferLength: 3 };
     }
     else if (typeKey <= 90) {
         return { typeKey: typeKey, value: buffer.readUInt32BE(offset + 1), bufferLength: 5 };
@@ -109,12 +135,22 @@ function parseSegment(buffer, offset) {
 
         return { typeKey: typeKey, value: value, bufferLength: 2 + len };
     }
-    else {
+    else if (typeKey <= 165) {
+        let len = 16;
+        let value = new Buffer(len);
+        buffer.copy(value, 0, offset + 1, offset + 1 + len);
+
+        return { typeKey: typeKey, value: value, bufferLength: 1 + len };
+    }
+    else if (typeKey <= 180) {
         let len = buffer.readUInt8(offset + 1);
         let value = new Buffer(len);
         buffer.copy(value, 0, offset + 2, offset + 2 + len);
 
         return { typeKey: typeKey, value: value, bufferLength: 2 + len };
+    }
+    else {
+        throw new Error("typeKey not supported");
     }
 }
 
@@ -123,13 +159,20 @@ function parseSegment(buffer, offset) {
  * @param {Buffer} buffer 
  */
 function parseSegments(buffer) {
+    if (buffer.length == 0) throw new Error("bad segments stream");
+
     let pointer = 0;
     let segments = [ ];
+
     while (pointer < buffer.length) {
         let seg = parseSegment(buffer, pointer);
         segments.push(seg);
         pointer += seg.bufferLength;
         delete seg.bufferLength;
+    }
+
+    if (pointer != buffer.length) {
+        throw new Error("Bad / incomplete segments");
     }
 
     return segments;
@@ -140,22 +183,41 @@ function parseSegments(buffer) {
  * @param {string} text 
  */
 function parseQRCode(text) {
-    let textSplited = text.split("-");
+    //console.log(text);
+    let textSplited = text.split("_");
     if (textSplited.length > 2) return null;
 
-    if (!textSplited[0].startsWith(qrPrefix)) return null;
-    let rawText = textSplited[0].substr(qrPrefix.length);
+    //console.log("[parseQRCode] 1");
+
+    let rawText;
+
+    if (textSplited[0].startsWith(qrPrefix)) {
+        rawText = textSplited[0].substr(qrPrefix.length);
+    }
+    else {
+        rawText = textSplited[0];
+    }
+    
     let segmentsBytes = EvtLink.dec2b(rawText);
+    
+    if (segmentsBytes.length < 2) throw new Error("no flag in segment");
+
+    let flag = segmentsBytes.readInt16BE(0);
+    let segmentsBytesRaw = new Buffer(segmentsBytes.length - 2);
+    segmentsBytes.copy(segmentsBytesRaw, 0, 2, segmentsBytes.length);
 
     // console.log("[parseQRCode] raw:" + rawText);
     // console.log("[parseQRCode] textSplited:" + JSON.stringify(textSplited, null, 4));
 
     // validate signature
+    //console.log("[parseQRCode] 2: " + JSON.stringify(textSplited, null, 2));
     let publicKeys = [ ];
     let signatures = [ ];
     if (textSplited[1]) {
         let buf = EvtLink.dec2b(textSplited[1]);
         let i = 0;
+
+        //console.log("[parseQRCode] 3: " + JSON.stringify(buf, null, 2));
 
         // console.log(buf);
 
@@ -169,7 +231,7 @@ function parseQRCode(text) {
         }
     }
 
-    return { segments: parseSegments(segmentsBytes), publicKeys, signatures };
+    return { flag, segments: parseSegments(segmentsBytesRaw), publicKeys, signatures };
 }
 
 /**
@@ -201,7 +263,7 @@ async function __calcKeyProvider(keyProvider) {
     return keyProvider;
 }
 
-async function getQRCode(segments, params) {
+async function __getQRCode(flag, segments, params) {
     if (params.keyProvider) {
         params.keyProvider = await __calcKeyProvider(params.keyProvider);
 
@@ -210,8 +272,17 @@ async function getQRCode(segments, params) {
         }
     }
 
-    let segmentsBytes = Buffer.concat(segments);
-    let text = `${qrPrefix}${EvtLink.b2dec(segmentsBytes)}`;
+    let flagBuffer = new Buffer(2);
+    flagBuffer.writeInt16BE(flag, 0);
+
+    let segmentsBytes = Buffer.concat([ flagBuffer ].concat(segments));
+    let _qrPrefix = "";
+
+    if ((flag & 16) == 16) {
+        _qrPrefix = qrPrefix;
+    }
+
+    let text = `${_qrPrefix}${EvtLink.b2dec(segmentsBytes)}`;
 
     if (params.keyProvider && params.keyProvider.length > 0) {
         let sigBufs = [];
@@ -221,7 +292,7 @@ async function getQRCode(segments, params) {
             sigBufs.push(ecc.Signature.from(sig).toBuffer());
         }
         
-        text += "-" + EvtLink.b2dec(Buffer.concat(sigBufs));
+        text += "_" + EvtLink.b2dec(Buffer.concat(sigBufs));
     }
 
     return text;
@@ -274,20 +345,20 @@ EvtLink.getEveriPassText = async function(params) {
     if (params.autoDestroying !== true && params.autoDestroying !== false) {
         throw new Error("Must specify the value of autoDestroying");
     }
-    if (!params.linkId || params.linkId.length !== 32) {
+    /*if (!params.linkId || params.linkId.length !== 32) {
         throw new Error("linkId is required");
-    }
+    }*/
 
     // add segments
-    byteSegments.push(createSegment(41, (1 + 2 + (params.autoDestroying ? 8 : 0)) ));// everiPass
-    byteSegments.push(createSegment(42, parseInt(new Date().valueOf() / 1000)));     // timestamp
+    let flag = (1 + 2 + (params.autoDestroying ? 8 : 0));                            // everiPass
+    byteSegments.push(createSegment(42, Math.floor(new Date().valueOf() / 1000) ));  // timestamp
     if (params.domainName) byteSegments.push(createSegment(91, params.domainName));  // domainName for everiPass
     if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));    // tokenName for everiPass
-    byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));         // random link id 
+    byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));       // random link id 
 
     // convert buffer of segments to text using base10
     return {
-        rawText: await getQRCode(byteSegments, params)
+        rawText: await __getQRCode(flag, byteSegments, params)
     };
 };
 
@@ -308,8 +379,8 @@ EvtLink.getEveriPayText = async function(params) {
     }
 
     // add segments
-    byteSegments.push(createSegment(41, (1 + 4) ));  // everiPay
-    byteSegments.push(createSegment(42, parseInt(new Date().valueOf() / 1000)));     // timestamp
+    let flag =  (1 + 4);  // everiPay
+    byteSegments.push(createSegment(42, Math.floor(new Date().valueOf() / 1000) ));  // timestamp
     byteSegments.push(createSegment(93, params.symbol));  // symbol for everiPay
     if (params.maxAmount && params.maxAmount < 4294967295) byteSegments.push(createSegment(43, params.maxAmount));  // max amount
     if (params.maxAmount && params.maxAmount >= 4294967295) byteSegments.push(createSegment(94, params.maxAmount.toString()));  // max amount
@@ -317,7 +388,7 @@ EvtLink.getEveriPayText = async function(params) {
 
     // convert buffer of segments to text using base10
     return {
-        rawText: await getQRCode(byteSegments, params)
+        rawText: await __getQRCode(flag, byteSegments, params)
     };
 };
 
@@ -335,13 +406,13 @@ EvtLink.getAddressCodeTextForReceiver = async function(params) {
     }
 
     // add segments
-    byteSegments.push(createSegment(41, 1 + 16 ));  // collection code
+    let flag = 1 + 16;  // collection code
     byteSegments.push(createSegment(95, params.address) );  // collectionQr
     delete params.keyProvider;
 
     // convert buffer of segments to text using base10
     return {
-        rawText: await getQRCode(byteSegments, params)
+        rawText: await __getQRCode(flag, byteSegments, params)
     };
 };
 
@@ -356,7 +427,7 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
         intervalId = setInterval(() => EvtLink.getEVTLinkQrImage(qrType, qrParams, Object.assign(imgParams, { autoReload: false }), callback), 5000);
     }
 
-    let errorCorrectionLevel = "Q";
+    let errorCorrectionLevel = "M";
     let func;
 
     switch (qrType) {
@@ -378,7 +449,7 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
             if (res.rawText.length > 300) {
                 errorCorrectionLevel = "M";
             }
-            if (res.rawText.length > 400) {
+            if (res.rawText.length > 260) {
                 errorCorrectionLevel = "L";
             }
 

@@ -848,7 +848,6 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
     }
 
     const sigs = [];
-    console.log("pvts:______" + JSON.stringify(pvts, null, 4));
     for (const pvt of pvts) {
         sigs.push(signHash(buf, pvt));
     }

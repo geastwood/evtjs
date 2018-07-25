@@ -1069,7 +1069,7 @@ let evtLink = EVT.EvtLink;
 
 ### getUniqueLinkId() => Promise
 
-Return a new unique `linkId` string. For `everiPay / everiPass`, you must provide the same `LinkId`, unless you're sure the transaction has been processed by continuously checking for that link id's result (if network is available) or you must change link id by user's click (and show a tip saying there is a risk of double charing if he/she is using everiPay and has paid once).
+Return a new unique `linkId` string. For `everiPay`, you must provide the same `LinkId`, unless you're sure the transaction has been processed by continuously checking for that link id's result (if network is available) or you must change link id by user's click (and show a tip saying there is a risk of double charing if he/she is using everiPay and has paid once).
 
 ### getEVTLinkQrImage(qrType, qrParams, imgParams, callback) => Number
 
@@ -1092,16 +1092,13 @@ A object consisting of:
 Here is a full example showing how to generate a QR Code of `everiPass`.
 
 ```js
-let linkId = await EVT.EvtLink.getUniqueLinkId();
-
 EVT.EvtLink.getEVTLinkQrImage(
     "everiPass", 
     {
         keyProvider: [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ" ],
         domainName: "testdomain",
         tokenName: "testtoken",
-        autoDestroying: true,
-        linkId
+        autoDestroying: true
     },
     { 
         autoReload: true
