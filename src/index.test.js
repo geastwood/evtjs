@@ -378,15 +378,20 @@ describe("APICaller read API test", () => {
         // TODO must have data (after creating symbol)
     });
 
-    it("getTransactionDetailById", async () => {
-        const apiCaller = EVT({
-            endpoint: network,
-            keyProvider: wif
-        });
+    it("getTransactionDetailById", () => {
+        return new Promise(async (res, rej) => {
+            setTimeout(async () => {
+                const apiCaller = EVT({
+                    endpoint: network,
+                    keyProvider: wif
+                });
+        
+                var response = await apiCaller.getTransactionDetailById(testingTmpData.newTrxId);
+                assert(response.id, "expected id");
 
-        var response = await apiCaller.getTransactionDetailById(testingTmpData.newTrxId);
-        assert(response.id, "expected id");
-        // TODO must have data (after creating transactions)
+                res();
+            }, 500);
+        });
     });
 
     it("getFungibleBalance", async () => {
@@ -428,14 +433,14 @@ describe("APICaller read API test", () => {
 describe("EvtLink", () => {
     let evtLink = EVT.EvtLink;
 
-    it("b2dec", async () => {
+    it("b2base42", async () => {
         let dec1 = evtLink.b2dec(new Buffer([ 0, 0, 0, 2, 41, 109, 0, 82, 0 ]));
         let dec2 = evtLink.b2dec(new Buffer([ 0 ]));
         let dec3 = evtLink.b2dec(new Buffer([ ]));
         
-        /*assert(dec1 === "0002376945652224", "should produce right dec");
-        assert(dec2 === "0", "should produce right dec");
-        assert(dec3 === "", "should produce right dec");*/
+        assert(dec1 === "000AD1KQVMO", "should produce right base42 " + dec1);
+        assert(dec2 === "0", "should produce right base42:" + dec2);
+        assert(dec3 === "", "should produce right base42:" + dec3);
     });
 
     it("everiPass1", async () => {
@@ -452,7 +457,7 @@ describe("EvtLink", () => {
         logger.verbose("[everiPass] " + link.rawText);
         logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
         
-        assert(link.rawText && link.rawText.startsWith("https://evt.li/"), "should produce a EvtLink");
+        assert(link.rawText, "should produce a EvtLink");
         assert(parsed.segments.length === 4, "struct is wrong: " + parsed.segments.length);
         assert(parsed.flag === 11, "flag is wrong: " + parsed.flag);
         assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");
@@ -472,7 +477,7 @@ describe("EvtLink", () => {
         logger.verbose("[everiPass] " + link.rawText);
         logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
         
-        assert(link.rawText && link.rawText.startsWith("https://evt.li/"), "should produce a EvtLink");
+        assert(link.rawText, "should produce a EvtLink");
         assert(parsed.segments.length === 4, "struct is wrong: " + parsed.segments.length);
         assert(parsed.flag === 3, "flag is wrong: " + parsed.flag);
         assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");

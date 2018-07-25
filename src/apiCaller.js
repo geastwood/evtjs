@@ -619,7 +619,7 @@ class APICaller {
             throw new Error("At least 1 action needed");
         }
         if (trxConf.maxCharge == null || !Number.isInteger(trxConf.maxCharge)) throw new Error("maxCharge is required and must be a integer greater than or eqaul to 0");
-        if (trxConf.payer == null || !EvtKey.isValidAddress(trxConf.payer)) throw new Error("payer is required and must be a valid address as a string");
+        if (!trxConf.__estimateCharge && (trxConf.payer == null || !EvtKey.isValidAddress(trxConf.payer))) throw new Error("payer is required and must be a valid address as a string");
 
         let params = {
             transaction: {
