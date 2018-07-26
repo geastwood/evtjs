@@ -288,7 +288,8 @@ async function __getQRCode(flag, segments, params) {
         let sigBufs = [];
 
         for (let i = 0; i < params.keyProvider.length; ++i) {
-            let sig = ecc.sign(segmentsBytes, params.keyProvider[i]);
+            let key = params.keyProvider[i];
+            let sig = ecc.sign(segmentsBytes, key);
             sigBufs.push(ecc.Signature.from(sig).toBuffer());
         }
         

@@ -61,12 +61,14 @@ NEVER SHOW IT TO ANY OTHER PEOPLE</pre>
                     try {
                         let time = new Date().valueOf();
                         EVT.EvtLink.getEVTLinkQrImage(
-                            "everiPass",
+                            "everiPay",
                             {
                                 keyProvider: "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", // [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i", "5K3nUWxfkUjfLQu9PL6NZLKWV41PiFyuQdrckArA59jz19M6zgq" ],
-                                domainName: "tsdomain",
+                                /*domainName: "tsdomain",
                                 tokenName: "tt1",
-                                autoDestroying: false,
+                                autoDestroying: false,*/
+                                symbol: "5,EVT",
+                                maxAmount: 100000,
                                 linkId
                             },
                             {
