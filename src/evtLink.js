@@ -33,12 +33,12 @@ EvtLink.b2dec = function(buffer) {
  * Convert a base10 representation to buffer.
  * @param {string} base10 string.
  */
-EvtLink.dec2b = function(base10) {
-    // return Buffer.from(base10, "base64");
-    // get count of 0
+EvtLink.dec2b = function(base42) {
+    if (base42 == "") return new Buffer();
+
     let zeroCount = 0, i = 0;
 
-    while (base10[i++] === "0") {
+    while (base42[i++] === "0") {
         zeroCount++;
     }
 
@@ -46,8 +46,11 @@ EvtLink.dec2b = function(base10) {
     let b10bn = new BigInteger();
     let baseBN = BigInteger.fromHex("2a");
 
-    for (let i = 0; i < base10.length; ++i) {
-        b10bn = b10bn.multiply(baseBN).add(new BigInteger(alphabet.indexOf(base10[i]).toString(), 10));
+    for (let i = 0; i < base42.length; ++i) {
+        let index = alphabet.indexOf(base42[i]);
+        if (index == -1) throw new Error("Decode from base42 to binary failed: base42 out of range");
+
+        b10bn = b10bn.multiply(baseBN).add(new BigInteger(index.toString(), 10));
     }
     
     let buf = b10bn.toBuffer(0);
@@ -118,24 +121,28 @@ function createSegment(typeKey, value) {
 function parseSegment(buffer, offset) {
     let typeKey = buffer[offset];
 
-    if (typeKey == null) return null;
-
     if (typeKey <= 20) {
+        if (buffer[offset + 1] == undefined) throw new Error("ParseError: No value for uint8");
         return { typeKey: typeKey, value: buffer[offset + 1], bufferLength: 2 };
     }
     if (typeKey <= 40) {
+        if (buffer[offset + 2] == undefined) throw new Error("ParseError: Incomplete value for uint16");
         return { typeKey: typeKey, value: buffer.readUInt16BE(offset + 1), bufferLength: 3 };
     }
     else if (typeKey <= 90) {
+        if (buffer[offset + 4] == undefined) throw new Error("ParseError: Incomplete value for uint32");
         return { typeKey: typeKey, value: buffer.readUInt32BE(offset + 1), bufferLength: 5 };
     }
     else if (typeKey <= 155) {
+        if (buffer[offset + 1] == undefined) throw new Error("ParseError: Incomplete length value for string");
         let len = buffer.readUInt8(offset + 1);
+        if (buffer[offset + 1 + len] == undefined) throw new Error("ParseError: Incomplete value for string");
         let value = buffer.toString("utf8", offset + 2, offset + 2 + len);
 
         return { typeKey: typeKey, value: value, bufferLength: 2 + len };
     }
     else if (typeKey <= 165) {
+        if (buffer[offset + 16] == undefined) throw new Error("ParseError: Incomplete value for uuid");
         let len = 16;
         let value = new Buffer(len);
         buffer.copy(value, 0, offset + 1, offset + 1 + len);
@@ -143,7 +150,9 @@ function parseSegment(buffer, offset) {
         return { typeKey: typeKey, value: value, bufferLength: 1 + len };
     }
     else if (typeKey <= 180) {
+        if (buffer[offset + 1] == undefined) throw new Error("ParseError: Incomplete length value for byte string");
         let len = buffer.readUInt8(offset + 1);
+        if (buffer[offset + len + 1] == undefined) throw new Error("ParseError: Incomplete value for byte string");
         let value = new Buffer(len);
         buffer.copy(value, 0, offset + 2, offset + 2 + len);
 
@@ -183,11 +192,10 @@ function parseSegments(buffer) {
  * @param {string} text 
  */
 function parseQRCode(text) {
-    //console.log(text);
+    if (text.length < 3 || text.length > 2000) throw new Error("Invalid length of EvtLink");
+
     let textSplited = text.split("_");
     if (textSplited.length > 2) return null;
-
-    //console.log("[parseQRCode] 1");
 
     let rawText;
 
@@ -198,28 +206,27 @@ function parseQRCode(text) {
         rawText = textSplited[0];
     }
     
+    // decode segments base42
     let segmentsBytes = EvtLink.dec2b(rawText);
-    
     if (segmentsBytes.length < 2) throw new Error("no flag in segment");
-
     let flag = segmentsBytes.readInt16BE(0);
+    
+    if ((flag & 1) == 0) { // check version of EvtLink
+        throw new Error("The EvtLink is invalid or its version is newer than version 1 and is not supported by evtjs yet");
+    }
     let segmentsBytesRaw = new Buffer(segmentsBytes.length - 2);
     segmentsBytes.copy(segmentsBytesRaw, 0, 2, segmentsBytes.length);
 
-    // console.log("[parseQRCode] raw:" + rawText);
-    // console.log("[parseQRCode] textSplited:" + JSON.stringify(textSplited, null, 4));
-
-    // validate signature
-    //console.log("[parseQRCode] 2: " + JSON.stringify(textSplited, null, 2));
     let publicKeys = [ ];
     let signatures = [ ];
+
     if (textSplited[1]) {
         let buf = EvtLink.dec2b(textSplited[1]);
         let i = 0;
 
-        //console.log("[parseQRCode] 3: " + JSON.stringify(buf, null, 2));
-
-        // console.log(buf);
+        if (buf.length % 65 !== 0) {
+            throw new Error("length of signature is invalid");
+        }
 
         while (i * 65 < buf.length) {
             let current = new Buffer(65);
@@ -300,8 +307,8 @@ async function __getQRCode(flag, segments, params) {
 }
 
 /**
- * get QRCode's decoded text
- * @param {object} params the text of qr code
+ * parse EvtLink's text
+ * @param {object} params the text of EvtLink
  */
 EvtLink.parseEvtLink = async function(text) {
     // console.log("[parseEvtLink] " + text);

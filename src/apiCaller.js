@@ -289,6 +289,28 @@ class APICaller {
     }
 
     /**
+     * get transaction id for a linkId
+     * @param {*} id the linkId
+     */
+    async getTransactionIdForLinkId(id) {
+        if (typeof id !== "string" || !id) throw new Error("invalid link id");
+
+        let res = await this.__callAPI({
+            url: "/v1/evt/get_trx_id_for_link_id",
+            method: "POST",
+            body: { link_id: id },
+            sign: false // no need to sign
+        });
+
+        if (res && res.trx_id) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * Get estimated charge for a transaction
      */
     async getEstimatedChargeForTransaction() {
