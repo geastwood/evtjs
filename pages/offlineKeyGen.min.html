@@ -24597,7 +24597,8 @@
             <li>Environment entropy based on your system environment</li>
         </ul>
         <p>The security of generating private keys was reviewd by many block chain's implement including EOS. And we make it even much safer ever. It's really safe.</p>
-        <h2>Important Note</h2>
+        <h2>Create New Key</h2>
+        <h3>Important Note</h3>
         <ul>
             <li>Never forget your password.</li>
             <li>Before clicking "New Key", make sure there is no network connected.</li>
@@ -24607,6 +24608,7 @@
             <li>Double-check the full text of your Mnemoinc!</li>
             <li>Please do the following after running:
                 <ul>
+                    <li>Check your mnemoinc typo by typing these words in "validate mnemoinc" section.</li>
                     <li>Close this window / browser</li>
                     <li>Delete browser's cache</li>
                     <li>Reboot your device before reconnecting to the Internet.</li>
@@ -24615,6 +24617,13 @@
         </ul>
         <button id="btn-run" onclick="run()">New Key</button>
         <div id="ret" style="word-break: break-word; box-sizing: border-box; width: 100%; background-color: #fff0da; border-radius: 12px; margin-top: 1em; padding: .5rem; border: 1px solid orange; min-height: 6rem; font-family: 'Courier New', Courier, monospace; font-size: 1.3rem; font-weight: bold;">
+                The result will be displayed here.
+        </div>
+        <h2>Validate Mnemoinc / Restore your keys</h2>
+        <p>Please input your mnemoinc here. I will show you the decoded public key and private key. <b>Please check if the public key is the same as the one you generated.</b></p>
+        <textarea id="mm" placeholder="Please input your mnemoinc here, words splited by one space" style="box-sizing: border-box; width: 100%; background-color: #fff0da; border-radius: 12px; margin-top: 1em; padding: .5rem; border: 1px solid orange; min-height: 6rem; font-family: 'Courier New', Courier, monospace; font-size: 1.3rem; "></textarea>
+        <br><br><button id="btn-run2" onclick="run2()">Check mnemoinc</button>
+        <div id="ret2" style="word-break: break-word; box-sizing: border-box; width: 100%; background-color: #fff0da; border-radius: 12px; margin-top: 1em; padding: .5rem; border: 1px solid orange; min-height: 6rem; font-family: 'Courier New', Courier, monospace; font-size: 1.3rem; font-weight: bold;">
                 The result will be displayed here.
         </div>
     <br><br>
@@ -24652,6 +24661,39 @@
                             //console.log(bip39.mnemonicToEntropy(mnemoinc));
                             //console.log(entropy);
                         }
+                    }
+                    catch(e) {
+                        console.log(e);
+                        alert(e.message);
+                    }
+                }, 1);
+            }
+
+            window.run2 = async function run() {
+                document.getElementById("btn-run2").classList.add("disabled");
+                document.getElementById("btn-run2").innerText = "Please wait...";
+
+                setTimeout(async () => {
+                    try {
+                        let mnemoinc = document.getElementById("mm").value;
+
+                        mnemoinc = mnemoinc.replace(/\n/g, "").replace(/\s+/g, " ").trim();
+
+                        if (!bip39.validateMnemonic(mnemoinc)) {
+                            alert("Invalid mnemoinc.");
+                            return;
+                        }
+
+                        let seed = bip39.mnemonicToSeedHex(mnemoinc);
+                        let key = await EVT.EvtKey.seedPrivateKey(seed);
+                        // now key is the private key, that is , a wit.
+                        let publicKey = EVT.EvtKey.privateToPublic(key);
+
+                            document.getElementById("ret2").innerHTML = "【Public Key】" + publicKey;
+                            document.getElementById("ret2").innerHTML += "\n<br>\n\n<br>\n【Private Key】" + key;
+
+                            document.getElementById("btn-run2").innerText = "Done.";
+
                     }
                     catch(e) {
                         console.log(e);
