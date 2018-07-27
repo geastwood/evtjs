@@ -11,8 +11,7 @@
         "build": "babel --copy-files src --out-dir lib",
         "build_browser": "npm run build && mkdir -p dist && browserify -o dist/evt.js -s EVT lib/index.js && uglifyjs dist/evt.js --compress --mangle -o dist/evt.min.js",
         "build_browser_test": "npm run build && mkdir -p dist && browserify -o dist/evt-test.js lib/*.test.js",
-        "docs": "jsdoc2md src/format.js > docs/index.md",
-        "prepublishOnly": "npm run build_browser && npm run test_lib && npm run docs"
+        "prepublishOnly": "npm run build_browser && npm run test_lib"
     },
     "repository": {
         "type": "git",
