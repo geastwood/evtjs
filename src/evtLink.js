@@ -454,10 +454,10 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
 
     switch (qrType) {
     case "everiPass":
-        func = EvtLink.getEveriPassText;
+        func = EvtLink.getEvtLinkForEveriPass;
         break;
     case "everiPay":
-        func = EvtLink.getEveriPayText;
+        func = EvtLink.getEvtLinkForEveriPay;
         break;
     case "payeeCode":
         func = EvtLink.getEvtLinkForPayeeCode;

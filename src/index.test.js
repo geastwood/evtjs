@@ -23,7 +23,7 @@ logger.writeLog = true;
 
 const network = {
     host: "118.31.58.10",
-    port: 8890,
+    port: 8888,
     protocol: "http"
 };
 
@@ -444,7 +444,7 @@ describe("EvtLink", () => {
     });
 
     it("everiPass1", async () => {
-        let link = await evtLink.getEveriPassText({
+        let link = await evtLink.getEvtLinkForEveriPass({
             autoDestroying: true,
             domainName: testingTmpData.newDomainName,
             tokenName: testingTmpData.addedTokenNamePrefix + "1",
