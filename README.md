@@ -747,6 +747,18 @@ A example:
 ]
 ```
 
+### getTransactionIdForLinkId(linkId) => Promise
+
+Get transaction id for specific `linkId`.
+
+#### Parameters
+
+- `linkId`: The linkId in `hexadecimal` format.
+
+#### Response
+
+The response is an object containing `trx_id` property which representing associated transaction id of the link id you provided.
+
 ### getSuspendedTransactionDetail(proposalName) => Promise
 
 Get detail information for specific `proposal`.
@@ -910,6 +922,8 @@ For the following actions, you may ignore the `domain` and `key` parameter of th
 - `cancelsuspend`
 - `execsuspend`
 - `evt2pevt`
+- `everipass`
+- `everipay`
 
 Here is a example to use `pushTransaction`.
 
