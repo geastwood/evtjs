@@ -70,7 +70,7 @@ apiCaller.getInfo()
 
 `EvtKey` is a class for everiToken's key management. 
 
-### randomPrivateKey()
+### randomPrivateKey() => Promise&lt;string>
 
 You can get a random private key by `EVT.EvtKey.randomPrivateKey`:
 
@@ -78,10 +78,10 @@ You can get a random private key by `EVT.EvtKey.randomPrivateKey`:
 // randomPrivateKey returns a promise so we should use await or 'then' 
 let key = await EVT.EvtKey.randomPrivateKey();
 
-// now key is the private key, that is , a wit.
+// now key is the private key (as wit format).
 ```
 
-### privateToPublic(privateKey)
+### privateToPublic(privateKey) => Promise&lt;string>
 
 After generating a private key, you can convert it to a public key by `privateToPublic`.
 
@@ -93,7 +93,7 @@ After generating a private key, you can convert it to a public key by `privateTo
 let publicKey = EVT.EvtKey.privateToPublic(key);
 ```
 
-### seedPrivateKey(seed)
+### seedPrivateKey(seed) => Promise&lt;string>
 
 Get a private key from a specific `seed`. 
 
@@ -105,11 +105,11 @@ Get a private key from a specific `seed`.
 let privateKey = EVT.EvtKey.seedPrivateKey('AVeryVeryVeryLongRandomSeedHere');
 ```
 
-### isValidPrivateKey(key) / isValidPublicKey(key)
+### isValidPrivateKey(key) / isValidPublicKey(key) => Promise&lt;boolean>
 
 You can use `isValidPrivateKey` or `isValidPublicKey` to check a key.
 
-### isValidAddress(address)
+### isValidAddress(address) => Promise&lt;boolean>
 
 You can use `isValidAddress` to check if a `address` is valid. a `addres` is valid if it is a `public key` or it's equal to `Null Address` or it is a special generated address.
 
@@ -134,7 +134,7 @@ Produces a safe string with a length of 21. This is suitable for use in ABI stru
 
 > This is a `async` function. Please use `then` or `await` for the result accordingly.
 
-### getNullAddress()
+### getNullAddress() => Promise&lt;string>
 
 Return a string representing a null address. 
 
