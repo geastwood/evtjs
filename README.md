@@ -81,7 +81,7 @@ let key = await EVT.EvtKey.randomPrivateKey();
 // now key is the private key (as wit format).
 ```
 
-### privateToPublic(privateKey) => Promise&lt;string>
+### privateToPublic(privateKey) => string
 
 After generating a private key, you can convert it to a public key by `privateToPublic`.
 
@@ -93,7 +93,7 @@ After generating a private key, you can convert it to a public key by `privateTo
 let publicKey = EVT.EvtKey.privateToPublic(key);
 ```
 
-### seedPrivateKey(seed) => Promise&lt;string>
+### seedPrivateKey(seed) => string
 
 Get a private key from a specific `seed`. 
 
@@ -105,17 +105,21 @@ Get a private key from a specific `seed`.
 let privateKey = EVT.EvtKey.seedPrivateKey('AVeryVeryVeryLongRandomSeedHere');
 ```
 
-### isValidPrivateKey(key) / isValidPublicKey(key) => Promise&lt;boolean>
+### isValidPrivateKey(key) / isValidPublicKey(key) => boolean
 
 You can use `isValidPrivateKey` or `isValidPublicKey` to check a key.
 
-### isValidAddress(address) => Promise&lt;boolean>
+#### Parameters
+
+- `key`: The private / public key you want to check.
+
+### isValidAddress(address) => boolean
 
 You can use `isValidAddress` to check if a `address` is valid. a `addres` is valid if it is a `public key` or it's equal to `Null Address` or it is a special generated address.
 
 #### Parameters
 
-- `key`: The private / public key you want to check.
+- `key`: The address you want to check.
 
 ```js
     assert(EVT.EvtKey.isValidPrivateKey('5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D'), 'should be a valid private');
@@ -134,7 +138,7 @@ Produces a safe string with a length of 21. This is suitable for use in ABI stru
 
 > This is a `async` function. Please use `then` or `await` for the result accordingly.
 
-### getNullAddress() => Promise&lt;string>
+### getNullAddress() => string
 
 Return a string representing a null address. 
 
