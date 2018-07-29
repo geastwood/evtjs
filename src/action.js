@@ -1,3 +1,5 @@
+let EvtLink = require("./evtLink");
+
 /**
  * represents a everiToken action
  */
@@ -10,27 +12,31 @@ class EvtAction {
      * @param {string} key the `key` value of the action
      */
     constructor(actionName, abi, domain = null, key = null) {
+        // check parameters
         if (!actionName || actionName.length > 13) throw new Error("invalid actionName");
         if (!abi || (typeof abi !== "object")) throw new Error("invalid abi");
-
-        if (!domain && !key) {
-            // use mapper to determine the `domain` and `key` field
-            if (!domainKeyMappers[actionName]) {
-                throw new Error(`For action "${actionName}", parameter "domain" and "key" could not be ignored.`);
-            }
-            let ret = { };
-            domainKeyMappers[actionName]({ action: actionName, args: abi }, ret);
- 
-            domain = ret.domain;
-            key = ret.key;
-        }
-        if (!domain || (typeof domain !== "string")) throw new Error("invalid domain");
-        if (!key || (typeof key !== "string")) throw new Error("invalid key");
 
         this.actionName = actionName;
         this.abi = abi;
         this.domain = domain;
         this.key = key;
+    }
+
+    async calculateDomainAndKey() {
+        if (!this.domain || !this.key) {
+            // use mapper to determine the `domain` and `key` field
+            if (!domainKeyMappers[this.actionName]) {
+                throw new Error(`For action "${this.actionName}", parameter "domain" and "key" could not be ignored.`);
+            }
+            let ret = { };
+            await Promise.resolve(domainKeyMappers[this.actionName]({ action: this.actionName, args: this.abi }, ret));
+ 
+            this.domain = ret.domain;
+            this.key = ret.key;
+        }
+
+        if (!this.domain || (typeof this.domain !== "string")) throw new Error("invalid domain");
+        if (!this.key || (typeof this.key !== "string")) throw new Error("invalid key");
     }
 }
 
@@ -113,8 +119,50 @@ const domainKeyMappers = {
     "execsuspend": (action, transfered) => {
         transfered.domain = ".suspend";
         transfered.key = action.args.name;
-    }
+    },
+
+    "everipass": async (action, transfered) => {
+        let parsed = await EvtLink.parseEvtLink(action.args.link);
+
+        if (parsed == null || (parsed.flag & 2) !== 2) {
+            throw new Error("Invalid EvtLink: This link is not for everiPass");
+        }
+
+        let domainNameSeg = parsed.segments.find(x => x.typeKey == 91);
+        let tokenNameSeg = parsed.segments.find(x => x.typeKey == 92);
+
+        if (domainNameSeg == undefined || tokenNameSeg == undefined) {
+            throw new Error("Invalid EvtLink: No domainName or / and tokenName in the link");
+        }
+
+        transfered.domain = domainNameSeg.value;
+        transfered.key = tokenNameSeg.value;
+
+        return "";
+    },
+
+    "everipay": async (action, transfered) => {
+        let parsed = await EvtLink.parseEvtLink(action.args.link);
+
+        if (parsed == null || (parsed.flag & 4) !== 4) {
+            throw new Error("Invalid EvtLink: This link is not for everiPay");
+        }
+
+        let symbolSeg = parsed.segments.find(x => x.typeKey == 93);
+
+        if (symbolSeg == undefined) {
+            throw new Error("Invalid EvtLink: No symbol in the link");
+        }
+
+        if (symbolSeg.value.indexOf(",") > 0) {
+            symbolSeg.value = symbolSeg.value.substr(symbolSeg.value.indexOf(",") + 1);
+        }
+
+        transfered.domain = ".fungible";
+        transfered.key = symbolSeg.value;
+
+        return "";
+    },
 };
 
 module.exports = EvtAction;
- 

@@ -668,6 +668,8 @@ class APICaller {
                 body.transaction.actions[i] = new EvtAction(body.transaction.actions[i].action, body.transaction.actions[i].args);
             }
 
+            await body.transaction.actions[i].calculateDomainAndKey();
+
             /** @type {EvtAction} */
             let originalAction = body.transaction.actions[i];
 
