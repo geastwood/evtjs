@@ -144,7 +144,7 @@ Return a string representing a null address.
 
 The response of this function is always `"EVT00000000000000000000000000000000000000000000000000"`.
 
-Null address is used for representing destroyed tokens and non-updatable groups.
+Null address is used for representing destroyed tokens and immutable groups.
 
 ## APICaller Usage
 
