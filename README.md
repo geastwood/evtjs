@@ -1102,8 +1102,8 @@ Return a new unique `linkId` string. For `everiPay`, you must provide the same `
 Generate a QR Code Image for any type of `Evt Link`.
 
 #### Parameters
-- `qrType`: can be one of `everiPass`, `everiPay`, `addressOfReceiver`.
-- `qrParams`: The same as the `param` parameter of `getEveriPassText`, `getEveriPayText` and `getAddressCodeTextForReceiver`. Please refer to them.
+- `qrType`: can be one of `everiPass`, `everiPay`, `payeeCode`.
+- `qrParams`: The same as the `param` parameter of `getEvtLinkForEveriPass`, `getEvtLinkForEveriPay` and `getEvtLinkForPayeeCode`. Please refer to them.
 - `imgPrams`: Has a key named `autoReload`, normally you should set it to true.
 - `callback`: A function with two parameters: `error` and `response`. `response` contains `dataUrl` for image and `rawText` for the raw value of `EvtLink`.
 
@@ -1221,7 +1221,7 @@ Here is a brief reference of common used `typeKey` for convenient. For detail pl
 | `95` | | (string) public key (address) for receiving points or coins |
 | `156` | | (byte string) link id(128-bit) |
 
-### getEveriPassText(params) => Promise
+### getEvtLinkForEveriPass(params) => Promise
 
 Generate a `EvtLink` for everiPass.
 
@@ -1242,7 +1242,7 @@ Generate a `EvtLink` for everiPass.
 }
 ```
 
-### getEveriPayText(params) => Promise
+### getEvtLinkForEveriPay(params) => Promise
 
 Generate a `EvtLink` for everiPay.
 
@@ -1263,9 +1263,9 @@ Generate a `EvtLink` for everiPay.
 }
 ```
 
-### getAddressCodeTextForReceiver(params) => Promise
+### getEvtLinkForPayeeCode(params) => Promise
 
-Generate a `EvtLink` for `Address Code For Receiver`.
+Generate a `EvtLink` for `Payee's Qr Code` (Payee Code).
 
 > If you want to get the image of the QR Code, please use `getEVTLinkQrImage` and pass `qrParams`'s value the same as `params` in this function and set `qrType` to `addressOfReceiver`.
 

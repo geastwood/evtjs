@@ -343,6 +343,7 @@ EvtLink.getUniqueLinkId = async function() {
 
 /**
  * get everiPass's text from specific private key and token name
+ * @deprecated
  * @param {object} params the params of the pass
  */
 EvtLink.getEveriPassText = async function(params) {
@@ -374,6 +375,13 @@ EvtLink.getEveriPassText = async function(params) {
  * get everiPay's text from specific private key and token name
  * @param {object} params the params of the everiPay QRCode
  */
+EvtLink.getEvtLinkForEveriPass = EvtLink.getEveriPassText;
+
+/**
+ * get everiPay's text from specific private key and token name
+ * @deprecated
+ * @param {object} params the params of the everiPay QRCode
+ */
 EvtLink.getEveriPayText = async function(params) {
     if (!params) throw new Error("Invalid params");
 
@@ -401,10 +409,16 @@ EvtLink.getEveriPayText = async function(params) {
 };
 
 /**
- * get everiPass's collection qr code
+ * get everiPay's text from specific private key and token name
+ * @param {object} params the params of the everiPay QRCode
+ */
+EvtLink.getEvtLinkForEveriPay = EvtLink.getEveriPayText;
+
+/**
+ * get evt link for payee code
  * @param {object} params the params of the pass
  */
-EvtLink.getAddressCodeTextForReceiver = async function(params) {
+EvtLink.getEvtLinkForPayeeCode = async function(params) {
     if (!params) throw new Error("Invalid params");
 
     let byteSegments = [ ];
@@ -445,8 +459,8 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
     case "everiPay":
         func = EvtLink.getEveriPayText;
         break;
-    case "addressOfReceiver":
-        func = EvtLink.getAddressCodeTextForReceiver;
+    case "payeeCode":
+        func = EvtLink.getEvtLinkForPayeeCode;
         break;
     default:
         throw new Error("invalid QR Type");
