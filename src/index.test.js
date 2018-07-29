@@ -4,8 +4,8 @@ const EVT = require(".");
 const Key = require("./key");
 const logger = require("./logger");
 
-const wif = "5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D";
-const wif2 = "5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i";
+const wif = "5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D"; // EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND
+const wif2 = "5JVC3ivLUT2zq3yEXkwJ2ihukZq5reufC3iW26hbVHvjepFXsiu"; // EVT7rbe5ZqAEtwQT6Tw39R29vojFqrCQasK3nT5s2pEzXh1BABXHF
 const wif3 = "5K3nUWxfkUjfLQu9PL6NZLKWV41PiFyuQdrckArA59jz19M6zgq";
 const publicKey = EVT.EvtKey.privateToPublic(wif);
 
@@ -23,7 +23,7 @@ logger.writeLog = true;
 
 const network = {
     host: "118.31.58.10",
-    port: 8888,
+    port: 8890,
     protocol: "http"
 };
 
@@ -461,22 +461,6 @@ describe("EvtLink", () => {
         assert(parsed.segments.length === 4, "struct is wrong: " + parsed.segments.length);
         assert(parsed.flag === 11, "flag is wrong: " + parsed.flag);
         assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");
-
-        // execute the pass
-        const apiCaller = EVT({
-            endpoint: network,
-            keyProvider: wif
-        });
-
-        await apiCaller.pushTransaction(
-            { maxCharge: 10000 },
-            new EVT.EvtAction(
-                "everipass",
-                {
-                    link: link.rawText
-                }
-            )
-        );
     });
 
     it("everiPass2", async () => {
@@ -499,6 +483,32 @@ describe("EvtLink", () => {
         assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");
     });
 
+    it("everiPass_execPush", async () => {
+        let link = await evtLink.getEvtLinkForEveriPass({
+            autoDestroying: true,
+            domainName: testingTmpData.newDomainName,
+            tokenName: testingTmpData.addedTokenNamePrefix + "1",
+            keyProvider: [ wif ],
+            linkId: await evtLink.getUniqueLinkId()
+        });
+        
+        // execute the pass
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: [ wif2 ]
+        });
+
+        /*await apiCaller.pushTransaction(
+            { maxCharge: 10000 },
+            new EVT.EvtAction(
+                "everipass",
+                {
+                    link: link.rawText
+                }
+            ) TODO
+        );*/
+    });
+
     it("parse evtLink", async () => {
         let parsed = await evtLink.parseEvtLink("0DFYZXZO9-:Y:JLF*3/4JCPG7V1346OZ:R/G2M93-2L*BBT9S0YQ0+JNRIW95*HF*94J0OVUN$KS01-GZ-N7FWK9_FXXJORONB7B58VU9Z2MZKZ5*:NP3::K7UYKD:Y9I1V508HBQZK2AE*ZS85PJZ2N47/41LQ-MZ/4Q6THOX**YN0VMQ*3/CG9-KX2:E7C-OCM*KJJT:Z7640Q6B*FWIQBYMDPIXB4CM:-8*TW-QNY$$AY5$UA3+N-7L/ZSDCWO1I7M*3Q6*SMAYOWWTF5RJAJ:NG**8U5J6WC2VM5Z:OLZPVJXX*12I*6V9FL1HX095$5:$*C3KGCM3FIS-WWRE14E:7VYNFA-3QCH5ULZJ*CRH91BTXIK-N+J1");
 
@@ -507,6 +517,10 @@ describe("EvtLink", () => {
         assert(parsed.segments.length === 4, "struct is wrong: " + parsed.segments.length);
         assert(parsed.flag === 11, "flag is wrong: " + parsed.flag);
         assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");
+
+        parsed = await evtLink.parseEvtLink("0287F2T16JJ4CWK*LA3KAS+:$W:XZ:IQNJDD2UH2N4S$ZWQK4ZGSR9:Y3UDF5C9Y63R64E4R331:QSK+LO9N/WG_PYZ+CWE*$JT4YN66$IN:MV-RO/1/F0O553BB7+5G2V1RZUO73KLV5X5E6S4GB2$8G2-:3FR2Y+N+S4GXC0S6HZT3VDMU*TYH");
+
+        logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
     });
 
     it("parse bad evtLink", async () => {
