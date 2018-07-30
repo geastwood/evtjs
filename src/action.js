@@ -148,7 +148,7 @@ const domainKeyMappers = {
             throw new Error("Invalid EvtLink: This link is not for everiPay");
         }
 
-        let symbolSeg = parsed.segments.find(x => x.typeKey == 93);
+        let symbolSeg = parsed.segments.find(x => x.typeKey == 93); // TODO
 
         if (symbolSeg == undefined) {
             throw new Error("Invalid EvtLink: No symbol in the link");

@@ -448,8 +448,7 @@ describe("EvtLink", () => {
             autoDestroying: true,
             domainName: testingTmpData.newDomainName,
             tokenName: testingTmpData.addedTokenNamePrefix + "1",
-            keyProvider: [ wif, wif2, wif3 ],
-            linkId: await evtLink.getUniqueLinkId()
+            keyProvider: [ wif, wif2, wif3 ]
         });
         
         let parsed = await evtLink.parseEvtLink(link.rawText);
@@ -458,7 +457,7 @@ describe("EvtLink", () => {
         logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
         
         assert(link.rawText, "should produce a EvtLink");
-        assert(parsed.segments.length === 4, "struct is wrong: " + parsed.segments.length);
+        assert(parsed.segments.length === 3, "struct is wrong: " + parsed.segments.length);
         assert(parsed.flag === 11, "flag is wrong: " + parsed.flag);
         assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");
     });
@@ -468,8 +467,7 @@ describe("EvtLink", () => {
             autoDestroying: false,
             domainName: testingTmpData.newDomainName,
             tokenName: testingTmpData.addedTokenNamePrefix + "1",
-            keyProvider: [ wif ],
-            linkId: await evtLink.getUniqueLinkId()
+            keyProvider: [ wif ]
         });
         
         let parsed = await evtLink.parseEvtLink(link.rawText);
@@ -478,9 +476,55 @@ describe("EvtLink", () => {
         logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
         
         assert(link.rawText, "should produce a EvtLink");
-        assert(parsed.segments.length === 4, "struct is wrong: " + parsed.segments.length);
+        assert(parsed.segments.length === 3, "struct is wrong: " + parsed.segments.length);
         assert(parsed.flag === 3, "flag is wrong: " + parsed.flag);
         assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");
+    });
+
+    it("everiPay", async () => {
+        let link = await evtLink.getEvtLinkForEveriPay({
+            symbol: 4,
+            maxAmount: 354,
+            keyProvider: [ wif2 ],
+            linkId: await evtLink.getUniqueLinkId()
+        });
+        
+        let parsed = await evtLink.parseEvtLink(link.rawText);
+
+        logger.verbose("[everiPay] " + link.rawText);
+        logger.verbose("[everiPay] \n" + JSON.stringify(parsed, null, 2));
+        
+        assert(link.rawText, "should produce a EvtLink");
+        assert(parsed.segments.length === 4, "struct is wrong: " + parsed.segments.length);
+        assert(parsed.flag === 5, "flag is wrong: " + parsed.flag);
+        assert(parsed.publicKeys[0] === EVT.EvtKey.privateToPublic(wif2), "publicKey is wrong");
+    });
+
+    it("everiPay_execPush", async () => {
+        let link = await evtLink.getEvtLinkForEveriPay({
+            symbol: "EVT",
+            maxAmount: 10000000,
+            keyProvider: [ wif ],
+            linkId: await evtLink.getUniqueLinkId()
+        });
+
+        // execute the pass
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: [ wif2 ]
+        });
+
+        await apiCaller.pushTransaction(
+            { maxCharge: 10000 },
+            new EVT.EvtAction(
+                "everipay",
+                {
+                    link: link.rawText,
+                    "payee": EVT.EvtKey.privateToPublic(wif2),
+                    "number": "50.00000 EVT"
+                }
+            )
+        );
     });
 
     it("everiPass_execPush", async () => {
@@ -498,15 +542,15 @@ describe("EvtLink", () => {
             keyProvider: [ wif2 ]
         });
 
-        /*await apiCaller.pushTransaction(
+        await apiCaller.pushTransaction(
             { maxCharge: 10000 },
             new EVT.EvtAction(
                 "everipass",
                 {
                     link: link.rawText
                 }
-            ) TODO
-        );*/
+            )
+        );
     });
 
     it("parse evtLink", async () => {

@@ -270,7 +270,17 @@ async function __calcKeyProvider(keyProvider) {
     return keyProvider;
 }
 
+/**
+ * @param {number} flag The flag of EvtLink
+ * @param {Buffer[]} segments List of segments
+ * @param {object} params QR options
+ */
 async function __getQRCode(flag, segments, params) {
+    // sort by key
+    segments = segments.sort((x, y) => {
+        return x[0] - y[0];
+    });
+
     if (params.keyProvider) {
         params.keyProvider = await __calcKeyProvider(params.keyProvider);
 
@@ -325,9 +335,9 @@ EvtLink.parseEvtLink = async function(text) {
 //      16      collection code
 // 42           unix timestamp in seconds
 // 43           max allowed amount for payment (optionl)
+// 44           symbol id to be paid in everiPay (for example: "5")
 // 91           domain name to be validated in everiPass
 // 92           token  name to be validated in everiPass
-// 93           symbol name to be paid in everiPay (for example: "5,EVT")
 // 94           max allowed amount for payment (optionl, string format remained only for amount >= 2 ^ 32)
 // 95           public key (address) for receiving points or coins
 // 156          global-unique link id
@@ -363,7 +373,7 @@ EvtLink.getEveriPassText = async function(params) {
     byteSegments.push(createSegment(42, Math.floor(new Date().valueOf() / 1000) ));  // timestamp
     if (params.domainName) byteSegments.push(createSegment(91, params.domainName));  // domainName for everiPass
     if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));    // tokenName for everiPass
-    byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));       // random link id 
+    // byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));       // random link id 
 
     // convert buffer of segments to text using base10
     return {
@@ -387,9 +397,9 @@ EvtLink.getEveriPayText = async function(params) {
 
     let byteSegments = [ ];
 
-    if (!params.symbol) {
-        throw new Error("Must specify the value of symbol");
-    }
+    /*if (!params.symbol || !Number.isInteger(params.symbol)) { TODO
+        throw new Error("Must specify the value of symbol (integer)");
+    }*/
     if (!params.linkId || params.linkId.length !== 32) {
         throw new Error("linkId is required");
     }
@@ -397,7 +407,7 @@ EvtLink.getEveriPayText = async function(params) {
     // add segments
     let flag =  (1 + 4);  // everiPay
     byteSegments.push(createSegment(42, Math.floor(new Date().valueOf() / 1000) ));  // timestamp
-    byteSegments.push(createSegment(93, params.symbol));  // symbol for everiPay
+    byteSegments.push(createSegment(93, params.symbol));  // symbol for everiPay TODO
     if (params.maxAmount && params.maxAmount < 4294967295) byteSegments.push(createSegment(43, params.maxAmount));  // max amount
     if (params.maxAmount && params.maxAmount >= 4294967295) byteSegments.push(createSegment(94, params.maxAmount.toString()));  // max amount
     byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));         // random link id 
