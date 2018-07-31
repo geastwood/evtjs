@@ -386,7 +386,8 @@ describe("APICaller read API test", () => {
                     keyProvider: wif
                 });
         
-                var response = await apiCaller.getTransactionDetailById(testingTmpData.newTrxId);
+                var response = await apiCaller.getTransactionDetailById("bed1272c6de3294582910c968b93f1c015eb646181174ab5a705df35b024f65d"); //testingTmpData.newTrxId);
+                logger.verbose("[getTransactionDetailById] " + JSON.stringify(response, null, 2));
                 assert(response.id, "expected id");
 
                 res();
@@ -483,7 +484,7 @@ describe("EvtLink", () => {
 
     it("everiPay", async () => {
         let link = await evtLink.getEvtLinkForEveriPay({
-            symbol: 4,
+            symbol: "EVT",
             maxAmount: 354,
             keyProvider: [ wif2 ],
             linkId: await evtLink.getUniqueLinkId()
