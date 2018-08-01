@@ -1,6 +1,6 @@
 {
     "name": "evtjs",
-    "version": "3.0.9",
+    "version": "3.0.10",
     "description": "Javascript API Bindings for the everiToken blockchain.",
     "main": "lib/index.js",
     "scripts": {
@@ -9,7 +9,7 @@
         "coverage": "nyc --reporter=html npm test",
         "coveralls": "npm run coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
         "build": "babel --copy-files src --out-dir lib",
-        "build_browser": "npm run build && mkdir -p dist && browserify -o dist/evt.js -s EVT lib/index.js && uglifyjs dist/evt.js --compress --mangle -o dist/evt.min.js",
+        "build_browser": "npm run build && mkdir -p dist && browserify --external secp256k1 -o dist/evt.js -s EVT lib/index.js && uglifyjs dist/evt.js --compress --mangle -o dist/evt.min.js",
         "build_browser_test": "npm run build && mkdir -p dist && browserify -o dist/evt-test.js lib/*.test.js",
         "prepublishOnly": "npm run build_browser && npm run test_lib"
     },
@@ -52,7 +52,8 @@
         "ecurve": "^1.0.6",
         "fcbuffer": "^2.2.0",
         "qrcode": "^1.2.0",
-        "randombytes": "^2.0.6"
+        "randombytes": "^2.0.6",
+        "secp256k1": "^3.5.0"
     },
     "babel": {
         "presets": [
