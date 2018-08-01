@@ -62,8 +62,7 @@ typings/
 
 # dist
 dist
-lib
-lib/
+/lib/
 
 #mac
 .DS_Store
