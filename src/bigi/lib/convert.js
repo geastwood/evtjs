@@ -14,7 +14,7 @@ BigInteger.fromByteArrayUnsigned = function(byteArray) {
     return new BigInteger([0].concat(byteArray))
   }
 
-  return new BigInteger(byteArray)
+  return new BigInteger(byteArray) 
 }
 
 /**

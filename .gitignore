@@ -62,7 +62,6 @@ typings/
 
 # dist
 dist
-/lib
 /lib/
 
 #mac

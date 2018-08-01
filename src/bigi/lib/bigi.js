@@ -14,7 +14,7 @@ var proto = BigInteger.prototype
 
 // duck-typed isBigInteger
 proto.__bigi = require('../package.json').version
-BigInteger.isBigInteger = function (obj, check_ver) {
+BigInteger.isBigInteger = function (obj, check_ver) { 
   return obj && obj.__bigi && (!check_ver || obj.__bigi === proto.__bigi)
 }
 
