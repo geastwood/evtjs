@@ -23,7 +23,7 @@ logger.writeLog = true;
 
 const network = {
     host: "118.31.58.10",
-    port: 8890,
+    port: 8891,
     protocol: "http"
 };
 
@@ -243,15 +243,17 @@ describe("APICaller write API test", () => {
             return randomstring;
         }
 
-        testingTmpData.newSymbol = randomString();
+        testingTmpData.newSymbol = Math.floor(new Date().valueOf() / 1000) + "";
 
         testingTmpData.newTrxId = (await apiCaller.pushTransaction(
             new EVT.EvtAction("newfungible", {
-                sym: "5," + testingTmpData.newSymbol,
+                name: testingTmpData.newSymbol + ".POINTS",
+                sym_name: testingTmpData.newSymbol.toString(),
+                sym: "5,S#" + testingTmpData.newSymbol,
                 creator: publicKey,
-                issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
                 manage: { name: "manage", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
-                total_supply: "100000.00000 " + testingTmpData.newSymbol
+                issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
+                total_supply: "100000.00000 S#" + testingTmpData.newSymbol
             })
         )).transactionId;
     });
@@ -349,7 +351,7 @@ describe("APICaller read API test", () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getFungibleSymbolDetail("EVT");
+        var response = await apiCaller.getFungibleSymbolDetail(1);
         assert(response && response.sym, "expected response");
         // TODO must have data (after creating symbol)
     });
@@ -484,7 +486,7 @@ describe("EvtLink", () => {
 
     it("everiPay", async () => {
         let link = await evtLink.getEvtLinkForEveriPay({
-            symbol: "EVT",
+            symbol: 1,
             maxAmount: 354,
             keyProvider: [ wif2 ],
             linkId: await evtLink.getUniqueLinkId()
@@ -503,7 +505,7 @@ describe("EvtLink", () => {
 
     it("everiPay_execPush", async () => {
         let link = await evtLink.getEvtLinkForEveriPay({
-            symbol: "EVT",
+            symbol: 1,
             maxAmount: 10000000,
             keyProvider: [ wif ],
             linkId: await evtLink.getUniqueLinkId()

@@ -475,13 +475,13 @@ class APICaller {
      * get detail information about a fungible symbol by its name.
      * @param {*} name the name of the fungible symbol you want to query
      */
-    async getFungibleSymbolDetail(name) {
-        if (typeof name !== "string" || !name) throw new Error("invalid fungible name");
+    async getFungibleSymbolDetail(id) {
+        if (!Number.isInteger(id)) throw new Error("invalid fungible id");
 
         let res = await this.__callAPI({
             url: "/v1/evt/get_fungible",
             method: "POST",
-            body: { name },
+            body: { id },
             sign: false // no need to sign
         });
 

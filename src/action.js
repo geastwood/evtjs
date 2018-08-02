@@ -73,7 +73,7 @@ const domainKeyMappers = {
         if (splited.length != 2) {
             throw new Error("Invalid parameter for sym");
         }
-        transfered.key = splited[1];
+        transfered.key = splited[1].substr(2);
     },
 
     "updfungible": (action, transfered) => {
@@ -148,18 +148,18 @@ const domainKeyMappers = {
             throw new Error("Invalid EvtLink: This link is not for everiPay");
         }
 
-        let symbolSeg = parsed.segments.find(x => x.typeKey == 93); // TODO
+        let symbolSeg = parsed.segments.find(x => x.typeKey == 44);
 
-        if (symbolSeg == undefined) {
-            throw new Error("Invalid EvtLink: No symbol in the link");
+        if (symbolSeg == undefined || parseInt(symbolSeg.value).toString() != symbolSeg.value ) {
+            throw new Error("Invalid EvtLink: No symbol in the link (integer)");
         }
 
-        if (symbolSeg.value.indexOf(",") > 0) {
+        /*if (symbolSeg.value.indexOf(",") > 0) {
             symbolSeg.value = symbolSeg.value.substr(symbolSeg.value.indexOf(",") + 1);
-        }
+        }*/
 
         transfered.domain = ".fungible";
-        transfered.key = symbolSeg.value;
+        transfered.key = symbolSeg.value.toString();
 
         return "";
     },

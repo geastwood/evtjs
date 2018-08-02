@@ -397,9 +397,9 @@ EvtLink.getEveriPayText = async function(params) {
 
     let byteSegments = [ ];
 
-    /*if (!params.symbol || !Number.isInteger(params.symbol)) { TODO
+    if (!params.symbol || !Number.isInteger(params.symbol)) {
         throw new Error("Must specify the value of symbol (integer)");
-    }*/
+    }
     if (!params.linkId || params.linkId.length !== 32) {
         throw new Error("linkId is required");
     }
@@ -407,7 +407,7 @@ EvtLink.getEveriPayText = async function(params) {
     // add segments
     let flag =  (1 + 4);  // everiPay
     byteSegments.push(createSegment(42, Math.floor(new Date().valueOf() / 1000) ));  // timestamp
-    byteSegments.push(createSegment(93, params.symbol));  // symbol for everiPay TODO
+    byteSegments.push(createSegment(44, params.symbol.toString()));  // symbol for everiPay
     if (params.maxAmount && params.maxAmount < 4294967295) byteSegments.push(createSegment(43, params.maxAmount));  // max amount
     if (params.maxAmount && params.maxAmount >= 4294967295) byteSegments.push(createSegment(94, params.maxAmount.toString()));  // max amount
     byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));         // random link id 
