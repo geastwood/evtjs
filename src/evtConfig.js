@@ -13,7 +13,7 @@ const defaultConfig = {
 
 };
 
- /**
+/**
   * represents EvtConfig
   */
 class EvtConfig {
@@ -30,7 +30,7 @@ class EvtConfig {
         // fill default endpoint settings
         if (!this.endpoint) this.endpoint = { };
         if (!this.endpoint.port) this.endpoint.port = 8888;
-        if (!this.endpoint.protocol) this.endpoint.protocol = 'http';
+        if (!this.endpoint.protocol) this.endpoint.protocol = "https";
     }
 }
 
@@ -39,21 +39,21 @@ class EvtConfig {
  */
 EvtConfig.getTestNetEndpoint = function() {
     return Object.assign({ }, {
-        host: 'testnet1.everitoken.io',
+        host: "testnet1.everitoken.io",
         port: 8888,
-        protocol: 'https'
+        protocol: "https"
     });
-}
+};
 
 /**
  * Get LocalNet EndPoint for everiToken
  */
-EvtConfig.getLocalNetEndpoint = function(host = '127.0.0.1', port = 8888) {
+EvtConfig.getLocalNetEndpoint = function(host = "127.0.0.1", port = 8888) {
     return Object.assign({ }, {
         host: host,
         port: port,
-        protocol: 'http'
+        protocol: "http"
     });
-}
+};
 
 module.exports = EvtConfig;

@@ -69,21 +69,29 @@ const domainKeyMappers = {
     "newfungible": (action, transfered) => {
         transfered.domain = ".fungible";
         // remove precision for `key`
-        let splited = action.args.sym.split(",");
-        if (splited.length != 2) {
-            throw new Error("Invalid parameter for sym");
-        }
-        transfered.key = splited[1].substr(2);
-    },
-
-    "updfungible": (action, transfered) => {
-        transfered.domain = ".fungible";
-        // remove precision for `key`
-        let splited = action.args.sym.split(",");
+        let splited = action.args.sym.split("#");
         if (splited.length != 2) {
             throw new Error("Invalid parameter for sym");
         }
         transfered.key = splited[1];
+    },
+
+    "updfungible": (action, transfered) => {
+        transfered.domain = ".fungible";
+        transfered.key = String(action.args.sym_id);
+
+        if (!transfered.key) {
+            throw new Error("sym_id is needed for action `updfungible`");
+        }
+    },
+
+    "transferft": (action, transfered) => {
+        transfered.domain = ".fungible";
+        transfered.key = String(action.args.number.split("#")[1]);
+
+        if (!transfered.key) {
+            throw new Error("number is invalid");
+        }
     },
 
     "transfer": (action, transfered) => {
@@ -159,7 +167,7 @@ const domainKeyMappers = {
         }*/
 
         transfered.domain = ".fungible";
-        transfered.key = symbolSeg.value.toString();
+        transfered.key = String(symbolSeg.value);
 
         return "";
     },
