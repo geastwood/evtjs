@@ -1,6 +1,6 @@
 // FIXME: Kind of a weird way to throw exceptions, consider removing
-var assert = require('assert')
-var BigInteger = require('./bigi')
+var assert = require("assert");
+var BigInteger = require("./bigi");
 
 /**
  * Turns a byte array into a big integer.
@@ -9,13 +9,13 @@ var BigInteger = require('./bigi')
  * endian notation.
  */
 BigInteger.fromByteArrayUnsigned = function(byteArray) {
-  // BigInteger expects a DER integer conformant byte array
-  if (byteArray[0] & 0x80) {
-    return new BigInteger([0].concat(byteArray))
-  }
+    // BigInteger expects a DER integer conformant byte array
+    if (byteArray[0] & 0x80) {
+        return new BigInteger([0].concat(byteArray));
+    }
 
-  return new BigInteger(byteArray) 
-}
+    return new BigInteger(byteArray); 
+};
 
 /**
  * Returns a byte array representation of the big integer.
@@ -24,13 +24,13 @@ BigInteger.fromByteArrayUnsigned = function(byteArray) {
  * form. A value of zero results in an empty array.
  */
 BigInteger.prototype.toByteArrayUnsigned = function() {
-  var byteArray = this.toByteArray()
-  return byteArray[0] === 0 ? byteArray.slice(1) : byteArray
-}
+    var byteArray = this.toByteArray();
+    return byteArray[0] === 0 ? byteArray.slice(1) : byteArray;
+};
 
 BigInteger.fromDERInteger = function(byteArray) {
-  return new BigInteger(byteArray)
-}
+    return new BigInteger(byteArray);
+};
 
 /*
  * Converts BigInteger to a DER integer representation.
@@ -55,37 +55,37 @@ BigInteger.fromDERInteger = function(byteArray) {
  *  62300 => 0x00f35c
  * -62300 => 0xff0ca4
 */
-BigInteger.prototype.toDERInteger = BigInteger.prototype.toByteArray
+BigInteger.prototype.toDERInteger = BigInteger.prototype.toByteArray;
 
 BigInteger.fromBuffer = function(buffer) {
-  // BigInteger expects a DER integer conformant byte array
-  if (buffer[0] & 0x80) {
-    var byteArray = Array.prototype.slice.call(buffer)
+    // BigInteger expects a DER integer conformant byte array
+    if (buffer[0] & 0x80) {
+        var byteArray = Array.prototype.slice.call(buffer);
 
-    return new BigInteger([0].concat(byteArray))
-  }
+        return new BigInteger([0].concat(byteArray));
+    }
 
-  return new BigInteger(buffer)
-}
+    return new BigInteger(buffer);
+};
 
 BigInteger.fromHex = function(hex) {
-  if (hex === '') return BigInteger.ZERO
+    if (hex === "") return BigInteger.ZERO;
 
-  assert.equal(hex, hex.match(/^[A-Fa-f0-9]+/), 'Invalid hex string')
-  assert.equal(hex.length % 2, 0, 'Incomplete hex')
-  return new BigInteger(hex, 16)
-}
+    assert.equal(hex, hex.match(/^[A-Fa-f0-9]+/), "Invalid hex string");
+    assert.equal(hex.length % 2, 0, "Incomplete hex");
+    return new BigInteger(hex, 16);
+};
 
 BigInteger.prototype.toBuffer = function(size) {
-  var byteArray = this.toByteArrayUnsigned()
-  var zeros = []
+    var byteArray = this.toByteArrayUnsigned();
+    var zeros = [];
 
-  var padding = size - byteArray.length
-  while (zeros.length < padding) zeros.push(0)
+    var padding = size - byteArray.length;
+    while (zeros.length < padding) zeros.push(0);
 
-  return new Buffer(zeros.concat(byteArray))
-}
+    return new Buffer(zeros.concat(byteArray));
+};
 
 BigInteger.prototype.toHex = function(size) {
-  return this.toBuffer(size).toString('hex')
-}
+    return this.toBuffer(size).toString("hex");
+};
