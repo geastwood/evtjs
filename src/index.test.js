@@ -388,7 +388,7 @@ describe("APICaller read API test", () => {
                     keyProvider: wif
                 });
         
-                var response = await apiCaller.getTransactionDetailById("bed1272c6de3294582910c968b93f1c015eb646181174ab5a705df35b024f65d"); //testingTmpData.newTrxId);
+                var response = await apiCaller.getTransactionDetailById(testingTmpData.newTrxId); //testingTmpData.newTrxId); "bed1272c6de3294582910c968b93f1c015eb646181174ab5a705df35b024f65d"
                 logger.verbose("[getTransactionDetailById] " + JSON.stringify(response, null, 2));
                 assert(response.id, "expected id");
 
@@ -524,7 +524,7 @@ describe("EvtLink", () => {
                 {
                     link: link.rawText,
                     "payee": EVT.EvtKey.privateToPublic(wif2),
-                    "number": "50.00000 EVT"
+                    "number": "50.00000 S#1"
                 }
             )
         );

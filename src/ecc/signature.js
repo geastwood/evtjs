@@ -211,15 +211,14 @@ Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {
 
     // sign the message
     if (secp256k1 != null) {
-        console.log("[signHash] accelerating supported");
+        // console.log("[signHash] accelerating supported");
 
         let nonce = 0, canonical = false, sigObj, sigDER;
-
 
         while (!canonical) {
             sigObj = secp256k1.sign(dataSha256, privateKey.toBuffer(), {
                 noncefn: (message, rivateKey, algo, data, attempt) => {
-                    console.log("[nonce] attempt:" + nonce);
+                    // console.log("[nonce] attempt:" + nonce);
 
                     let ret = new Buffer(32);
                     ret[31] = nonce++;
@@ -239,12 +238,13 @@ Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {
         return Signature(ecsig.r, ecsig.s, sigObj.recovery + 4 + 27);
     }
     else {
-        console.log("[signHash] no accelerating supported");
+        // console.log("[signHash] no accelerating supported");
 
         var der, e, ecsignature, i, lenR, lenS, nonce;
         i = null;
         nonce = 0;
         e = BigInteger.fromBuffer(dataSha256);
+
         while (true) {
             ecsignature = ecdsa.sign(curve, dataSha256, privateKey.d, nonce++);
             der = ecsignature.toDER();
@@ -260,6 +260,7 @@ Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {
                 console.log("WARN: " + nonce + " attempts to find canonical signature");
             }
         }
+
         return Signature(ecsignature.r, ecsignature.s, i);
     }
     
