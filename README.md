@@ -632,6 +632,54 @@ A example:
 }
 ```
 
+### getFungibleActionsByAddress(symbolId, address, [skip = 0], [take = 10]) => Promise&lt;Array>
+
+Query fungible actions by address.
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `symbolId`: The symbol Id (number) that you want to query for.
+- `address`: The address that you want to query for.
+- `skip`: The count to skip before taking data from the list, for paging. Optional.
+- `take`: The count to take, for paging. Optional.
+
+#### Response
+
+The response is an array consisting of the detail information of actions you queried.
+
+A example:
+
+```json
+[{
+    "name": "transferft",
+    "domain": ".fungible",
+    "key": "338422621",
+    "trx_id": "58034b28635c027f714fb01de202ae0ccefa1a4ba5bcf5f01b04fc53b79e6449",
+    "data": {
+      "from": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+      "to": "EVT6dpW7dAtR7YEAxatwA37sYZBdfQCtPD8Hoa1d7jnVDnCepNcM8",
+      "number": "1.0000000000 S#338422621",
+      "memo": "goodjob"
+    },
+    "created_at": "2018-08-08T08:21:44.001"
+  },
+  {
+    "name": "issuefungible",
+    "domain": ".fungible",
+    "key": "338422621",
+    "trx_id": "b05a0cea2093de4ca6eee0ca46ebfa0196ef6dad90a0bcc61f90b6a12bbbd30b",
+    "data": {
+      "address": "EVT6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+      "number": "100.0000000000 S#338422621",
+      "memo": "goodluck"
+    },
+    "created_at": "2018-08-08T08:21:44.001"
+  }
+]
+```
+
 ### getTransactionsDetailOfPublicKeys(publickeys, [skip], [take = 10]) => Promise
 
 Get detail information about transactions about provided `public keys`.
@@ -911,7 +959,7 @@ You can find all the actions and ABI structure in everiToken [here](https://gith
 
 For each action you should provide `domain` and `key` which are two special values. Each action has its own requirement for these two values. You can see here for detail: https://github.com/everitoken/evt/blob/master/docs/API-References.md#post-v1chaintrx_json_to_digest
 
-For the following actions, you may ignore the `domain` and `key` parameter of the constructor of `EvtAction` (will be filled in automatically):
+For these actions, you may ignore the `domain` and `key` parameter in the constructor of `EvtAction` (will be filled in automatically):
 - `newdomain`
 - `updatedomain`
 - `newgroup`

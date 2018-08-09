@@ -436,6 +436,43 @@ class APICaller {
     }
 
     /**
+     * Query fungible actions by address
+     * @param {number} symbolId the id of the symbol 
+     * @param {string} address the address
+     * @param {number} skip the count to be skipped, default to 0 (optional)
+     * @param {number} take the count to be taked, default to 10 (optional)
+     */
+    async getFungibleActionsByAddress(symbolId, address, skip = 0, take = 10) {
+        if (!symbolId) throw new Error("invalid symbolId");
+        if (!address) throw new Error("invalid address");
+        
+
+        skip = skip || 0;
+        take = take || 10;
+
+        let body = {
+            sym_id: symbolId,
+            address,
+            skip,
+            take
+        };
+
+        let res = await this.__callAPI({
+            url: "/v1/history/get_fungible_actions",
+            method: "POST",
+            body: body,
+            sign: false // no need to sign
+        });
+
+        if (Array.isArray(res)) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * get detail information about a transaction by its id. Make sure you have history_plugin enabled on the chain node
      * @param {string[]} publicKeys a single value or a array of public keys to query (required)
      * @param {number} skip the count to be skipped, default to 0 (optional)
@@ -473,10 +510,10 @@ class APICaller {
 
     /**
      * get detail information about a fungible symbol by its name.
-     * @param {*} name the name of the fungible symbol you want to query
+     * @param {Number} id the id of the fungible symbol you want to query
      */
     async getFungibleSymbolDetail(id) {
-        if (!Number.isInteger(id)) throw new Error("invalid fungible id");
+        if (!Number.isInteger(id)) throw new Error("fungible id should has a type of number");
 
         let res = await this.__callAPI({
             url: "/v1/evt/get_fungible",

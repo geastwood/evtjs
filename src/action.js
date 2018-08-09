@@ -19,7 +19,7 @@ class EvtAction {
         this.actionName = actionName;
         this.abi = abi;
         this.domain = domain;
-        this.key = key;
+        this.key = key; 
     }
 
     async calculateDomainAndKey() {
@@ -35,8 +35,11 @@ class EvtAction {
             this.key = ret.key;
         }
 
-        if (!this.domain || (typeof this.domain !== "string")) throw new Error("invalid domain");
-        if (!this.key || (typeof this.key !== "string")) throw new Error("invalid key");
+        if (!this.domain || (typeof this.domain !== "string")) throw new Error("domain is invalid or not provided in EvtAction");
+        if (Number.isInteger(this.key)) {
+            this.key = String(this.key);
+        }
+        if (!this.key || (typeof this.key !== "string")) throw new Error("key is invalid or not provided in EvtAction");
     }
 }
 
