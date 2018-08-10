@@ -218,7 +218,7 @@ Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {
     assert(privateKey, "privateKey required");
 
     // sign the message
-    if (secp256k1 == null) {
+    if (secp256k1 != null) {
         // console.log("[signHash] accelerating supported");
 
         let nonce = 0, canonical = false, sigObj, sigDER;

@@ -133,7 +133,7 @@ const domainKeyMappers = {
     },
 
     "everipass": async (action, transfered) => {
-        let parsed = await EvtLink.parseEvtLink(action.args.link);
+        let parsed = await EvtLink.parseEvtLink(action.args.link, { recoverPublicKeys: false });
 
         if (parsed == null || (parsed.flag & 2) !== 2) {
             throw new Error("Invalid EvtLink: This link is not for everiPass");
@@ -153,7 +153,7 @@ const domainKeyMappers = {
     },
 
     "everipay": async (action, transfered) => {
-        let parsed = await EvtLink.parseEvtLink(action.args.link);
+        let parsed = await EvtLink.parseEvtLink(action.args.link, { recoverPublicKeys: false });
 
         if (parsed == null || (parsed.flag & 4) !== 4) {
             throw new Error("Invalid EvtLink: This link is not for everiPay");

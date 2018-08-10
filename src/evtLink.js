@@ -191,7 +191,7 @@ function parseSegments(buffer) {
  * Parse a everiToken's QRCode Text
  * @param {string} text 
  */
-function parseQRCode(text) {
+function parseQRCode(text, options) {
     if (text.length < 3 || text.length > 2000) throw new Error("Invalid length of EvtLink");
 
     let textSplited = text.split("_");
@@ -233,7 +233,11 @@ function parseQRCode(text) {
             buf.copy(current, 0, i * 65, i * 65 + 65);
             let signature = ecc.Signature.fromBuffer(current);
             signatures.push(signature.toString());
-            publicKeys.push(signature.recover(segmentsBytes).toString());
+
+            if (!options || options.recoverPublicKeys) {
+                publicKeys.push(signature.recover(segmentsBytes).toString());
+            }
+
             ++i;
         }
     }
@@ -320,9 +324,9 @@ async function __getQRCode(flag, segments, params) {
  * parse EvtLink's text
  * @param {object} params the text of EvtLink
  */
-EvtLink.parseEvtLink = async function(text) {
+EvtLink.parseEvtLink = async function(text, options) {
     // console.log("[parseEvtLink] " + text);
-    return parseQRCode(text);
+    return parseQRCode(text, options);
 };
 
 // list of available typeKey:
