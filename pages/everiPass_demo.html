@@ -92,8 +92,8 @@ NEVER SHOW IT TO ANY OTHER PEOPLE</pre>
                             "everiPay",
                             {
                                 keyProvider: "5KgsgLciJmQy9K8ikFgM8LZgpdyC1ovULa6pguzSvud7BUU41uE", // [ "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ", "5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i", "5K3nUWxfkUjfLQu9PL6NZLKWV41PiFyuQdrckArA59jz19M6zgq" ],
-                                symbol: "EVT",
-                                maxAmount: 1000,
+                                symbol: 1,
+                                maxAmount: 1000000,
                                 linkId
                             },
                             {
@@ -106,10 +106,10 @@ NEVER SHOW IT TO ANY OTHER PEOPLE</pre>
                                 }
                                 // canvas: document.getElementById("canvas"), 
                                 document.getElementById("pass").setAttribute("src", res.dataUrl);
-                                console.log(res.rawText);
-                                EVT.EvtLink.parseEvtLink(res.rawText).then(res => {
+                                console.log("[+" + res.timeConsumed + "ms]" + res.rawText);
+                                /*EVT.EvtLink.parseEvtLink(res.rawText).then(res => {
                                     console.log(JSON.stringify(res, null, 2));
-                                });
+                                });*/
                                 // document.getElementById("passText").innerHTML = res.rawText.substr(8);
                         });
                     }
@@ -139,7 +139,7 @@ NEVER SHOW IT TO ANY OTHER PEOPLE</pre>
                 }
 
                 setTimeout(() => window.generatePass(), 1);
-                setInterval(() => window.checkPay(), 100);
+                setInterval(() => window.checkPay(), 300);
             });
         </script>
 

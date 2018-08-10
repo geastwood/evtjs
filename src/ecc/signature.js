@@ -103,6 +103,8 @@ function Signature(r, s, i) {
         @return {PublicKey}
     */
     function recoverHash(dataSha256, encoding = "hex") {
+        let time = new Date().valueOf();
+        
         if(typeof dataSha256 === "string") {
             dataSha256 = Buffer.from(dataSha256, encoding);
         }
@@ -115,6 +117,10 @@ function Signature(r, s, i) {
         i2 -= 27;
         i2 = i2 & 3;
         const Q = ecdsa.recoverPubKey(curve, e, {r, s, i}, i2);
+
+        time = (new Date().valueOf()) - time;
+        console.log("[+" + time + "ms] recoverHash");
+
         return PublicKey.fromPoint(Q);
     }
 
@@ -200,6 +206,8 @@ Signature.sign = function(data, privateKey, encoding = "utf8") {
     @return {Signature}
 */
 Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {    
+    let time = new Date().valueOf();
+
     if(typeof dataSha256 === "string") {
         dataSha256 = Buffer.from(dataSha256, encoding);
     }
@@ -210,7 +218,7 @@ Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {
     assert(privateKey, "privateKey required");
 
     // sign the message
-    if (secp256k1 != null) {
+    if (secp256k1 == null) {
         // console.log("[signHash] accelerating supported");
 
         let nonce = 0, canonical = false, sigObj, sigDER;
@@ -235,10 +243,16 @@ Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {
         }
         let ecsig = ECSignature.fromDER(sigDER);
 
+        time = (new Date().valueOf()) - time;
+
+        console.log("[+" + time + "ms] signHash (c binding)");
+
         return Signature(ecsig.r, ecsig.s, sigObj.recovery + 4 + 27);
     }
     else {
         // console.log("[signHash] no accelerating supported");
+
+        
 
         var der, e, ecsignature, i, lenR, lenS, nonce;
         i = null;
@@ -260,6 +274,10 @@ Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {
                 console.log("WARN: " + nonce + " attempts to find canonical signature");
             }
         }
+
+        time = (new Date().valueOf()) - time;
+
+        console.log("[+" + time + "ms] signHash");
 
         return Signature(ecsignature.r, ecsignature.s, i);
     }

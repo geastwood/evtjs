@@ -475,9 +475,13 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
     default:
         throw new Error("invalid QR Type");
     }
+
+    let time = new Date().valueOf();
     
     func(qrParams)
         .then((res) => {
+            time = (new Date().valueOf()) - time;
+
             if (res.rawText.length > 300) {
                 errorCorrectionLevel = "M";
             }
@@ -487,12 +491,12 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
 
             if (imgParams.canvas) {
                 qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#000000" } }, (err) => {
-                    callback(err, { rawText: res.rawText } );
+                    callback(err, { rawText: res.rawText, timeConsumed: time } );
                 });
             }
             else {
                 qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#000000" } }, (err, url) => {
-                    callback(err, { dataUrl: url, rawText: res.rawText } );
+                    callback(err, { dataUrl: url, rawText: res.rawText, timeConsumed: time } );
                 });
             }
         })

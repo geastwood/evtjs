@@ -41,6 +41,14 @@ EvtKey.isValidPublicKey = function(key) {
     return ecc.isValidPublic("EVT" + key.substr(3)) || ecc.isValidPublic("EOS" + key.substr(3));
 };
 
+EvtKey.sign = function(buf, privateKey, encoding) {
+    return ecc.sign(buf, privateKey, encoding);
+};
+
+EvtKey.signHash = function(buf, privateKey, encoding) {
+    return ecc.signHash(buf, privateKey, encoding);
+};
+
 /**
  * Check if a address is valid.
  * @param {*} key address
