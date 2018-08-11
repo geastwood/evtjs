@@ -13,6 +13,9 @@ For mobile applications, you can use `evtjs` by `WebView` in Android & iOS or vi
 For backend applications, use `evtjs` via `nodejs`.
 
 ## Install
+
+### NodeJS
+
 For NodeJS, use `npm`:
 
 ```bash
@@ -24,6 +27,18 @@ Or use `yarn`:
 ```bash
 yarn add evtjs
 ```
+
+#### Optional dependencies
+
+A C binding library for `libsecp256k1` could be compiled and installed if you want to sign on the transaction faster. All major platforms are supported except mobile devices:
+
+```bash
+npm install secp256k1
+```
+
+Using `libsecp256k1` can make the signing about 100 times faster.
+
+### Browsers
 
 For browser, you may download the source code and compile it for browsers in the root directory:
 
