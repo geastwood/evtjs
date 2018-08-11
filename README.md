@@ -1202,9 +1202,15 @@ EVT.EvtLink.getEVTLinkQrImage(
 );
 ```
 
-### parseEvtLink(text) => Promise
+### parseEvtLink(text, options) => Promise
 
 Parse a `EvtLink` and return its information.
+
+#### Parameters
+
+- `text`: The text to be parsed.
+- `options`:
+  - `recoverPublicKeys`: boolean, if this is set to `false`, the `publicKeys` field in result will be empty array. This can make parsing faster. 
 
 #### Response
 
