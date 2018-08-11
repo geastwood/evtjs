@@ -46,9 +46,9 @@ For browser, you may download the source code and compile it for browsers in the
 npm run build_browser
 ```
 
-Then you'll find produced `evt.js` in `dist` folder.
+Then you'll find produced `evt.min.js` in `dist` folder.
 
-You can also download our release package and reference it to use the library in browser.
+You can also download our pre-compiled release package directly.
 
 ## Basic Usage
 ```js
