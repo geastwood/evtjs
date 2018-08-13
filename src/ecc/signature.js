@@ -7,6 +7,7 @@ const keyUtils = require("./key_utils");
 const PublicKey = require("./key_public");
 var ECSignature = require("./ecsignature");
 const PrivateKey = require("./key_private");
+const bitcoinTs = require ("bitcoin-ts");
 
 let secp256k1 = null;
 try {
@@ -196,6 +197,15 @@ Signature.sign = function(data, privateKey, encoding = "utf8") {
     return Signature.signHash(data, privateKey);
 };
 
+function toArrayBuffer(myBuf) {
+    var myBuffer = new ArrayBuffer(myBuf.length);
+    var res = new Uint8Array(myBuffer);
+    for (var i = 0; i < myBuf.length; ++i) {
+        res[i] = myBuf[i];
+    }
+    return res;
+}
+
 /**
     Sign a buffer of exactally 32 bytes in size (sha256(text))
 
@@ -205,7 +215,7 @@ Signature.sign = function(data, privateKey, encoding = "utf8") {
 
     @return {Signature}
 */
-Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {    
+Signature.signHash = async function(dataSha256, privateKey, encoding = "hex") {    
     let time = new Date().valueOf();
 
     if(typeof dataSha256 === "string") {
@@ -217,71 +227,23 @@ Signature.signHash = function(dataSha256, privateKey, encoding = "hex") {
     privateKey = PrivateKey(privateKey);
     assert(privateKey, "privateKey required");
 
-    // sign the message
-    if (secp256k1 != null) {
-        // console.log("[signHash] accelerating supported");
+    // use wasm to sign the message (faster)
+    const secp256k1 = await bitcoinTs.instantiateSecp256k1();
+    let sig = secp256k1.signMessageHashDER(toArrayBuffer(privateKey.toBuffer()), toArrayBuffer(dataSha256));
+    let ecsig = ECSignature.fromDER(new Buffer(sig));
 
-        let nonce = 0, canonical = false, sigObj, sigDER;
+    // calculate recoveryParam
+    let e = BigInteger.fromBuffer(dataSha256);
+    let i = ecdsa.calcPubKeyRecoveryParam(curve, e, ecsig, privateKey.toPublic().Q) + 4 + 27;
 
-        while (!canonical) {
-            sigObj = secp256k1.sign(dataSha256, privateKey.toBuffer(), {
-                noncefn: (message, rivateKey, algo, data, attempt) => {
-                    // console.log("[nonce] attempt:" + nonce);
+    console.log("__sig:" + JSON.stringify(sig));
 
-                    let ret = new Buffer(32);
-                    ret[31] = nonce++;
-                    return ret;
-                }
-            });
+    return Signature.fromBuffer(Buffer.concat( [ new Buffer([ i ]) , new Buffer(secp256k1.signatureDERToCompact(sig)) ] ));
 
-            sigDER = secp256k1.signatureExport(sigObj.signature);
-
-            let lenR = sigDER[3];
-            let lenS = sigDER[5 + lenR];
-
-            canonical = lenR === 32 && lenS === 32;
-        }
-        let ecsig = ECSignature.fromDER(sigDER);
-
-        time = (new Date().valueOf()) - time;
-
-        console.log("[+" + time + "ms] signHash (c binding)");
-
-        return Signature(ecsig.r, ecsig.s, sigObj.recovery + 4 + 27);
-    }
-    else {
-        // console.log("[signHash] no accelerating supported");
-
-        
-
-        var der, e, ecsignature, i, lenR, lenS, nonce;
-        i = null;
-        nonce = 0;
-        e = BigInteger.fromBuffer(dataSha256);
-
-        while (true) {
-            ecsignature = ecdsa.sign(curve, dataSha256, privateKey.d, nonce++);
-            der = ecsignature.toDER();
-            lenR = der[3];
-            lenS = der[5 + lenR];
-            if (lenR === 32 && lenS === 32) {
-                i = ecdsa.calcPubKeyRecoveryParam(curve, e, ecsignature, privateKey.toPublic().Q);
-                i += 4;  // compressed
-                i += 27; // compact  //  24 or 27 :( forcing odd-y 2nd key candidate)
-                break;
-            }
-            if (nonce % 10 === 0) {
-                console.log("WARN: " + nonce + " attempts to find canonical signature");
-            }
-        }
-
-        time = (new Date().valueOf()) - time;
-
-        console.log("[+" + time + "ms] signHash");
-
-        return Signature(ecsignature.r, ecsignature.s, i);
-    }
-    
+    // der = ecsignature.toDER();
+    //lenR = der[3];
+    //lenS = der[5 + lenR];
+    //if (lenR === 32 && lenS === 32) {
 };
 
 Signature.fromBuffer = function(buf) {
