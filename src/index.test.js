@@ -23,7 +23,7 @@ logger.writeLog = true;
 
 const network = {
     host: "118.31.58.10",
-    port: 8891,
+    port: 8888,
     protocol: "http"
 };
 

@@ -103,6 +103,28 @@ class APICaller {
     }
 
     /**
+     * Provide all the public keys its has and this API will response with all the symbol ids of the fungibles that account create.
+     * @param {*} publicKeys a array or a single value which represents public keys you want to query
+     */
+    async getCreatedFungibles(publicKeys) {
+        let res = await this.__callAPI({
+            url: "/v1/history/get_fungibles",
+            method: "POST",
+            body: {
+                keys: Array.isArray(publicKeys) ? publicKeys : [ publicKeys ]
+            },
+            sign: false // no need to sign
+        });
+
+        if (Array.isArray(res)) {
+            return { ids: res };
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * Get required keys for suspended transactions
      * @param {string} proposalName The proposal name you want to sign
      * @param {string} availableKeys array of public keys you own

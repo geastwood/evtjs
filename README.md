@@ -401,6 +401,28 @@ A example:
 ]
 ```
 
+### getCreatedFungibles(publicKeys) => Promise
+
+Get the list of fungibles which is created by `publicKeys`.
+
+> Make sure you have history_plugin enabled on connected node
+
+#### Parameters
+
+- `publicKey`: an array or a single value which represents public keys you want to query
+
+#### Response
+
+The response is an array representing the list of fungibles created by public keys provided. Each fungible is identified by the `id`.
+
+A example:
+
+```json
+{
+    ids: [3, 4, 5]
+}
+```
+
 ### getActions(params) => Promise
 
 Get the list of actions. Supports filtering by `domain`, `key`, and `action name`.
