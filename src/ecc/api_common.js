@@ -112,10 +112,10 @@ ecc.randomKey().then(privateKey => {
         @arg {wif|PrivateKey} privateKey
         @arg {String} [encoding = 'hex'] - dataSha256 encoding (if string)
 
-        @return {string} string signature
+        @return {Promise<string>} string signature
     */
-    signHash: (dataSha256, privateKey, encoding = "hex") => {
-        return Signature.signHash(dataSha256, privateKey, encoding).toString();
+    signHash: async (dataSha256, privateKey, encoding = "hex") => {
+        return (await Signature.signHash(dataSha256, privateKey, encoding)).toString();
     },
 
     /**

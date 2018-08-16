@@ -898,7 +898,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
     // simplify default signing #17
     if (keys.length === 1 && keys[0].private) {
         const pvt = keys[0].private;
-        var ret = signHash(buf, pvt);
+        var ret = await signHash(buf, pvt);
         
         return ret;
     }
@@ -932,7 +932,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
 
     const sigs = [];
     for (const pvt of pvts) {
-        sigs.push(signHash(buf, pvt));
+        sigs.push(await signHash(buf, pvt));
     }
 
     return sigs;
