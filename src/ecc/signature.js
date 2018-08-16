@@ -12,7 +12,7 @@ let secp256k1 = null;
 try {
     secp256k1 = require("secp256k1");
 }
-catch (e) { }
+catch (e) { /* Do nothing */ }
 
 module.exports = Signature;
 
@@ -65,18 +65,6 @@ function Signature(r, s, i) {
         );
     }
 
-    /** @deprecated
-
-        Verify hex data by converting to a buffer then hashing.
-
-        @return {boolean}
-    */
-    function verifyHex(hex, pubkey) {
-        console.log("Deprecated: use verify(data, pubkey, \"hex\")");
-
-        const buf = Buffer.from(hex, "hex");
-        return verify(buf, pubkey);
-    }
 
     /**
         Recover the public key used to create this signature using full data.
@@ -103,7 +91,7 @@ function Signature(r, s, i) {
         @return {PublicKey}
     */
     function recoverHash(dataSha256, encoding = "hex") {
-        let time = new Date().valueOf();
+        // let time = new Date().valueOf();
         
         if(typeof dataSha256 === "string") {
             dataSha256 = Buffer.from(dataSha256, encoding);
@@ -118,7 +106,7 @@ function Signature(r, s, i) {
         i2 = i2 & 3;
         const Q = ecdsa.recoverPubKey(curve, e, {r, s, i}, i2);
 
-        time = (new Date().valueOf()) - time;
+        // time = (new Date().valueOf()) - time;
         //console.log("[+" + time + "ms] recoverHash");
 
         return PublicKey.fromPoint(Q);
@@ -152,29 +140,10 @@ function Signature(r, s, i) {
         toBuffer,
         verify,
         verifyHash,
-        verifyHex,// deprecated
         recover,
         recoverHash,
         toHex,
-        toString,
-
-        /** @deprecated use verify (same arguments and return) */
-        verifyBuffer: (...args) => {
-            console.log("Deprecated: use signature.verify instead (same arguments)");
-            return verify(...args);
-        },
-
-        /** @deprecated use recover (same arguments and return) */
-        recoverPublicKey: (...args) => {
-            console.log("Deprecated: use signature.recover instead (same arguments)");
-            return recover(...args);
-        },
-
-        /** @deprecated use recoverHash (same arguments and return) */
-        recoverPublicKeyFromBuffer: (...args) => {
-            console.log("Deprecated: use signature.recoverHash instead (same arguments)");
-            return recoverHash(...args);
-        }
+        toString
     };
 }
 
@@ -215,7 +184,7 @@ function toArrayBuffer(myBuf) {
     @return {Signature}
 */
 Signature.signHash = async function(dataSha256, privateKey, encoding = "hex") {    
-    let time = new Date().valueOf();
+    //let time = new Date().valueOf();
 
     if(typeof dataSha256 === "string") {
         dataSha256 = Buffer.from(dataSha256, encoding);
@@ -252,7 +221,7 @@ Signature.signHash = async function(dataSha256, privateKey, encoding = "hex") {
         }
         let ecsig = ECSignature.fromDER(sigDER);
 
-        time = (new Date().valueOf()) - time;
+        //time = (new Date().valueOf()) - time;
 
         //console.log("[+" + time + "ms] signHash (c binding)");
 
@@ -284,7 +253,7 @@ Signature.signHash = async function(dataSha256, privateKey, encoding = "hex") {
             }
         }
 
-        time = (new Date().valueOf()) - time;
+        //time = (new Date().valueOf()) - time;
 
         //console.log("[+" + time + "ms] signHash");
 

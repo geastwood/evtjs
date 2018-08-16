@@ -1180,7 +1180,7 @@ let evtLink = EVT.EvtLink;
 
 ### getUniqueLinkId() => Promise
 
-Return a new unique `linkId` string. For `everiPay`, you must provide the same `LinkId`, unless you're sure the transaction has been processed by continuously checking for that link id's result (if network is available) or you must change link id by user's click (and show a tip saying there is a risk of double charing if he/she is using everiPay and has paid once).
+Return a new unique `linkId` string. For `everiPay`, you must provide the same `LinkId`, unless you're sure the transaction has been processed by continuously checking for that link id's result (if network is available) or you must change link id by user's click (and show a tip saying there is a risk of double charging if he/she is using everiPay and has paid once).
 
 ### getEVTLinkQrImage(qrType, qrParams, imgParams, callback) => Number
 
@@ -1301,14 +1301,14 @@ Here is a brief reference of common used `typeKey` for convenient. For detail pl
 |  |    1    |   protocol version 1 (required)
 |   |   2    |   everiPass
 |   |   4    |   everiPay
-|   |   8    |   should destory the NFT after validating the token in everiPass
-|   |   16   |   address code for recever
-| `42` | | (uint32) unix timestamp in seconds |
+|   |   8    |   should destroy the NFT after validating the token in everiPass
+|   |   16   |   address code for receiver
+| `42` | | (uint32) UNIX timestamp in seconds |
 | `43` | | (uint32) max allowed amount for everiPay |
 | `91` | | (string) domain name to be validated in everiPass |
 | `92` | | (string) token name to be validated in everiPass |
 | `93` | | (string) symbol name to be paid in everiPay (for example: "5,EVT") |
-| `94` | | (string) max allowed amount for payment (optionl, string format remained only for amount >= 2 ^ 32) |
+| `94` | | (string) max allowed amount for payment (optional, string format remained only for amount >= 2 ^ 32) |
 | `95` | | (string) public key (address) for receiving points or coins |
 | `156` | | (byte string) link id(128-bit) |
 
