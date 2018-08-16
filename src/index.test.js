@@ -92,7 +92,7 @@ describe("APICaller write API test", () => {
         testingTmpData.newGroupName = "g" + parseInt((new Date()).valueOf() / 5000);
 
         await apiCaller.pushTransaction(
-            { maxCharge: 1000 },
+            { maxCharge: 1000000 },
             new EVT.EvtAction("newgroup", {
                 "name": testingTmpData.newGroupName,
                 "group": {
@@ -150,7 +150,7 @@ describe("APICaller write API test", () => {
         testingTmpData.newDomainName = "nd" + (new Date()).valueOf();
 
         await apiCaller.pushTransaction(
-            { maxCharge: 1000, payer: publicKey },
+            { maxCharge: 1000000, payer: publicKey },
             new EVT.EvtAction("newdomain", {
                 "name": testingTmpData.newDomainName,
                 "creator": publicKey,
@@ -518,7 +518,7 @@ describe("EvtLink", () => {
         });
 
         await apiCaller.pushTransaction(
-            { maxCharge: 10000 },
+            { maxCharge: 1000000 },
             new EVT.EvtAction(
                 "everipay",
                 {
@@ -546,7 +546,7 @@ describe("EvtLink", () => {
         });
 
         await apiCaller.pushTransaction(
-            { maxCharge: 10000 },
+            { maxCharge: 1000000 },
             new EVT.EvtAction(
                 "everipass",
                 {

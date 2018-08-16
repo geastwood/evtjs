@@ -7,7 +7,6 @@ const keyUtils = require("./key_utils");
 const PublicKey = require("./key_public");
 var ECSignature = require("./ecsignature");
 const PrivateKey = require("./key_private");
-const bitcoinTs = require ("bitcoin-ts");
 
 let secp256k1 = null;
 try {
@@ -120,7 +119,7 @@ function Signature(r, s, i) {
         const Q = ecdsa.recoverPubKey(curve, e, {r, s, i}, i2);
 
         time = (new Date().valueOf()) - time;
-        console.log("[+" + time + "ms] recoverHash");
+        //console.log("[+" + time + "ms] recoverHash");
 
         return PublicKey.fromPoint(Q);
     }
@@ -188,13 +187,13 @@ function Signature(r, s, i) {
 
     @return {Signature}
 */
-Signature.sign = function(data, privateKey, encoding = "utf8") {
+Signature.sign = async function(data, privateKey, encoding = "utf8") {
     if(typeof data === "string") {
         data = Buffer.from(data, encoding);
     }
     assert(Buffer.isBuffer(data), "data is a required String or Buffer");
     data = hash.sha256(data);
-    return Signature.signHash(data, privateKey);
+    return await Signature.signHash(data, privateKey);
 };
 
 function toArrayBuffer(myBuf) {
@@ -227,23 +226,70 @@ Signature.signHash = async function(dataSha256, privateKey, encoding = "hex") {
     privateKey = PrivateKey(privateKey);
     assert(privateKey, "privateKey required");
 
-    // use wasm to sign the message (faster)
-    const secp256k1 = await bitcoinTs.instantiateSecp256k1();
-    let sig = secp256k1.signMessageHashDER(toArrayBuffer(privateKey.toBuffer()), toArrayBuffer(dataSha256));
-    let ecsig = ECSignature.fromDER(new Buffer(sig));
+    // sign the message
+    if (secp256k1 != null) {
+        // console.log("[signHash] accelerating supported");
 
-    // calculate recoveryParam
-    let e = BigInteger.fromBuffer(dataSha256);
-    let i = ecdsa.calcPubKeyRecoveryParam(curve, e, ecsig, privateKey.toPublic().Q) + 4 + 27;
+        let nonce = 0, canonical = false, sigObj, sigDER;
 
-    console.log("__sig:" + JSON.stringify(sig));
+        while (!canonical) {
+            sigObj = secp256k1.sign(dataSha256, privateKey.toBuffer(), {
+                noncefn: (message, rivateKey, algo, data, attempt) => {
+                    // console.log("[nonce] attempt:" + nonce);
 
-    return Signature.fromBuffer(Buffer.concat( [ new Buffer([ i ]) , new Buffer(secp256k1.signatureDERToCompact(sig)) ] ));
+                    let ret = new Buffer(32);
+                    ret[31] = nonce++;
+                    return ret;
+                }
+            });
 
-    // der = ecsignature.toDER();
-    //lenR = der[3];
-    //lenS = der[5 + lenR];
-    //if (lenR === 32 && lenS === 32) {
+            sigDER = secp256k1.signatureExport(sigObj.signature);
+
+            let lenR = sigDER[3];
+            let lenS = sigDER[5 + lenR];
+
+            canonical = lenR === 32 && lenS === 32;
+        }
+        let ecsig = ECSignature.fromDER(sigDER);
+
+        time = (new Date().valueOf()) - time;
+
+        //console.log("[+" + time + "ms] signHash (c binding)");
+
+        return Signature(ecsig.r, ecsig.s, sigObj.recovery + 4 + 27);
+    }
+    else {
+        // console.log("[signHash] no accelerating supported");
+
+        
+
+        var der, e, ecsignature, i, lenR, lenS, nonce;
+        i = null;
+        nonce = 0;
+        e = BigInteger.fromBuffer(dataSha256);
+
+        while (true) {
+            ecsignature = ecdsa.sign(curve, dataSha256, privateKey.d, nonce++);
+            der = ecsignature.toDER();
+            lenR = der[3];
+            lenS = der[5 + lenR];
+            if (lenR === 32 && lenS === 32) {
+                i = ecdsa.calcPubKeyRecoveryParam(curve, e, ecsignature, privateKey.toPublic().Q);
+                i += 4;  // compressed
+                i += 27; // compact  //  24 or 27 :( forcing odd-y 2nd key candidate)
+                break;
+            }
+            if (nonce % 10 === 0) {
+                console.log("WARN: " + nonce + " attempts to find canonical signature");
+            }
+        }
+
+        time = (new Date().valueOf()) - time;
+
+        //console.log("[+" + time + "ms] signHash");
+
+        return Signature(ecsignature.r, ecsignature.s, i);
+    }
 };
 
 Signature.fromBuffer = function(buf) {

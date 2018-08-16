@@ -96,7 +96,7 @@ ecc.randomKey().then(privateKey => {
 
         @example ecc.sign('I am alive', wif)
     */
-    sign: (data, privateKey, encoding = "utf8") => {
+    sign: async (data, privateKey, encoding = "utf8") => {
         if(encoding === true) {
             throw new TypeError("API changed, use signHash(..) instead");
         } else {
@@ -104,7 +104,7 @@ ecc.randomKey().then(privateKey => {
                 console.log("Warning: ecc.sign hashData parameter was removed");
             }
         }
-        return Signature.sign(data, privateKey, encoding).toString();
+        return (await Signature.sign(data, privateKey, encoding)).toString();
     },
 
     /**
