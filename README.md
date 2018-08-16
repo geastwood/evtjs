@@ -432,7 +432,7 @@ Get the list of actions. Supports filtering by `domain`, `key`, and `action name
 #### Parameters
 
 - `params`: a object with the follow members:
-  - `domain`: The domain to filter the result. It is required. Some special domains are supported, such as `fungible`
+  - `domain`: The domain to filter the result. It is required. Some special domains are supported, such as `.fungible`
   - `key`: The key to filter the result. The value of it is the same as you provided one in `pushTransaction`. Optional.
   - `names`: an array to filter the action name. Optional.
   - `skip`: The count to skip in the result. This is for paging.
@@ -448,10 +448,12 @@ A example:
 [{
     "name": "newfungible",
     "domain": ".fungible",
-    "key": "EVT",
+    "key": "23",
     "trx_id": "f0c789933e2b381e88281e8d8e750b561a4d447725fb0eb621f07f219fe2f738",
     "data": {
-      "sym": "5,EVT",
+      "sym": "5,S#23",
+      "sym_name": "ABC",
+      "name": "ABC TOKEN",
       "creator": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
       "issue": {
         "name": "issue",
@@ -532,9 +534,11 @@ A example:
     "actions": [{
         "name": "newfungible",
         "domain": ".fungible",
-        "key": "EVT",
+        "key": "1",
         "data": {
-          "sym": "5,EVT",
+          "sym": "5,S#1",
+          "sym_id": "EVT",
+          "name": "EVT",
           "creator": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
           "issue": {
             "name": "issue",
@@ -788,7 +792,9 @@ A example:
 
 ```json
 {
-  "sym": "5,EVT",
+  "sym": "5,S#1",
+  "sym_name": "EVT",
+  "name": "EVT",
   "creator": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
   "create_time": "2018-06-28T05:31:09",
   "issue": {
@@ -809,8 +815,8 @@ A example:
       }
     ]
   },
-  "total_supply": "100000.00000 EVT",
-  "current_supply": "0.00000 EVT",
+  "total_supply": "100000.00000 S#1",
+  "current_supply": "0.00000 S#1",
   "metas": []
 }
 ```
@@ -1021,16 +1027,17 @@ Here is a example to use `pushTransaction`.
 let symbol = "ABC";
 
 // pass EvtAction instance as a action
-await apiCaller.pushTransaction(
-    { maxCharge: 10000 },
+let newTrxId = (await apiCaller.pushTransaction(
     new EVT.EvtAction("newfungible", {
-        sym: "5," + symbol,
+        name: symbol + ".POINTS",
+        sym_name: symbol,
+        sym: "5,S#233522",
         creator: publicKey,
-        issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
         manage: { name: "manage", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
-        total_supply: "100000.00000 " + symbol
+        issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
+        total_supply: "100000.00000 S#" + symbol
     })
-);
+)).transactionId;
 ```
 
 #### Response
@@ -1096,17 +1103,15 @@ await apiCaller.pushTransaction(
 ### Create Fungible Symbol
 
 ```js
-let newSymbol = randomString();
-let publicKey = xxxxxxxxxxxxxxxxxx; // replace with your public key
-
 let newTrxId = (await apiCaller.pushTransaction(
-    { maxCharge: 10000, payer: "EVTXXXXXXXXXXXXXXXXXXXXXXXXXX" },
     new EVT.EvtAction("newfungible", {
-        sym: "5," + newSymbol,
+        name: symbol + ".POINTS",
+        sym_name: symbol,
+        sym: "5,S#233522",
         creator: publicKey,
-        issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
         manage: { name: "manage", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
-        total_supply: "100000.00000 " + newSymbol
+        issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
+        total_supply: "100000.00000 S#" + symbol
     })
 )).transactionId;
 ```
