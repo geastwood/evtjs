@@ -1363,7 +1363,9 @@ Generate a `EvtLink` for `Payee's Qr Code` (Payee Code).
 #### Parameters
 
 - `params`: A object with available keys as follow:
-  - `address`: The address of the receiver as a string starting with `EVT`.
+  - `address`: (required) The address of the receiver as a string starting with `EVT`.
+  - `fungibleId`: (optional) A integer representing the id of fungible that the payee wants to receive.
+  - `amount`: (optional) The amount of tokens that the payee wants to receive. If amount is provided, `fungibleId` is required.
 
 #### Response
 

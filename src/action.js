@@ -109,7 +109,7 @@ const domainKeyMappers = {
 
     "evt2pevt": (action, transfered) => {
         transfered.domain = ".fungible";
-        transfered.key = "EVT";
+        transfered.key = "1";
     },
 
     "newsuspend": (action, transfered) => {

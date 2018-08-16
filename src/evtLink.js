@@ -443,8 +443,20 @@ EvtLink.getEvtLinkForPayeeCode = async function(params) {
 
     // add segments
     let flag = 1 + 16;  // collection code
-    byteSegments.push(createSegment(95, params.address) );  // collectionQr
+    byteSegments.push(createSegment(95, params.address) );  // payeeCode
     delete params.keyProvider;
+
+    if (params.fungibleId) {
+        if (!Number.isInteger(params.fungibleId)) throw new Error("fungibleId must be a integer");
+
+        byteSegments.push(createSegment(45, params.fungibleId) );
+    }
+    if (params.amount) {
+        if (typeof params.amount !== "string") throw new Error("amount must be a decimal string with proper precision (like asset type doing)");
+        if (!params.fungibleId) throw new Error("If amount is provided, fungibleId is required.");
+
+        byteSegments.push(createSegment(96, params.amount) );
+    }
 
     // convert buffer of segments to text using base10
     return {
