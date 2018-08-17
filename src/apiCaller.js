@@ -474,7 +474,7 @@ class APICaller {
 
         let body = {
             sym_id: symbolId,
-            address,
+            addr: address,
             skip,
             take
         };
