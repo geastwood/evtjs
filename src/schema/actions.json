@@ -1,0 +1,18 @@
+{
+    "proposal_name": "name",
+
+    "cancelsuspend": {
+        "base": "",
+        "fields": {
+            "name": "proposal_name"
+        }
+    },
+
+    "destroytoken": {
+        "base": "",
+        "fields": {
+            "domain": "domain_name",
+            "name": "token_name"
+        }
+    }
+}

@@ -7,6 +7,12 @@ const EvtAction = require("./action");
 const Logger = require("./logger");
 const EvtKey = require("./key");
 
+const Structs = require("./structs");
+const Fcbuffer = require("fcbuffer");
+
+let structs = Structs({ });
+let structstransaction = structs.structs.transaction;
+
 /**
  * APICaller for everiToken
 */
@@ -745,7 +751,7 @@ class APICaller {
         }
 
         let expiration, hash, numHex, last_irreversible_block_num, last_irreversible_block_prefix;
-
+ 
         // process referenced block number and expiration time for transaction
         expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
         hash = ByteBuffer.fromHex(this.__cachedInfo.last_irreversible_block_id, true); // little endian
@@ -814,6 +820,16 @@ class APICaller {
         });
 
         if (ret.binargs) {
+            console.log("hhhh" + abi.action);
+            if (structs.structs[abi.action]) {
+                
+                let obj = structs.structs[abi.action].fromObject(abi.args);
+                let bin = Fcbuffer.toBuffer(structs.structs[abi.action], obj);
+
+                console.log("==== abi testing ===");
+                console.log("local: " + bin.toString("hex"));
+                console.log("remote:" + ret.binargs);
+            }
             return ret;
         }
 

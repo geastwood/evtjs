@@ -6,6 +6,8 @@ module.exports = {
   isName,
   encodeName, // encode human readable name to uint64 (number string)
   decodeName, // decode from uint64 to human readable
+  encodeName128,
+  decodeName128,
   encodeNameHex: name => Long.fromString(encodeName(name), true).toString(16),
   decodeNameHex: (hex, littleEndian = true) =>
     decodeName(Long.fromString(hex, true, 16).toString(), littleEndian),

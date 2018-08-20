@@ -231,18 +231,6 @@ describe("APICaller write API test", () => {
             endpoint: network
         });
 
-        function randomString() {
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXTZ";
-            var string_length = 6;
-            var randomstring = "";
-            for (var i=0; i<string_length; i++) {
-                var rnum = Math.floor(Math.random() * chars.length);
-                randomstring += chars.substring(rnum,rnum+1);
-            }
-            
-            return randomstring;
-        }
-
         testingTmpData.newSymbol = Math.floor(new Date().valueOf() / 1000) + "";
 
         testingTmpData.newTrxId = (await apiCaller.pushTransaction(
@@ -254,6 +242,33 @@ describe("APICaller write API test", () => {
                 manage: { name: "manage", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
                 issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
                 total_supply: "100000.00000 S#" + testingTmpData.newSymbol
+            })
+        )).transactionId;
+    });
+
+    it("cancelsuspend", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        testingTmpData.newTrxId = (await apiCaller.pushTransaction(
+            new EVT.EvtAction("cancelsuspend", {
+                name: "haha"
+            })
+        )).transactionId;
+    });
+
+    it("destroytoken", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        testingTmpData.newTrxId = (await apiCaller.pushTransaction(
+            new EVT.EvtAction("destroytoken", {
+                name: "haha",
+                domain: "asdfadf"
             })
         )).transactionId;
     });
