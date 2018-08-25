@@ -400,9 +400,9 @@ class APICaller {
     /**
      * get balances of a user's all kinds of fungible tokens. Make sure you have history_plugin enabled on the chain node
      * @param {string} address the public key of the user you want to query
-     * @param {*} symbol the symbol you want to query, optional
+     * @param {number} symbolId the symbol you want to query, optional
      */
-    async getFungibleBalance(address, symbol) {
+    async getFungibleBalance(address, symbolId) {
         if (typeof address !== "string" || !address) throw new Error("invalid address");
 
         if (!this.__cachedInfo) {
@@ -422,8 +422,12 @@ class APICaller {
             address
         };
 
-        if (symbol) {
-            body.symbol = symbol;
+        if (symbolId) {
+            body.sym_id = symbolId;
+
+            if (!Number.isInteger(body.sym_id)) {
+                throw new Error("sym_id must be integer");
+            }
         }
 
         let res = await this.__callAPI({

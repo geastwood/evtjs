@@ -479,7 +479,7 @@ A example:
 ]
 ```
 
-### getFungibleBalance(address, [symbol]) => Promise
+### getFungibleBalance(address, [symbolId]) => Promise
 
 Get the list of fungible balance of a user.
 
@@ -488,7 +488,7 @@ Get the list of fungible balance of a user.
 #### Parameters
 
 - `address`: The address (public key) you want to query.
-- `symbol`: The symbol you want to query, optional. For example: "5,EVT".
+- `symbolId`: The symbol id you want to query (number), optional. For example: 1.
 
 #### Response
 
@@ -498,7 +498,7 @@ A example:
 
 ```json
 [
-  "2.00000 EVT", "1.00000 PEVT"
+  "2.00000 S#1", "1.00000 S#2"
 ]
 ```
 
