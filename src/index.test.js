@@ -246,7 +246,7 @@ describe("APICaller write API test", () => {
         )).transactionId;
     });
 
-    it("cancelsuspend", async function () {
+    /*it("cancelsuspend", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
             endpoint: network
@@ -257,7 +257,7 @@ describe("APICaller write API test", () => {
                 name: "haha"
             })
         )).transactionId;
-    });
+    }); TODO
 
     it("destroytoken", async function () {
         const apiCaller = new EVT({
@@ -270,8 +270,8 @@ describe("APICaller write API test", () => {
                 name: "haha",
                 domain: "asdfadf"
             })
-        )).transactionId;
-    });
+        )).transactionId; TODO
+    });*/
 });
 
 // ==== part 4: APICaller read API ====
