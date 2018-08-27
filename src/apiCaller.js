@@ -35,6 +35,30 @@ class APICaller {
 
         // var buffer = new Buffer(32).fill(0, 0, 32);
         // this.config.signProvider({sign: signHash, buf: buffer, transaction: {}});
+
+        // try to get info to get the diff from local time to server time. It is useful to improve the rate of success in everiPay / everiPass
+        /*this.timeDiff = null;
+        this.getNodeTimestamp().then(() => {
+            this.timeDiff = null;
+        }).catch(() => { });*/
+    }
+
+    /**
+     * Get the time of the server.
+     */
+    async getNodeTimestamp() {
+        if (this.timeDiff == null) {
+            try {
+                await this.getInfo({ timeout: 600 });
+            }
+            catch (e) { }
+        }
+
+        if (this.timeDiff == null) {
+            return new Date().getTime();
+        }
+
+        return new Date().getTime() + this.timeDiff;
     }
 
     /**
@@ -52,7 +76,7 @@ class APICaller {
             headers: {
                 "Content-Type": "application/json"
             },
-            networkTimeout: this.config.networkTimeout
+            networkTimeout: request.networkTimeout || this.config.networkTimeout
         });
         
         let ret = await res.json();
@@ -70,12 +94,15 @@ class APICaller {
     /**
      * get information from everiToken chain node
      */
-    async getInfo() {
+    async getInfo(options) {
+        options = options || { };
         var info = await this.__callAPI({
             url: "/v1/chain/get_info",
-            method: "GET"
+            method: "GET",
+            networkTimeout: options.timeout || this.config.networkTimeout
         });
 
+        // do not cache the result because it may expire at any time
         this.__cachedInfo = info;
 
         // check version of remote net
@@ -405,9 +432,9 @@ class APICaller {
     async getFungibleBalance(address, symbolId) {
         if (typeof address !== "string" || !address) throw new Error("invalid address");
 
-        if (!this.__cachedInfo) {
-            await this.getInfo();
-        }
+        //if (!this.__cachedInfo) {
+        await this.getInfo();
+        //}
 
         // If the version is lower than 2.2 (including), then user old API, else use the new API
         let isNewerVersion = false;
@@ -728,9 +755,9 @@ class APICaller {
         let body = { transaction: params.transaction };
 
         // make sure that it there is basic information about the chain
-        if (!this.__cachedInfo) {
-            await this.getInfo();
-        }
+        //if (!this.__cachedInfo) {
+        await this.getInfo();
+        //}
 
         for (let i = 0; i < body.transaction.actions.length; ++i) {
             if (!(body.transaction.actions[i] instanceof EvtAction)) {

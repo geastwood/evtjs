@@ -31,7 +31,7 @@ function Signature(r, s, i) {
         @return {boolean}
     */
     function verify(data, pubkey, encoding = "utf8") {
-        if(typeof data === "string") {
+        if (typeof data === "string") {
             data = Buffer.from(data, encoding);
         }
         assert(Buffer.isBuffer(data), "data is a required String or Buffer");
@@ -49,10 +49,10 @@ function Signature(r, s, i) {
         @return {boolean}
     */
     function verifyHash(dataSha256, pubkey, encoding = "hex") {
-        if(typeof dataSha256 === "string") {
+        if (typeof dataSha256 === "string") {
             dataSha256 = Buffer.from(dataSha256, encoding);
         }
-        if(dataSha256.length !== 32 || !Buffer.isBuffer(dataSha256))
+        if (dataSha256.length !== 32 || !Buffer.isBuffer(dataSha256))
             throw new Error("dataSha256: 32 bytes required");
 
         const publicKey = PublicKey(pubkey);
@@ -75,7 +75,7 @@ function Signature(r, s, i) {
         @return {PublicKey}
     */
     function recover(data, encoding = "utf8") {
-        if(typeof data === "string") {
+        if (typeof data === "string") {
             data = Buffer.from(data, encoding);
         }
         assert(Buffer.isBuffer(data), "data is a required String or Buffer");
@@ -91,25 +91,40 @@ function Signature(r, s, i) {
         @return {PublicKey}
     */
     function recoverHash(dataSha256, encoding = "hex") {
-        // let time = new Date().valueOf();
-        
-        if(typeof dataSha256 === "string") {
+        //let time = new Date().valueOf();
+
+        if (typeof dataSha256 === "string") {
             dataSha256 = Buffer.from(dataSha256, encoding);
         }
-        if(dataSha256.length !== 32 || !Buffer.isBuffer(dataSha256)) {
+        if (dataSha256.length !== 32 || !Buffer.isBuffer(dataSha256)) {
             throw new Error("dataSha256: 32 byte String or buffer requred");
         }
 
-        const e = BigInteger.fromBuffer(dataSha256);
-        let i2 = i;
-        i2 -= 27;
-        i2 = i2 & 3;
-        const Q = ecdsa.recoverPubKey(curve, e, {r, s, i}, i2);
+        // sign the message
+        if (secp256k1 != null) {
+            let buffer = toBuffer();
+            //console.log("[recoverHash] accelerating supported, length of sign: " + buffer.length);
+            var ret = PublicKey.fromBuffer(secp256k1.recover(dataSha256, buffer.slice(1), buffer[0] - 4 - 27, true));
+        
+            //time = (new Date().valueOf()) - time;
 
-        // time = (new Date().valueOf()) - time;
-        //console.log("[+" + time + "ms] recoverHash");
+            //console.log("[+" + time + "ms] recoverHash (c binding)");
 
-        return PublicKey.fromPoint(Q);
+            return ret;
+        }
+        else {
+            //console.log("[recoverHash] accelerating not supported");
+            const e = BigInteger.fromBuffer(dataSha256);
+            let i2 = i;
+            i2 -= 27;
+            i2 = i2 & 3;
+            const Q = ecdsa.recoverPubKey(curve, e, { r, s, i }, i2);
+
+            // time = (new Date().valueOf()) - time;
+            //console.log("[+" + time + "ms] recoverHash");
+
+            return PublicKey.fromPoint(Q);
+        }
     }
 
     function toBuffer() {
@@ -128,7 +143,7 @@ function Signature(r, s, i) {
     let signatureCache;
 
     function toString() {
-        if(signatureCache) {
+        if (signatureCache) {
             return signatureCache;
         }
         signatureCache = "SIG_K1_" + keyUtils.checkEncode(toBuffer(), "K1");
@@ -156,8 +171,8 @@ function Signature(r, s, i) {
 
     @return {Signature}
 */
-Signature.sign = async function(data, privateKey, encoding = "utf8") {
-    if(typeof data === "string") {
+Signature.sign = async function (data, privateKey, encoding = "utf8") {
+    if (typeof data === "string") {
         data = Buffer.from(data, encoding);
     }
     assert(Buffer.isBuffer(data), "data is a required String or Buffer");
@@ -183,13 +198,13 @@ function toArrayBuffer(myBuf) {
 
     @return {Signature}
 */
-Signature.signHash = async function(dataSha256, privateKey, encoding = "hex") {    
+Signature.signHash = async function (dataSha256, privateKey, encoding = "hex") {
     //let time = new Date().valueOf();
 
-    if(typeof dataSha256 === "string") {
+    if (typeof dataSha256 === "string") {
         dataSha256 = Buffer.from(dataSha256, encoding);
     }
-    if( dataSha256.length !== 32 || ! Buffer.isBuffer(dataSha256) )
+    if (dataSha256.length !== 32 || !Buffer.isBuffer(dataSha256))
         throw new Error("dataSha256: 32 byte buffer requred");
 
     privateKey = PrivateKey(privateKey);
@@ -230,7 +245,7 @@ Signature.signHash = async function(dataSha256, privateKey, encoding = "hex") {
     else {
         // console.log("[signHash] no accelerating supported");
 
-        
+
 
         var der, e, ecsignature, i, lenR, lenS, nonce;
         i = null;
@@ -261,7 +276,7 @@ Signature.signHash = async function(dataSha256, privateKey, encoding = "hex") {
     }
 };
 
-Signature.fromBuffer = function(buf) {
+Signature.fromBuffer = function (buf) {
     var i, r, s;
     assert(Buffer.isBuffer(buf), "Buffer is required");
     assert.equal(buf.length, 65, "Invalid signature length");
@@ -272,7 +287,7 @@ Signature.fromBuffer = function(buf) {
     return Signature(r, s, i);
 };
 
-Signature.fromHex = function(hex) {
+Signature.fromHex = function (hex) {
     return Signature.fromBuffer(Buffer.from(hex, "hex"));
 };
 
@@ -280,7 +295,7 @@ Signature.fromHex = function(hex) {
     @arg {string} signature - like SIG_K1_base58signature..
     @return {Signature} or `null` (invalid)
 */
-Signature.fromString = function(signature) {
+Signature.fromString = function (signature) {
     try {
         return Signature.fromStringOrThrow(signature);
     } catch (e) {
@@ -293,7 +308,7 @@ Signature.fromString = function(signature) {
     @throws {Error} invalid
     @return {Signature}
 */
-Signature.fromStringOrThrow = function(signature) {
+Signature.fromStringOrThrow = function (signature) {
     assert.equal(typeof signature, "string", "signature");
     const match = signature.match(/^SIG_([A-Za-z0-9]+)_([A-Za-z0-9]+)$/);
     assert(match != null && match.length === 3, "Expecting signature like: SIG_K1_base58signature..");
@@ -314,7 +329,7 @@ Signature.from = (o) => {
                     Buffer.isBuffer(o) ? Signature.fromBuffer(o) :
                         null : o;/*null or undefined*/
 
-    if(!signature) {
+    if (!signature) {
         throw new TypeError("signature should be a hex string or buffer");
     }
     return signature;

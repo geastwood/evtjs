@@ -491,12 +491,20 @@ describe("EvtLink", () => {
             tokenName: testingTmpData.addedTokenNamePrefix + "1",
             keyProvider: [ wif ]
         });
+
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: [ ]
+        });
         
         let parsed = await evtLink.parseEvtLink(link.rawText);
+        let validationResult = await evtLink.validateEveriPassUnsafe({ parsedEvtLink: parsed, apiCaller });
+        logger.verbose("[everiPass] validateUnsafe: " + JSON.stringify(validationResult, null, 2));
 
         logger.verbose("[everiPass] " + link.rawText);
         logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
         
+        assert(validationResult.valid, "should be a valid everiPass");
         assert(link.rawText, "should produce a EvtLink");
         assert(parsed.segments.length === 3, "struct is wrong: " + parsed.segments.length);
         assert(parsed.flag === 3, "flag is wrong: " + parsed.flag);

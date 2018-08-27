@@ -329,6 +329,45 @@ EvtLink.parseEvtLink = async function(text, options) {
     return parseQRCode(text, options);
 };
 
+EvtLink.validateEveriPassUnsafe = async function validateEveriPassUnsafe(options) {
+    // parse
+    if (!options.parsedEvtLink) {
+        options.parsedEvtLink = await EvtLink.parseEvtLink(options.evtLink);
+    }
+
+    // check time
+    let timestamp, domain, tokenName;
+
+    try {
+        if (!(options.parsedEvtLink.flag & 2)) {
+            throw new Error("Flag is not correct for everiPass");
+        }
+        timestamp = options.parsedEvtLink.segments.filter(x => x.typeKey == 42)[0].value * 1000 || 0;
+        domain = options.parsedEvtLink.segments.filter(x => x.typeKey == 91)[0].value;
+        tokenName = options.parsedEvtLink.segments.filter(x => x.typeKey == 92)[0].value;
+    }
+    catch (e) {
+        throw new Error("everiPass is in wrong format: the evtLink is not a well-formatted everiPass string.");
+    }
+
+    if (Math.abs(timestamp - new Date().getTime()) > 60000) {
+        throw new Error("everiPass is expired");
+    }
+
+    // check if the public key really has the token.
+    if (options.parsedEvtLink.publicKeys.length !== 1) {
+        throw new Error("For unsafe validation of everiPass, evtLink must have one and only one signature.");
+    }
+    
+    let list = await options.apiCaller.getOwnedTokens(options.parsedEvtLink.publicKeys); // TODO!!
+
+    if (list.filter(x => x.domain == domain && x.name == tokenName).length == 1) {
+        return { valid: true, domain, name: tokenName };
+    }
+
+    return { valid: false, domain, name: tokenName };
+};
+
 // list of available typeKey:
 // typeKey      description
 // 41           flag
@@ -406,6 +445,9 @@ EvtLink.getEveriPayText = async function(params) {
     }
     if (!params.linkId || params.linkId.length !== 32) {
         throw new Error("linkId is required");
+    }
+    if (params.maxAmount && !Number.isInteger(params.maxAmount)) {
+        throw new Error("maxAmount must be a integer (number)");
     }
 
     // add segments

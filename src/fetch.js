@@ -28,8 +28,10 @@ module.exports = {
             }
 
             return new Promise((resolve, reject) => {
+                let timeOutId = null;
+
                 if (options.networkTimeout) {
-                    setTimeout(() => {
+                    timeOutId = setTimeout(() => {
                         didTimeout = true;
                         reject(new Error("Request Timeout."));
                     }, options.networkTimeout);
@@ -38,6 +40,8 @@ module.exports = {
                 window.fetch(url, options)
                     .then(res => {
                         if (didTimeout) return;
+                        if (timeOutId !== null) clearTimeout(timeOutId);
+
                         resolve(res);
                     })
                     .catch((e) => {
@@ -72,6 +76,8 @@ module.exports = {
                     req.headers["Content-Length"] = new Buffer(options.body, "utf8").length;
                 }
 
+                let timeOutId = null;
+
                 let reqObj = http.request(req, response => {
                     if (didTimeout) return;
 
@@ -83,6 +89,8 @@ module.exports = {
 
                     response.on("end", () => {
                         if (didTimeout) return;
+                        if (timeOutId !== null) clearTimeout(timeOutId);
+
                         logger.verbose("[fetch] finished " + response.statusCode + " " + url);
 
                         var parsedResObj = {
@@ -110,7 +118,7 @@ module.exports = {
                         reqObj.abort();
                     });
 
-                    setTimeout(function() {
+                    timeOutId = setTimeout(function() {
                         didTimeout = true;
                         reqObj.abort();
                     }, options.networkTimeout);
