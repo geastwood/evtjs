@@ -10,7 +10,7 @@
         "coveralls": "npm run coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
         "build": "babel --copy-files src --out-dir lib",
         "build_browser": "npm run build && mkdir -p dist && browserify --external secp256k1 -o dist/evt.js -s EVT lib/index.js && uglifyjs dist/evt.js --compress --mangle -o dist/evt.min.js",
-        "build_browser_test": "npm run build && mkdir -p dist && browserify -o dist/evt-test.js lib/*.test.js",
+        "build_browser_test": "npm run build && mkdir -p dist && browserify --external secp256k1 -o dist/evt-test.js lib/*.test.js",
         "prepublishOnly": "npm run build_browser && npm run test_lib"
     },
     "repository": {

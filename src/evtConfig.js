@@ -9,10 +9,6 @@
  * more informatino.
  */
 
-const defaultConfig = {
-
-};
-
 /**
   * represents EvtConfig
   */
@@ -31,6 +27,7 @@ class EvtConfig {
         if (!this.endpoint) this.endpoint = { };
         if (!this.endpoint.port) this.endpoint.port = 8888;
         if (!this.endpoint.protocol) this.endpoint.protocol = "https";
+        if (!this.networkTimeout) this.networkTimeout = 15000;
     }
 }
 

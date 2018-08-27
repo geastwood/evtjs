@@ -72,11 +72,14 @@ describe("APICaller write API test", () => {
     it("empty actions", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
-            endpoint: network
+            endpoint: network,
+            networkTimeout: 1000
         });
 
         try { await apiCaller.pushTransaction(); }
         catch (e) {
+            console.log("empty exception:");
+            console.log(e);
             return;
         }
 
@@ -86,7 +89,8 @@ describe("APICaller write API test", () => {
     it("new_group", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
-            endpoint: network
+            endpoint: network,
+            networkTimeout: 3000
         });
 
         testingTmpData.newGroupName = "g" + parseInt((new Date()).valueOf() / 5000);

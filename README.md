@@ -64,7 +64,7 @@ const apiCaller = EVT({
     // keyProvider should be string of private key (aka. wit, can generate from everiSigner)
     // you can also pass a function that return that string (or even Promise<string> for a async function)
     endpoint: network,
-    keyProvider: 'xxxxxxxxxxxxxxxxxxxxxxxxxx' 
+    keyProvider: 'xxxxxxxxxxxxxxxxxxxxxxxxxx'
 });
 
 // call API
@@ -178,7 +178,8 @@ var apiCaller = EVT(args);
 
 - `args`: a object, the following fields are required:
   - `keyProvider`: keyProvider should be string or a array of string representing private keys, or a function which returns one private key or one array of several keys or a `Promise` that will resolves with one private key or one array of several key.
-  - `endpoint`: a object to specify the endpoint of the node to be connected
+  - `endpoint`: a object to specify the endpoint of the node to be connected.
+  - `networkTimeout`: (optional) Timeout in milliseconds. The default value is 15000.
 
 Here are several example of `keyProvider`:
 

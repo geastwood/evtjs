@@ -11,7 +11,6 @@ const Structs = require("./structs");
 const Fcbuffer = require("fcbuffer");
 
 let structs = Structs({ });
-let structstransaction = structs.structs.transaction;
 
 /**
  * APICaller for everiToken
@@ -52,7 +51,8 @@ class APICaller {
             body: request.body ? JSON.stringify(request.body) : undefined,
             headers: {
                 "Content-Type": "application/json"
-            }
+            },
+            networkTimeout: this.config.networkTimeout
         });
         
         let ret = await res.json();
@@ -824,7 +824,7 @@ class APICaller {
         });
 
         if (ret.binargs) {
-            console.log("hhhh" + abi.action);
+            /*console.log("hhhh" + abi.action);
             if (structs.structs[abi.action]) {
                 
                 let obj = structs.structs[abi.action].fromObject(abi.args);
@@ -833,7 +833,7 @@ class APICaller {
                 console.log("==== abi testing ===");
                 console.log("local: " + bin.toString("hex"));
                 console.log("remote:" + ret.binargs);
-            }
+            } TODO */
             return ret;
         }
 

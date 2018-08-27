@@ -19,13 +19,32 @@ module.exports = {
      * @param {*} options 
      */
     fetch(url, options) {
+        let didTimeout = false;
+
         if (typeof window === "object" && typeof window.fetch === "function") {
             // Browser with fetch support
             if (options.headers) {
                 options.headers = new Headers(options.headers);
             }
 
-            return window.fetch(url, options);
+            return new Promise((resolve, reject) => {
+                if (options.networkTimeout) {
+                    setTimeout(() => {
+                        didTimeout = true;
+                        reject(new Error("Request Timeout."));
+                    }, options.networkTimeout);
+                }
+                
+                window.fetch(url, options)
+                    .then(res => {
+                        if (didTimeout) return;
+                        resolve(res);
+                    })
+                    .catch((e) => {
+                        if (didTimeout) return;
+                        reject(e);
+                    });
+            });
         }
         else {
             // Node
@@ -54,6 +73,8 @@ module.exports = {
                 }
 
                 let reqObj = http.request(req, response => {
+                    if (didTimeout) return;
+
                     var buf = new Buffer(0);
 
                     response.on("data", (chunk) => {
@@ -61,6 +82,7 @@ module.exports = {
                     });
 
                     response.on("end", () => {
+                        if (didTimeout) return;
                         logger.verbose("[fetch] finished " + response.statusCode + " " + url);
 
                         var parsedResObj = {
@@ -81,6 +103,18 @@ module.exports = {
                         res(parsedResObj);
                     });
                 });
+
+                if (options.networkTimeout) {
+                    reqObj.setTimeout(options.networkTimeout, function() {
+                        didTimeout = true;
+                        reqObj.abort();
+                    });
+
+                    setTimeout(function() {
+                        didTimeout = true;
+                        reqObj.abort();
+                    }, options.networkTimeout);
+                }
 
                 if (options.body) {
                     reqObj.write(options.body);
