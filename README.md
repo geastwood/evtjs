@@ -775,15 +775,15 @@ A example:
 }]
 ```
 
-### getFungibleSymbolDetail(name) => Promise
+### getFungibleSymbolDetail(sym_id) => Promise
 
-Get detail information about a fungible token symbol which has provided `name`.
+Get detail information about a fungible token symbol which has provided `sym_id`.
 
 > Make sure you have history_plugin enabled on connected node
 
 #### Parameters
 
-- `name`: The symbol name to query about, only the name, precision should not be included (required)
+- `sym_id`: The symbol id to query about, only the id (number), precision should not be included (required)
 
 #### Response
 
