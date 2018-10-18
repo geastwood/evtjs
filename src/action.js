@@ -174,6 +174,55 @@ const domainKeyMappers = {
 
         return "";
     },
+
+    "recycleft": (action, transfered) => {
+        transfered.domain = ".fungible";
+        transfered.key = String(action.args.number.split("#")[1]);
+
+        if (!transfered.key) {
+            throw new Error("number is invalid");
+        }
+    },
+
+    "newlock": (action, transfered) => {
+        transfered.domain = ".lock";
+        transfered.key = String(action.args.name);
+
+        if (!transfered.key) {
+            throw new Error("proposal name is invalid");
+        }
+
+        if (!String(action.args.proposer)) {
+            throw new Error("proposal proposer cannot be empty");
+        }
+    },
+
+    "aprvlock": (action, transfered) => {
+        transfered.domain = ".lock";
+        transfered.key = String(action.args.name);
+
+        if (!transfered.key) {
+            throw new Error("proposal name is invalid");
+        }
+
+        if (!String(action.args.approver)) {
+            throw new Error("proposal approver cannot be empty");
+        }
+    },
+
+    "tryunlock": (action, transfered) => {
+        transfered.domain = ".lock";
+        transfered.key = String(action.args.name);
+
+        if (!transfered.key) {
+            throw new Error("proposal name is invalid");
+        }
+
+        if (!String(action.args.executor)) {
+            throw new Error("proposal executor cannot be empty");
+        }
+    },
+
 };
 
 module.exports = EvtAction;

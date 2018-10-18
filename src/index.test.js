@@ -187,7 +187,7 @@ describe("APICaller write API test", () => {
 
         let res = await apiCaller.getDomainDetail(testingTmpData.newDomainName);
         assert(res.name === testingTmpData.newDomainName, "expected right domain name");
-    });
+    }).timeout(10000);
 
     it("issue_tokens", async function () {
         const apiCaller = new EVT({
@@ -227,7 +227,7 @@ describe("APICaller write API test", () => {
                 ]
             })
         );
-    });
+    }).timeout(10000);
 
     it("new_fungible", async function () {
         const apiCaller = new EVT({
@@ -248,6 +248,25 @@ describe("APICaller write API test", () => {
                 total_supply: "100000.00000 S#" + testingTmpData.newSymbol
             })
         )).transactionId;
+    });
+
+    // Recycle Tokens
+    it("recycleft", async function () {
+
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        let anwser = await apiCaller.pushTransaction(
+            new EVT.EvtAction("recycleft", {
+                address: publicKey,
+                number: "10.00000 S#" + testingTmpData.newSymbol,
+                memo: "Test of recycleft"
+            })
+        );
+        console.log("233333", anwser);
+
     });
 
     /*it("cancelsuspend", async function () {
@@ -362,7 +381,7 @@ describe("APICaller read API test", () => {
 
         assert(Array.isArray(response), "expected array");
         // TODO must have data (after creating transactions)
-    });
+    }).timeout(10000);
 
     it("getFungibleSymbolDetail", async () => {
         const apiCaller = EVT({
