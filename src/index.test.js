@@ -250,25 +250,6 @@ describe("APICaller write API test", () => {
         )).transactionId;
     });
 
-    // Recycle Tokens
-    it("recycleft", async function () {
-
-        const apiCaller = new EVT({
-            keyProvider: wif,
-            endpoint: network
-        });
-
-        let anwser = await apiCaller.pushTransaction(
-            new EVT.EvtAction("recycleft", {
-                address: publicKey,
-                number: "10.00000 S#" + testingTmpData.newSymbol,
-                memo: "Test of recycleft"
-            })
-        );
-        console.log("233333", anwser);
-
-    });
-
     /*it("cancelsuspend", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
