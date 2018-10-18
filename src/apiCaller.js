@@ -755,9 +755,11 @@ class APICaller {
         let body = { transaction: params.transaction };
 
         // make sure that it there is basic information about the chain
-        //if (!this.__cachedInfo) {
+        // because we need some information from getInfo and the information will be expired after some time
+        // so at the time being we will call getInfo eachtime we push a transaction
+        // It can not be changed to do in cycle because node split some information into sections
+        // and you can't guess when it will be expired
         await this.getInfo();
-        //}
 
         for (let i = 0; i < body.transaction.actions.length; ++i) {
             if (!(body.transaction.actions[i] instanceof EvtAction)) {
