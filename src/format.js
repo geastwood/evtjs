@@ -1,59 +1,59 @@
-const assert = require('assert')
-const {Long} = require('bytebuffer')
+const assert = require("assert");
+const {Long} = require("bytebuffer");
 
 module.exports = {
-  ULong,
-  isName,
-  encodeName, // encode human readable name to uint64 (number string)
-  decodeName, // decode from uint64 to human readable
-  encodeName128,
-  decodeName128,
-  encodeNameHex: name => Long.fromString(encodeName(name), true).toString(16),
-  decodeNameHex: (hex, littleEndian = true) =>
-    decodeName(Long.fromString(hex, true, 16).toString(), littleEndian),
-  UDecimalString,
-  UDecimalPad,
-  UDecimalImply,
-  UDecimalUnimply,
-  parseAssetSymbol
-}
+    ULong,
+    isName,
+    encodeName, // encode human readable name to uint64 (number string)
+    decodeName, // decode from uint64 to human readable
+    encodeName128,
+    decodeName128,
+    encodeNameHex: name => Long.fromString(encodeName(name), true).toString(16),
+    decodeNameHex: (hex, littleEndian = true) =>
+        decodeName(Long.fromString(hex, true, 16).toString(), littleEndian),
+    UDecimalString,
+    UDecimalPad,
+    UDecimalImply,
+    UDecimalUnimply,
+    parseAssetSymbol
+};
 
 function ULong(value, unsigned = true, radix = 10) {
-  if(typeof value === 'number') {
+    if(typeof value === "number") {
     // Some JSON libs use numbers for values under 53 bits or strings for larger.
     // Accomidate but double-check it..
-    if(value > Number.MAX_SAFE_INTEGER)
-      throw new TypeError('value parameter overflow')
+        if(value > Number.MAX_SAFE_INTEGER)
+            throw new TypeError("value parameter overflow");
 
-    value = Long.fromString(String(value), unsigned, radix)
-  } else if(typeof value === 'string') {
-    value = Long.fromString(value, unsigned, radix)
-  } else if(!Long.isLong(value)) {
-    throw new TypeError('value parameter is a requied Long, Number or String')
-  }
-  return value
+        value = Long.fromString(String(value), unsigned, radix);
+    } else if(typeof value === "string") {
+        value = Long.fromString(value, unsigned, radix);
+    } else if(!Long.isLong(value)) {
+        throw new TypeError("value parameter is a requied Long, Number or String");
+    }
+    return value;
 }
 
 function isName(str, err) {
-  try {
-    encodeName(str)
-    return true
-  } catch(error) {
-    if(err) {
-      err(error)
+    try {
+        encodeName(str);
+        return true;
+    } catch(error) {
+        if(err) {
+            err(error);
+        }
+        return false;
     }
-    return false
-  }
 }
 
-const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
+const charmap = ".12345abcdefghijklmnopqrstuvwxyz";
 const charidx = ch => {
-  const idx = charmap.indexOf(ch)
-  if(idx === -1)
-    throw new TypeError(`Invalid character: '${ch}'`)
+    const idx = charmap.indexOf(ch);
+    if(idx === -1)
+        throw new TypeError(`Invalid character: '${ch}'`);
 
-  return idx
-}
+    return idx;
+};
 
 /** Original Name encode and decode logic is in github.com/eosio/eos  native.hpp */
 
@@ -70,39 +70,39 @@ const charidx = ch => {
     always used because a number could exceed JavaScript's 52 bit limit.
 */
 function encodeName(name, littleEndian = true) {
-  if(typeof name !== 'string')
-    throw new TypeError('name parameter is a required string')
+    if(typeof name !== "string")
+        throw new TypeError("name parameter is a required string");
 
-  if(name.length > 13)
-    throw new TypeError('A name can be up to 13 characters long')
+    if(name.length > 13)
+        throw new TypeError("A name can be up to 13 characters long");
 
-  let bitstr = ''
-  for(let i = 0; i <= 12; i++) { // process all 64 bits (even if name is short)
-    const c = i < name.length ? charidx(name[i]) : 0
-    const bitlen = i < 12 ? 5 : 4
-    let bits = Number(c).toString(2)
-    if(bits.length > bitlen) {
-      throw new TypeError('Invalid name ' + name)
+    let bitstr = "";
+    for(let i = 0; i <= 12; i++) { // process all 64 bits (even if name is short)
+        const c = i < name.length ? charidx(name[i]) : 0;
+        const bitlen = i < 12 ? 5 : 4;
+        let bits = Number(c).toString(2);
+        if(bits.length > bitlen) {
+            throw new TypeError("Invalid name " + name);
+        }
+        bits = "0".repeat(bitlen - bits.length) + bits;
+        bitstr += bits;
     }
-    bits = '0'.repeat(bitlen - bits.length) + bits
-    bitstr += bits
-  }
 
-  const value = Long.fromString(bitstr, true, 2)
+    const value = Long.fromString(bitstr, true, 2);
 
-  // convert to LITTLE_ENDIAN
-  let leHex = ''
-  const bytes = littleEndian ? value.toBytesLE() : value.toBytesBE()
-  for(const b of bytes) {
-    const n = Number(b).toString(16)
-    leHex += (n.length === 1 ? '0' : '') + n
-  }
+    // convert to LITTLE_ENDIAN
+    let leHex = "";
+    const bytes = littleEndian ? value.toBytesLE() : value.toBytesBE();
+    for(const b of bytes) {
+        const n = Number(b).toString(16);
+        leHex += (n.length === 1 ? "0" : "") + n;
+    }
 
-  const ulName = Long.fromString(leHex, true, 16).toString()
+    const ulName = Long.fromString(leHex, true, 16).toString();
 
-  // console.log('encodeName', name, value.toString(), ulName.toString(), JSON.stringify(bitstr.split(/(.....)/).slice(1)))
+    // console.log('encodeName', name, value.toString(), ulName.toString(), JSON.stringify(bitstr.split(/(.....)/).slice(1)))
 
-  return ulName.toString()
+    return ulName.toString();
 }
 
 /**
@@ -110,34 +110,34 @@ function encodeName(name, littleEndian = true) {
   @return {string}
 */
 function decodeName(value, littleEndian = true) {
-  value = ULong(value)
+    value = ULong(value);
 
-  // convert from LITTLE_ENDIAN
-  let beHex = ''
-  const bytes = littleEndian ? value.toBytesLE() : value.toBytesBE()
-  for(const b of bytes) {
-    const n = Number(b).toString(16)
-    beHex += (n.length === 1 ? '0' : '') + n
-  }
-  beHex += '0'.repeat(16 - beHex.length)
+    // convert from LITTLE_ENDIAN
+    let beHex = "";
+    const bytes = littleEndian ? value.toBytesLE() : value.toBytesBE();
+    for(const b of bytes) {
+        const n = Number(b).toString(16);
+        beHex += (n.length === 1 ? "0" : "") + n;
+    }
+    beHex += "0".repeat(16 - beHex.length);
 
-  const fiveBits = Long.fromNumber(0x1f, true)
-  const fourBits = Long.fromNumber(0x0f, true)
-  const beValue = Long.fromString(beHex, true, 16)
+    const fiveBits = Long.fromNumber(0x1f, true);
+    const fourBits = Long.fromNumber(0x0f, true);
+    const beValue = Long.fromString(beHex, true, 16);
 
-  let str = ''
-  let tmp = beValue
+    let str = "";
+    let tmp = beValue;
 
-  for(let i = 0; i <= 12; i++) {
-    const c = charmap[tmp.and(i === 0 ? fourBits : fiveBits)]
-    str = c + str
-    tmp = tmp.shiftRight(i === 0 ? 4 : 5)
-  }
-  str = str.replace(/\.+$/, '') // remove trailing dots (all of them)
+    for(let i = 0; i <= 12; i++) {
+        const c = charmap[tmp.and(i === 0 ? fourBits : fiveBits)];
+        str = c + str;
+        tmp = tmp.shiftRight(i === 0 ? 4 : 5);
+    }
+    str = str.replace(/\.+$/, ""); // remove trailing dots (all of them)
 
-  // console.log('decodeName', str, beValue.toString(), value.toString(), JSON.stringify(beValue.toString(2).split(/(.....)/).slice(1)))
+    // console.log('decodeName', str, beValue.toString(), value.toString(), JSON.stringify(beValue.toString(2).split(/(.....)/).slice(1)))
 
-  return str
+    return str;
 }
 
 /**
@@ -153,22 +153,22 @@ function decodeName(value, littleEndian = true) {
     always used because a number could exceed JavaScript's 52 bit limit.
 */
 function encodeName128(name, littleEndian = true) {
-    if(typeof name !== 'string')
-      throw new TypeError('name parameter is a required string')
+    if(typeof name !== "string")
+        throw new TypeError("name parameter is a required string");
   
     if(name.length > 25)
-      throw new TypeError('A name can be up to 25 characters long')
+        throw new TypeError("A name can be up to 25 characters long");
   
-    let bitstr = ''
+    let bitstr = "";
     for(let i = 0; i <= 25; i++) { // process all 64 bits (even if name is short)
-      const c = i < name.length ? charidx(name[i]) : 0
-      const bitlen = i < 25 ? 5 : 3
-      let bits = Number(c).toString(2)
-      if(bits.length > bitlen) {
-        throw new TypeError('Invalid name ' + name)
-      }
-      bits = '0'.repeat(bitlen - bits.length) + bits
-      bitstr += bits
+        const c = i < name.length ? charidx(name[i]) : 0;
+        const bitlen = i < 25 ? 5 : 3;
+        let bits = Number(c).toString(2);
+        if(bits.length > bitlen) {
+            throw new TypeError("Invalid name " + name);
+        }
+        bits = "0".repeat(bitlen - bits.length) + bits;
+        bitstr += bits;
     }
 
     let nameBuffer = new ByteBuffer(undefined, true);
@@ -197,42 +197,42 @@ function encodeName128(name, littleEndian = true) {
     // console.log('encodeName', name, value.toString(), ulName.toString(), JSON.stringify(bitstr.split(/(.....)/).slice(1)))*/
   
     return nameBuffer;
-  }
+}
   
-  /**
+/**
     @arg {Long|String|number} value uint64
     @return {string}
   */
-  function decodeName128(value, littleEndian = true) {
-    value = ULong(value)
+function decodeName128(value, littleEndian = true) {
+    value = ULong(value);
   
     // convert from LITTLE_ENDIAN
-    let beHex = ''
-    const bytes = littleEndian ? value.toBytesLE() : value.toBytesBE()
+    let beHex = "";
+    const bytes = littleEndian ? value.toBytesLE() : value.toBytesBE();
     for(const b of bytes) {
-      const n = Number(b).toString(16)
-      beHex += (n.length === 1 ? '0' : '') + n
+        const n = Number(b).toString(16);
+        beHex += (n.length === 1 ? "0" : "") + n;
     }
-    beHex += '0'.repeat(16 - beHex.length)
+    beHex += "0".repeat(16 - beHex.length);
   
-    const fiveBits = Long.fromNumber(0x1f, true)
-    const fourBits = Long.fromNumber(0x0f, true)
-    const beValue = Long.fromString(beHex, true, 16)
+    const fiveBits = Long.fromNumber(0x1f, true);
+    const fourBits = Long.fromNumber(0x0f, true);
+    const beValue = Long.fromString(beHex, true, 16);
   
-    let str = ''
-    let tmp = beValue
+    let str = "";
+    let tmp = beValue;
   
     for(let i = 0; i <= 12; i++) {
-      const c = charmap[tmp.and(i === 0 ? fourBits : fiveBits)]
-      str = c + str
-      tmp = tmp.shiftRight(i === 0 ? 4 : 5)
+        const c = charmap[tmp.and(i === 0 ? fourBits : fiveBits)];
+        str = c + str;
+        tmp = tmp.shiftRight(i === 0 ? 4 : 5);
     }
-    str = str.replace(/\.+$/, '') // remove trailing dots (all of them)
+    str = str.replace(/\.+$/, ""); // remove trailing dots (all of them)
   
     // console.log('decodeName', str, beValue.toString(), value.toString(), JSON.stringify(beValue.toString(2).split(/(.....)/).slice(1)))
   
-    return str
-  }
+    return str;
+}
 
 /**
   Normalize and validate decimal string (potentially large values).  Should
@@ -244,31 +244,31 @@ function encodeName128(name, littleEndian = true) {
   @return {string} value
 */
 function UDecimalString(value) {
-  assert(value != null, 'value is required')
-  value = value === 'object' && value.toString ? value.toString() : String(value)
+    assert(value != null, "value is required");
+    value = value === "object" && value.toString ? value.toString() : String(value);
 
 
-  if(value[0] === '.') {
-    value = `0${value}`
-  }
-
-  const part = value.split('.')
-  assert(part.length <= 2, `invalid decimal ${value}`)
-  assert(/^\d+(,?\d)*\d*$/.test(part[0]), `invalid decimal ${value}`)
-
-  if(part.length === 2) {
-    assert(/^\d*$/.test(part[1]), `invalid decimal ${value}`)
-    part[1] = part[1].replace(/0+$/, '')// remove suffixing zeros
-    if(part[1] === '') {
-      part.pop()
+    if(value[0] === ".") {
+        value = `0${value}`;
     }
-  }
 
-  part[0] = part[0].replace(/^0*/, '')// remove leading zeros
-  if(part[0] === '') {
-    part[0] = '0'
-  }
-  return part.join('.')
+    const part = value.split(".");
+    assert(part.length <= 2, `invalid decimal ${value}`);
+    assert(/^\d+(,?\d)*\d*$/.test(part[0]), `invalid decimal ${value}`);
+
+    if(part.length === 2) {
+        assert(/^\d*$/.test(part[1]), `invalid decimal ${value}`);
+        part[1] = part[1].replace(/0+$/, "");// remove suffixing zeros
+        if(part[1] === "") {
+            part.pop();
+        }
+    }
+
+    part[0] = part[0].replace(/^0*/, "");// remove leading zeros
+    if(part[0] === "") {
+        part[0] = "0";
+    }
+    return part.join(".");
 }
 
 /**
@@ -283,27 +283,27 @@ function UDecimalString(value) {
   @return {string} decimal part is added and zero padded to match precision
 */
 function UDecimalPad(num, precision) {
-  const value = UDecimalString(num)
-  assert.equal('number', typeof precision, 'precision')
+    const value = UDecimalString(num);
+    assert.equal("number", typeof precision, "precision");
 
-  const part = value.split('.')
+    const part = value.split(".");
 
-  if(precision === 0 && part.length === 1) {
-    return part[0]
-  }
+    if(precision === 0 && part.length === 1) {
+        return part[0];
+    }
 
-  if(part.length === 1) {
-    return `${part[0]}.${'0'.repeat(precision)}`
-  } else {
-    const pad = precision - part[1].length
-    assert(pad >= 0, `decimal '${value}' exceeds precision ${precision}`)
-    return `${part[0]}.${part[1]}${'0'.repeat(pad)}`
-  }
+    if(part.length === 1) {
+        return `${part[0]}.${"0".repeat(precision)}`;
+    } else {
+        const pad = precision - part[1].length;
+        assert(pad >= 0, `decimal '${value}' exceeds precision ${precision}`);
+        return `${part[0]}.${part[1]}${"0".repeat(pad)}`;
+    }
 }
 
 /** Ensures proper trailing zeros then removes decimal place. */
 function UDecimalImply(value, precision) {
-  return UDecimalPad(value, precision).replace('.', '')
+    return UDecimalPad(value, precision).replace(".", "");
 }
 
 /**
@@ -315,19 +315,19 @@ function UDecimalImply(value, precision) {
   @return {number} 1.0000
 */
 function UDecimalUnimply(value, precision) {
-  assert(value != null, 'value is required')
-  value = value === 'object' && value.toString ? value.toString() : String(value)
-  assert(/^\d+$/.test(value), `invalid whole number ${value}`)
+    assert(value != null, "value is required");
+    value = value === "object" && value.toString ? value.toString() : String(value);
+    assert(/^\d+$/.test(value), `invalid whole number ${value}`);
 
-  // Ensure minimum length
-  const pad = precision - value.length
-  if(pad > 0) {
-    value = `${'0'.repeat(pad)}${value}`
-  }
+    // Ensure minimum length
+    const pad = precision - value.length;
+    if(pad > 0) {
+        value = `${"0".repeat(pad)}${value}`;
+    }
 
-  const dotIdx = value.length - precision
-  value = `${value.slice(0, dotIdx)}.${value.slice(dotIdx)}`
-  return UDecimalString(value) // Normalize
+    const dotIdx = value.length - precision;
+    value = `${value.slice(0, dotIdx)}.${value.slice(dotIdx)}`;
+    return UDecimalString(value); // Normalize
 }
 
 /**
@@ -340,31 +340,31 @@ function UDecimalUnimply(value, precision) {
   @throws TypeError
 */
 function parseAssetSymbol(assetSymbol, precision = null) {
-  assert.equal(typeof assetSymbol, 'string', 'Asset symbol should be string')
+    assert.equal(typeof assetSymbol, "string", "Asset symbol should be string");
 
-  if(assetSymbol.indexOf(',') === -1) {
-    assetSymbol = `,${assetSymbol}` // null precision
-  }
-  const v = assetSymbol.split(',')
-  assert(v.length === 2, `Asset symbol "${assetSymbol}" may have a precision like this: 4,SYM`)
+    if(assetSymbol.indexOf(",") === -1) {
+        assetSymbol = `,${assetSymbol}`; // null precision
+    }
+    const v = assetSymbol.split(",");
+    assert(v.length === 2, `Asset symbol "${assetSymbol}" may have a precision like this: 4,SYM`);
 
-  const symbolPrecision = v[0] == '' ? null : parseInt(v[0])
-  const symbol = v[1]
+    const symbolPrecision = v[0] == "" ? null : parseInt(v[0]);
+    const symbol = v[1];
 
-  if(precision != null) {
-    assert.equal(precision, symbolPrecision, 'Asset symbol precision mismatch')
-  } else {
-    precision = symbolPrecision
-  }
+    if(precision != null) {
+        assert.equal(precision, symbolPrecision, "Asset symbol precision mismatch");
+    } else {
+        precision = symbolPrecision;
+    }
 
-  if(precision != null) {
-    assert.equal(typeof precision, 'number', 'precision')
-    assert(precision > -1, 'precision must be positive')
-  }
+    if(precision != null) {
+        assert.equal(typeof precision, "number", "precision");
+        assert(precision > -1, "precision must be positive");
+    }
 
-  assert(/^[A-Z]+$/.test(symbol), `Asset symbol should contain only uppercase letters A-Z`)
-  assert(precision <= 18, `Precision should be 18 characters or less`)
-  assert(symbol.length <= 7, `Asset symbol is 7 characters or less`)
+    assert(/^[A-Z]+$/.test(symbol), "Asset symbol should contain only uppercase letters A-Z");
+    assert(precision <= 18, "Precision should be 18 characters or less");
+    assert(symbol.length <= 7, "Asset symbol is 7 characters or less");
 
-  return {precision, symbol}
+    return {precision, symbol};
 }

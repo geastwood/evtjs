@@ -51,7 +51,7 @@ module.exports = (config = {}, extendedSchema) => {
 
     const {assetCache} = config;
 
-    const eosTypes = {
+    const evtTypes = {
         name: ()=> [Name],
         name128: ()=> [Name128],
         public_key: () => [variant(PublicKeyEcc)],
@@ -61,7 +61,7 @@ module.exports = (config = {}, extendedSchema) => {
         signature: () => [variant(SignatureType)]
     };
 
-    const customTypes = Object.assign({}, eosTypes, config.customTypes);
+    const customTypes = Object.assign({}, evtTypes, config.customTypes);
     config = Object.assign({override}, {customTypes}, config);
 
     // Do not sort transaction actions
