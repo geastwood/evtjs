@@ -1,5 +1,6 @@
 const assert = require('assert')
-const {Long} = require('bytebuffer')
+const ByteBuffer = require('bytebuffer')
+const {Long} = ByteBuffer
 
 module.exports = {
   ULong,
@@ -47,11 +48,17 @@ function isName(str, err) {
 }
 
 const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
+const charmap128 = '.-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const charidx = ch => {
   const idx = charmap.indexOf(ch)
   if(idx === -1)
     throw new TypeError(`Invalid character: '${ch}'`)
-
+  return idx
+}
+const charidx128 = ch => {
+  const idx = charmap128.indexOf(ch)
+  if(idx === -1)
+    throw new TypeError(`Invalid character: '${ch}'`)
   return idx
 }
 
@@ -156,19 +163,27 @@ function encodeName128(name, littleEndian = true) {
     if(typeof name !== 'string')
       throw new TypeError('name parameter is a required string')
   
-    if(name.length > 25)
-      throw new TypeError('A name can be up to 25 characters long')
+    if(name.length > 21)
+      throw new TypeError('A name can be up to 21 characters long')
   
     let bitstr = ''
-    for(let i = 0; i <= 25; i++) { // process all 64 bits (even if name is short)
-      const c = i < name.length ? charidx(name[i]) : 0
-      const bitlen = i < 25 ? 5 : 3
+    for(let i = 0; i < 21; i++) { // process all 64 bits (even if name is short)
+      const c = i < name.length ? charidx128(name[i]) : 0
       let bits = Number(c).toString(2)
-      if(bits.length > bitlen) {
+      if (bits.length > 6) {
         throw new TypeError('Invalid name ' + name)
       }
-      bits = '0'.repeat(bitlen - bits.length) + bits
-      bitstr += bits
+      bits = '0'.repeat(6 - bits.length) + bits
+      bitstr = bits + bitstr
+    }
+    if (name.length <= 5) {
+        bitstr += "00"
+    } else if (name.length <= 10) {
+        bitstr += "01"
+    } else if (name.length <= 15) {
+        bitstr += "10"
+    } else {
+        bitstr += "11"
     }
 
     let nameBuffer = new ByteBuffer(undefined, true);
@@ -222,8 +237,8 @@ function encodeName128(name, littleEndian = true) {
     let str = ''
     let tmp = beValue
   
-    for(let i = 0; i <= 12; i++) {
-      const c = charmap[tmp.and(i === 0 ? fourBits : fiveBits)]
+    for(let i = 0; i <= 21; i++) {
+      const c = charmap128[tmp.and(i === 0 ? fourBits : fiveBits)]
       str = c + str
       tmp = tmp.shiftRight(i === 0 ? 4 : 5)
     }

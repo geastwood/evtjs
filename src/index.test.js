@@ -41,7 +41,7 @@ describe("EvtKey", () => {
         assert(name128.length == 21, "should produce a string with a length of 21");
 
         assert((await EVT.EvtKey.random32BytesAsHex()), "should produce a 32 bytes hex");
-    });
+    }).timeout(5000);
 
     it("test ecc key generation", async () => {
         let key = await EVT.EvtKey.randomPrivateKey();
@@ -248,7 +248,7 @@ describe("APICaller write API test", () => {
                 total_supply: "100000.00000 S#" + testingTmpData.newSymbol
             })
         )).transactionId;
-    });
+    }).timeout(5000);
 
     /*it("cancelsuspend", async function () {
         const apiCaller = new EVT({

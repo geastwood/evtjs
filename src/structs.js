@@ -133,6 +133,7 @@ const Name128 = (validation) => {
         // if(validation.debug) {
         //   console.error(`${value}`, (Name.appendByteBuffer))
         // }
+
             const bytes = encodeName128(value, false);
 
             while (bytes.offset < bytes.limit) {

@@ -14,11 +14,16 @@ const network = {
 };
 
 const testingTmpData = {
-    newDomainName: null,
-    addedTokenNamePrefix: null
+    newDomainName: "nd" + (new Date()).valueOf(),
+    addedTokenNamePrefix: "tk" + ((new Date()).valueOf() / 500)
 };
 
 logger.writeLog = true;
+
+const newCaller = () => new EVT({
+    keyProvider: wif,
+    endpoint: network,
+});
 
 /* New Actions Test Script Here */
 /**
@@ -26,26 +31,56 @@ logger.writeLog = true;
  * - recycle
  * - lock
  */
-describe("Action API Test", () => {
+describe("Action ABI Test", () => {
 
-    /* recycle tokens */
-    it("recycleft", async function () {
+    /* recycle tokens: not available on testnet yet */
+    // it("recycleft", async function () {
 
-        const apiCaller = new EVT({
-            keyProvider: wif,
-            endpoint: network
+    //     const apiCaller = new EVT({
+    //         keyProvider: wif,
+    //         endpoint: network
+    //     });
+
+    //     let anwser = await apiCaller.pushTransaction(
+    //         new EVT.EvtAction("recycleft", {
+    //             address: publicKey,
+    //             number: "10.00000 S#1",
+    //             memo: "Test of recycleft"
+    //         })
+    //     );
+
+    //     console.log("=== recycleft ===\n", anwser);
+
+    // }).timeout(3000);
+
+    it("issuetoken", async () => {
+
+        let apiCaller = newCaller();
+        let testAction = new EVT.EvtAction("issuetoken", {
+            "domain": "shoRt",
+            "names": [
+                "oneUnder10",
+                "moreStrUnder.15",
+                "largestCanGetBelow-21"
+            ],
+            "owner": [
+                Key.privateToPublic(wif)
+            ]
         });
+        await testAction.calculateDomainAndKey();
+        await apiCaller.getInfo();
+        let action = { action: testAction.actionName, args: testAction.abi };
 
-        let anwser = await apiCaller.pushTransaction(
-            new EVT.EvtAction("recycleft", {
-                address: publicKey,
-                number: "10.00000 S#1",
-                memo: "Test of recycleft"
-            })
-        );
+        // console.log(action);
 
-        console.log("=== recycleft ===\n", anwser);
+        let throughAPI = await apiCaller.__chainAbiJsonToBinByAPI(action);
+        let throughFC = await apiCaller.__chainAbiJsonToBinByFC(action);
+        console.log(throughAPI.binargs);
+        console.log("----------");
+        console.log(throughFC);
 
-    }).timeout(3000);
+        assert(throughFC.binargs === throughAPI);
+
+    }).timeout(5000);
 
 });
