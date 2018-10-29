@@ -131,6 +131,16 @@ describe('format', () => {
     assert.deepEqual(encodeName128('1234567890ABCDE').toString("hex"), "0e44611c48a22c8279a2a90a".padStart(24, 0))
     assert.deepEqual(encodeName128('1234567890ABCDEF').toString("hex"), "0f44611c48a22c8279a2a9ba02000000".padStart(32, 0))
     assert.deepEqual(encodeName128('1234567890ABCDEFGHIJK').toString("hex"), "0f44611c48a22c8279a2a9bab2adfbc2".padStart(32, 0))
+
+    assert.deepEqual(decodeName128("0c440100"), '123')
+    assert.deepEqual(decodeName128("0c44611c"), '12345')
+    assert.deepEqual(decodeName128("0d44611c08000000"), '123456')
+    assert.deepEqual(decodeName128("0d44611c48a22c02"), '1234567890')
+    assert.deepEqual(decodeName128("0e44611c48a22c8209000000"), '1234567890A')
+    assert.deepEqual(decodeName128("0ec3300cc3300cc300000000"), '11111111111')
+    assert.deepEqual(decodeName128("0e44611c48a22c8279a2a90a"), '1234567890ABCDE')
+    assert.deepEqual(decodeName128("0f44611c48a22c8279a2a9ba02000000"), '1234567890ABCDEF')
+    assert.deepEqual(decodeName128("0f44611c48a22c8279a2a9bab2adfbc2"), '1234567890ABCDEFGHIJK')
     
   })
 

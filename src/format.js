@@ -202,35 +202,31 @@ function encodeName128(name) {
     @arg {Long|String|number} value uint64
     @return {string}
   */
-  function decodeName128(value, littleEndian = true) {
-    value = ULong(value)
-  
-    // convert from LITTLE_ENDIAN
-    let beHex = ''
-    const bytes = littleEndian ? value.toBytesLE() : value.toBytesBE()
-    for(const b of bytes) {
-      const n = Number(b).toString(16)
-      beHex += (n.length === 1 ? '0' : '') + n
+  function decodeName128(value) {
+
+    // construct binary string
+    let bn = new BN(value, 16)
+    let bfarray = bn.toArrayLike(Buffer, 'le', value.length / 2)
+    let binarray = "";
+    for (let i = 0; i < bfarray.byteLength; i++) {
+        binarray += bfarray[i].toString(2).padStart(8, "0");
     }
-    beHex += '0'.repeat(16 - beHex.length)
-  
-    const fiveBits = Long.fromNumber(0x1f, true)
-    const fourBits = Long.fromNumber(0x0f, true)
-    const beValue = Long.fromString(beHex, true, 16)
-  
-    let str = ''
-    let tmp = beValue
-  
-    for(let i = 0; i <= 21; i++) {
-      const c = charmap128[tmp.and(i === 0 ? fourBits : fiveBits)]
-      str = c + str
-      tmp = tmp.shiftRight(i === 0 ? 4 : 5)
+
+    // remove 2 bits length indicator
+    binarray = binarray.substr(0, binarray.length - 2);
+
+    // calculate pad start of '0'
+    let padStart = (Math.floor(binarray.length / 6 + 1) * 6 - binarray.length) % 6;
+    binarray = "0".repeat(padStart) + binarray;
+
+    // build str
+    let returnStr = "";
+    for (let i = 0; i < binarray.length; i += 6) {
+        let binCode = (parseInt(binarray.substr(i, 6), 2) || 0) % charmap128.length;
+        returnStr = charmap128[binCode] + returnStr;
     }
-    str = str.replace(/\.+$/, '') // remove trailing dots (all of them)
-  
-    // console.log('decodeName', str, beValue.toString(), value.toString(), JSON.stringify(beValue.toString(2).split(/(.....)/).slice(1)))
-  
-    return str
+    
+    return returnStr.replace(/\.+$/, '');
   }
 
 /**

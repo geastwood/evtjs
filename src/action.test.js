@@ -5,11 +5,13 @@ const Key = require("./key");
 const logger = require("./logger");
 
 const wif = "5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D"; // EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND
+const wif2 = "5JVC3ivLUT2zq3yEXkwJ2ihukZq5reufC3iW26hbVHvjepFXsiu"; // EVT7rbe5ZqAEtwQT6Tw39R29vojFqrCQasK3nT5s2pEzXh1BABXHF
 const publicKey = EVT.EvtKey.privateToPublic(wif);
+const publicKey2 = EVT.EvtKey.privateToPublic(wif2);
 
 const network = {
     host: "118.31.58.10",
-    port: 8888,
+    port: 9999,
     protocol: "http"
 };
 
@@ -31,27 +33,63 @@ const newCaller = () => new EVT({
  * - recycle
  * - lock
  */
+
+const balanceThrd = {
+    "1": 100
+}
+
+describe("Preparation", () => {
+
+    it('check remains', async () => {
+
+        const apiCaller1 = EVT({
+            endpoint: network,
+            keyProvider: wif
+        });
+
+        const apiCaller2 = EVT({
+            endpoint: network,
+            keyProvider: wif2
+        });
+
+        let response = [await apiCaller1.getFungibleBalance(publicKey),
+                        await apiCaller2.getFungibleBalance(publicKey2)];
+        
+        response.forEach((balanceList, i) => {
+            if (!Array.isArray(balanceList) || !balanceList.length) throw Error(`NO.${i+1} Account does not have any Asset.`);
+            Object.keys(balanceThrd).forEach(key => {
+                let matched = false;
+                balanceList.forEach(p => {
+                    if (p.includes(` S#${key}`) && parseFloat(p.replace(` S#${key}`, "")) > balanceThrd[key]) matched = true;
+                });
+                if (!matched) throw Error(`NO.${i+1} Account does not have sufficient Asset S#${key}. (${balanceThrd[key]} needed).`);
+            });
+        });
+    })
+
+})
+
 describe("Action ABI Test", () => {
 
     /* recycle tokens: not available on testnet yet */
-    // it("recycleft", async function () {
+    it("recycleft", async function () {
 
-    //     const apiCaller = new EVT({
-    //         keyProvider: wif,
-    //         endpoint: network
-    //     });
+        const apiCaller = new EVT({
+            keyProvider: wif2,
+            endpoint: network
+        });
 
-    //     let anwser = await apiCaller.pushTransaction(
-    //         new EVT.EvtAction("recycleft", {
-    //             address: publicKey,
-    //             number: "10.00000 S#1",
-    //             memo: "Test of recycleft"
-    //         })
-    //     );
+        let anwser = await apiCaller.pushTransaction(
+            new EVT.EvtAction("recycleft", {
+                address: publicKey2,
+                number: "10.00000 S#1",
+                memo: "Test of recycleft"
+            })
+        );
 
-    //     console.log("=== recycleft ===\n", anwser);
+        console.log("=== recycleft ===\n", anwser);
 
-    // }).timeout(3000);
+    }).timeout(3000);
 
     it("issuetoken", async () => {
 
@@ -64,7 +102,8 @@ describe("Action ABI Test", () => {
                 "largestCanGetBelow-21"
             ],
             "owner": [
-                Key.privateToPublic(wif)
+                Key.privateToPublic(wif),
+                Key.privateToPublic(wif2)
             ]
         });
         await testAction.calculateDomainAndKey();
