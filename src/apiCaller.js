@@ -485,6 +485,9 @@ class APICaller {
         if (res && Array.isArray(res)) {
             return res;
         }
+        if (res && (typeof res === "string")) {
+            return [ res ];
+        }
         else {
             this.__throwServerResponseError(res);
         }

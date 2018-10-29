@@ -62,7 +62,9 @@ describe("EvtKey", () => {
 });
 
 // ==== part 3: APICaller write API ====
-describe("APICaller write API test", () => {
+describe("APICaller write API test", function() {
+    this.timeout(5000);
+
     it("empty actions", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
@@ -97,7 +99,7 @@ describe("APICaller write API test", () => {
             })
         );
 
-        console.log("!!!!!" + JSON.stringify(trx));
+        // console.log("!!!!!" + JSON.stringify(trx));
         assert(trx.transaction, "expected transaction");
         assert(trx.transaction.actions.length == 1, "expected one action");
     });
@@ -295,7 +297,9 @@ describe("APICaller write API test", () => {
 });
 
 // ==== part 4: APICaller read API ====
-describe("APICaller read API test", () => {
+describe("APICaller read API test", function() {
+    this.timeout(5000);
+
     // get evt chain version
     it("getInfo", async function () {
         const apiCaller = EVT({
@@ -471,7 +475,9 @@ describe("APICaller read API test", () => {
 
 
 // ==== part 5: EvtLink ====
-describe("EvtLink", () => {
+describe("EvtLink", function() {
+    this.timeout(5000);
+
     let evtLink = EVT.EvtLink;
 
     it("b2base42", async () => {
