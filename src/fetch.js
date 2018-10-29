@@ -19,15 +19,36 @@ module.exports = {
      * @param {*} options 
      */
     fetch(url, options) {
-        let timeStart = new Date().valueOf();
-        
+        let didTimeout = false;
+
         if (typeof window === "object" && typeof window.fetch === "function") {
             // Browser with fetch support
             if (options.headers) {
                 options.headers = new Headers(options.headers);
             }
 
-            return window.fetch(url, options);
+            return new Promise((resolve, reject) => {
+                let timeOutId = null;
+
+                if (options.networkTimeout) {
+                    timeOutId = setTimeout(() => {
+                        didTimeout = true;
+                        reject(new Error("Request Timeout."));
+                    }, options.networkTimeout);
+                }
+                
+                window.fetch(url, options)
+                    .then(res => {
+                        if (didTimeout) return;
+                        if (timeOutId !== null) clearTimeout(timeOutId);
+
+                        resolve(res);
+                    })
+                    .catch((e) => {
+                        if (didTimeout) return;
+                        reject(e);
+                    });
+            });
         }
         else {
             // Node
@@ -55,7 +76,11 @@ module.exports = {
                     req.headers["Content-Length"] = new Buffer(options.body, "utf8").length;
                 }
 
+                let timeOutId = null;
+
                 let reqObj = http.request(req, response => {
+                    if (didTimeout) return;
+
                     var buf = new Buffer(0);
 
                     response.on("data", (chunk) => {
@@ -63,7 +88,10 @@ module.exports = {
                     });
 
                     response.on("end", () => {
-                        logger.verbose("[+" + (new Date().valueOf() - timeStart) + " ms] " + response.statusCode + " " + url);
+                        if (didTimeout) return;
+                        if (timeOutId !== null) clearTimeout(timeOutId);
+
+                        logger.verbose("[fetch] finished " + response.statusCode + " " + url);
 
                         var parsedResObj = {
                             json: async function getJSON() {
@@ -83,6 +111,18 @@ module.exports = {
                         res(parsedResObj);
                     });
                 });
+
+                if (options.networkTimeout) {
+                    reqObj.setTimeout(options.networkTimeout, function() {
+                        didTimeout = true;
+                        reqObj.abort();
+                    });
+
+                    timeOutId = setTimeout(function() {
+                        didTimeout = true;
+                        reqObj.abort();
+                    }, options.networkTimeout);
+                }
 
                 if (options.body) {
                     reqObj.write(options.body);

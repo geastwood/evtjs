@@ -1,6 +1,6 @@
 const assert = require("assert");
 const ecurve = require("ecurve");
-const BigInteger = require("bigi");
+const BigInteger = require("../bigi");
 const secp256k1 = ecurve.getCurveByName("secp256k1");
 
 const hash = require("./hash");

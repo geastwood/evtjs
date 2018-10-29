@@ -1,7 +1,7 @@
 const ecurve = require("ecurve");
 const Point = ecurve.Point;
 const secp256k1 = ecurve.getCurveByName("secp256k1");
-const BigInteger = require("bigi");
+const BigInteger = require("../bigi");
 const assert = require("assert");
 
 const hash = require("./hash");
@@ -264,9 +264,7 @@ let initialized = false, unitTested = false;
   @return {Promise}
 */
 function initialize() {
-    console.log("[key_private] initialize, current entropy: " + keyUtils.entropyCount()); //TODO
     if(initialized) {
-        console.log("[key_private] initialized, return"); //TODO
         return;
     }
 

@@ -2,24 +2,21 @@
 const assert = require("assert");
 const EVT = require(".");
 const Key = require("./key");
+const logger = require("./logger");
 
-const wif = "5JgWJptxZENHR69oZsPSeVTXScRx7jYPMTjPTKAjW2JFnjEhoDZ";
-const wif2 = "5KXxF69n5SsYSQRs8L855jKC5fqzT6uzRzJ1r686t2RRu9JQr9i";
+const wif = "5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D"; // EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND
+const wif2 = "5JVC3ivLUT2zq3yEXkwJ2ihukZq5reufC3iW26hbVHvjepFXsiu"; // EVT7rbe5ZqAEtwQT6Tw39R29vojFqrCQasK3nT5s2pEzXh1BABXHF
+const wif3 = "5K3nUWxfkUjfLQu9PL6NZLKWV41PiFyuQdrckArA59jz19M6zgq";
 const publicKey = EVT.EvtKey.privateToPublic(wif);
 
 const testingTmpData = {
     newDomainName: null,
     addedTokenNamePrefix: null
 };
-
-/*const network = {
-    host: "testnet1.everitoken.io",
-    port: 8888,
-    protocol: "https"
-};*/
+logger.writeLog = true;
 
 const network = {
-    host: "118.31.58.10",
+    host: "testnet1.everitoken.io",
     port: 8888,
     protocol: "http"
 };
@@ -65,82 +62,59 @@ describe("EvtKey", () => {
 });
 
 // ==== part 3: APICaller write API ====
-describe("APICaller write API test", () => {
-    it("newdomain", async function () {
-        const apiCaller = new EVT({
-            keyProvider: [wif, wif2],
-            endpoint: network
-        });
+describe("APICaller write API test", function() {
+    this.timeout(5000);
 
-        testingTmpData.newDomainName = "nd" + (new Date()).valueOf();
-
-        await apiCaller.pushTransaction(
-            new EVT.EvtAction("newdomain", {
-                "name": testingTmpData.newDomainName,
-                "creator": publicKey,
-                "issue": {
-                    "name": "issue",
-                    "threshold": 1,
-                    "authorizers": [{
-                        "ref": "[A] " + publicKey,
-                        "weight": 1
-                    }]
-                },
-                "transfer": {
-                    "name": "transfer",
-                    "threshold": 1,
-                    "authorizers": [{
-                        "ref": "[G] OWNER",
-                        "weight": 1
-                    }]
-                },
-                "manage": {
-                    "name": "manage",
-                    "threshold": 1,
-                    "authorizers": [{
-                        "ref": "[A] " + publicKey,
-                        "weight": 1
-                    }]
-                }
-            })
-        );
-
-        let res = await apiCaller.getDomainDetail(testingTmpData.newDomainName);
-        assert(res.name === testingTmpData.newDomainName, "expected right domain name");
-    });
-
-    it("issue_tokens", async function () {
+    it("empty actions", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
-            endpoint: network
+            endpoint: network,
+            networkTimeout: 4000
         });
 
-        testingTmpData.addedTokenNamePrefix = "tk" + ((new Date()).valueOf() / 500);
+        try { await apiCaller.pushTransaction(); }
+        catch (e) {
+            console.log("empty exception:");
+            console.log(e);
+            return;
+        }
 
-        await apiCaller.pushTransaction(
-            new EVT.EvtAction("issuetoken", {
-                "domain": testingTmpData.newDomainName,
-                "names": [
-                    testingTmpData.addedTokenNamePrefix + "1",
-                    testingTmpData.addedTokenNamePrefix + "2",
-                    testingTmpData.addedTokenNamePrefix + "3"
-                ],
-                "owner": [
-                    Key.privateToPublic(wif)
-                ]
+        assert(true, "expected exception");
+    });
+
+    it("generateUnsignedTransaction", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network,
+            networkTimeout: 4000
+        });
+
+        let trx = await apiCaller.generateUnsignedTransaction(
+            { maxCharge: 1000000 },
+            new EVT.EvtAction("transferft", {
+                from: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
+                to: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
+                memo: "",
+                number: "1.00000 S#1"
             })
         );
+
+        // console.log("!!!!!" + JSON.stringify(trx));
+        assert(trx.transaction, "expected transaction");
+        assert(trx.transaction.actions.length == 1, "expected one action");
     });
 
     it("new_group", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
-            endpoint: network
+            endpoint: network,
+            networkTimeout: 3000
         });
 
         testingTmpData.newGroupName = "g" + parseInt((new Date()).valueOf() / 5000);
 
         await apiCaller.pushTransaction(
+            { maxCharge: 1000000 },
             new EVT.EvtAction("newgroup", {
                 "name": testingTmpData.newGroupName,
                 "group": {
@@ -189,40 +163,143 @@ describe("APICaller write API test", () => {
         );
     });
 
+    it("newdomain", async function () {
+        const apiCaller = new EVT({
+            keyProvider: [wif, wif2],
+            endpoint: network
+        });
+
+        testingTmpData.newDomainName = "nd" + (new Date()).valueOf();
+
+        await apiCaller.pushTransaction(
+            { maxCharge: 1000000, payer: publicKey },
+            new EVT.EvtAction("newdomain", {
+                "name": testingTmpData.newDomainName,
+                "creator": publicKey,
+                "issue": {
+                    "name": "issue",
+                    "threshold": 1,
+                    "authorizers": [{
+                        "ref": "[A] " + publicKey,
+                        "weight": 1
+                    }]
+                },
+                "transfer": {
+                    "name": "transfer",
+                    "threshold": 1,
+                    "authorizers": [{
+                        "ref": "[G] .OWNER",
+                        "weight": 1
+                    }]
+                },
+                "manage": {
+                    "name": "manage",
+                    "threshold": 1,
+                    "authorizers": [{
+                        "ref": "[A] " + publicKey,
+                        "weight": 1
+                    }]
+                }
+            })
+        );
+
+        let res = await apiCaller.getDomainDetail(testingTmpData.newDomainName);
+        assert(res.name === testingTmpData.newDomainName, "expected right domain name");
+    });
+
+    it("issue_tokens", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        testingTmpData.addedTokenNamePrefix = "tk" + ((new Date()).valueOf() / 500);
+
+        let charge = await apiCaller.getEstimatedChargeForTransaction(
+            { availablePublicKeys: [ EVT.EvtKey.privateToPublic(wif), EVT.EvtKey.privateToPublic(wif2), EVT.EvtKey.privateToPublic(wif3) ] },
+            new EVT.EvtAction("issuetoken", {
+                "domain": testingTmpData.newDomainName,
+                "names": [
+                    testingTmpData.addedTokenNamePrefix + "1",
+                    testingTmpData.addedTokenNamePrefix + "2",
+                    testingTmpData.addedTokenNamePrefix + "3"
+                ],
+                "owner": [
+                    Key.privateToPublic(wif)
+                ]
+            })
+        );
+
+        assert(charge.charge && Number.isInteger(charge.charge) && charge.charge > 0, "expected integer charge");
+
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("issuetoken", {
+                "domain": testingTmpData.newDomainName,
+                "names": [
+                    testingTmpData.addedTokenNamePrefix + "1",
+                    testingTmpData.addedTokenNamePrefix + "2",
+                    testingTmpData.addedTokenNamePrefix + "3"
+                ],
+                "owner": [
+                    Key.privateToPublic(wif)
+                ]
+            })
+        );
+    });
+
     it("new_fungible", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
             endpoint: network
         });
 
-        function randomString() {
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXTZ";
-            var string_length = 6;
-            var randomstring = "";
-            for (var i=0; i<string_length; i++) {
-                var rnum = Math.floor(Math.random() * chars.length);
-                randomstring += chars.substring(rnum,rnum+1);
-            }
-            
-            return randomstring;
-        }
-
-        testingTmpData.newSymbol = randomString();
+        testingTmpData.newSymbol = Math.floor(new Date().valueOf() / 1000) + "";
 
         testingTmpData.newTrxId = (await apiCaller.pushTransaction(
             new EVT.EvtAction("newfungible", {
-                sym: "5," + testingTmpData.newSymbol,
+                name: testingTmpData.newSymbol + ".POINTS",
+                sym_name: testingTmpData.newSymbol.toString(),
+                sym: "5,S#" + testingTmpData.newSymbol,
                 creator: publicKey,
-                issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
                 manage: { name: "manage", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
-                total_supply: "100000.00000 " + testingTmpData.newSymbol
+                issue: { name: "issue", threshold: 1, authorizers: [ { ref: "[A] " + publicKey, weight: 1  } ] }, 
+                total_supply: "100000.00000 S#" + testingTmpData.newSymbol
             })
         )).transactionId;
     });
+
+    /*it("cancelsuspend", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        testingTmpData.newTrxId = (await apiCaller.pushTransaction(
+            new EVT.EvtAction("cancelsuspend", {
+                name: "haha"
+            })
+        )).transactionId;
+    }); TODO
+
+    it("destroytoken", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        testingTmpData.newTrxId = (await apiCaller.pushTransaction(
+            new EVT.EvtAction("destroytoken", {
+                name: "haha",
+                domain: "asdfadf"
+            })
+        )).transactionId; TODO
+    });*/
 });
 
-// ==== part 3: APICaller read API ====
-describe("APICaller read API test", () => {
+// ==== part 4: APICaller read API ====
+describe("APICaller read API test", function() {
+    this.timeout(10000);
+
     // get evt chain version
     it("getInfo", async function () {
         const apiCaller = EVT({
@@ -236,6 +313,15 @@ describe("APICaller read API test", () => {
         assert(response.last_irreversible_block_num, "expected last_irreversible_block_num");
         assert(response.last_irreversible_block_id, "expected last_irreversible_block_id");
         assert(response.chain_id, "expected chain_id");
+    });
+
+    it("getHeadBlockHeaderState", async function() {
+        const apiCaller = EVT({
+            endpoint: network
+        });
+
+        var response = await apiCaller.getHeadBlockHeaderState();
+        assert(response.block_num, "expected block_num");
     });
 
     it("getCreatedDomains", async function () {
@@ -291,7 +377,9 @@ describe("APICaller read API test", () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getTransactionsDetailOfPublicKeys(publicKey);
+        var response = await apiCaller.getTransactionsDetailOfPublicKeys("EVT85QEkmFpnDwR4NjnYenqenyCxFRQc45HwjGLNpXQQ1JuSmBzSj");
+        // console.log("_____++++++++++++++++" + JSON.stringify(response, null, 4));
+
         assert(Array.isArray(response), "expected array");
         // TODO must have data (after creating transactions)
     });
@@ -302,7 +390,7 @@ describe("APICaller read API test", () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getFungibleSymbolDetail("EVT");
+        var response = await apiCaller.getFungibleSymbolDetail(1);
         assert(response && response.sym, "expected response");
         // TODO must have data (after creating symbol)
     });
@@ -331,15 +419,21 @@ describe("APICaller read API test", () => {
         // TODO must have data (after creating symbol)
     });
 
-    it("getTransactionDetailById", async () => {
-        const apiCaller = EVT({
-            endpoint: network,
-            keyProvider: wif
-        });
+    it("getTransactionDetailById", () => {
+        return new Promise(async (res, rej) => {
+            setTimeout(async () => {
+                const apiCaller = EVT({
+                    endpoint: network,
+                    keyProvider: wif
+                });
+        
+                var response = await apiCaller.getTransactionDetailById(testingTmpData.newTrxId); //testingTmpData.newTrxId); "bed1272c6de3294582910c968b93f1c015eb646181174ab5a705df35b024f65d"
+                logger.verbose("[getTransactionDetailById] " + JSON.stringify(response, null, 2));
+                assert(response.id, "expected id");
 
-        var response = await apiCaller.getTransactionDetailById(testingTmpData.newTrxId);
-        assert(response.id, "expected id");
-        // TODO must have data (after creating transactions)
+                res();
+            }, 500);
+        });
     });
 
     it("getFungibleBalance", async () => {
@@ -349,6 +443,9 @@ describe("APICaller read API test", () => {
         });
 
         var response = await apiCaller.getFungibleBalance(publicKey);
+        assert(Array.isArray(response), "expected array");
+
+        var response = await apiCaller.getFungibleBalance(publicKey, 1);
         assert(Array.isArray(response), "expected array");
         // TODO must have data (after creating transactions)
     });
@@ -373,5 +470,167 @@ describe("APICaller read API test", () => {
         //var response = await apiCaller.getSuspendedTransactionDetail("test");
         //assert(Array.isArray(response), "expected array");
         // TODO must have data (after creating transactions)
+    });
+});
+
+
+// ==== part 5: EvtLink ====
+describe("EvtLink", function() {
+    this.timeout(5000);
+
+    let evtLink = EVT.EvtLink;
+
+    it("b2base42", async () => {
+        let dec1 = evtLink.b2dec(new Buffer([ 0, 0, 0, 2, 41, 109, 0, 82, 0 ]));
+        let dec2 = evtLink.b2dec(new Buffer([ 0 ]));
+        let dec3 = evtLink.b2dec(new Buffer([ ]));
+        
+        assert(dec1 === "000AD1KQVMO", "should produce right base42 " + dec1);
+        assert(dec2 === "0", "should produce right base42:" + dec2);
+        assert(dec3 === "", "should produce right base42:" + dec3);
+    });
+
+    it("everiPass1", async () => {
+        let link = await evtLink.getEvtLinkForEveriPass({
+            autoDestroying: true,
+            domainName: testingTmpData.newDomainName,
+            tokenName: testingTmpData.addedTokenNamePrefix + "1",
+            keyProvider: [ wif, wif2, wif3 ]
+        });
+        
+        let parsed = await evtLink.parseEvtLink(link.rawText);
+
+        logger.verbose("[everiPass] " + link.rawText);
+        logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
+        
+        assert(link.rawText, "should produce a EvtLink");
+        assert(parsed.segments.length === 3, "struct is wrong: " + parsed.segments.length);
+        assert(parsed.flag === 11, "flag is wrong: " + parsed.flag);
+        assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");
+    });
+
+    it("everiPass2", async () => {
+        let link = await evtLink.getEveriPassText({
+            autoDestroying: false,
+            domainName: testingTmpData.newDomainName,
+            tokenName: testingTmpData.addedTokenNamePrefix + "1",
+            keyProvider: [ wif ]
+        });
+
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: [ ]
+        });
+        
+        let parsed = await evtLink.parseEvtLink(link.rawText);
+        let validationResult = await evtLink.validateEveriPassUnsafe({ parsedEvtLink: parsed, apiCaller });
+        logger.verbose("[everiPass] validateUnsafe: " + JSON.stringify(validationResult, null, 2));
+
+        logger.verbose("[everiPass] " + link.rawText);
+        logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
+        
+        assert(validationResult.valid, "should be a valid everiPass");
+        assert(link.rawText, "should produce a EvtLink");
+        assert(parsed.segments.length === 3, "struct is wrong: " + parsed.segments.length);
+        assert(parsed.flag === 3, "flag is wrong: " + parsed.flag);
+        assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");
+    });
+
+    it("everiPay", async () => {
+        let link = await evtLink.getEvtLinkForEveriPay({
+            symbol: 1,
+            maxAmount: 354,
+            keyProvider: [ wif2 ],
+            linkId: await evtLink.getUniqueLinkId()
+        });
+        
+        let parsed = await evtLink.parseEvtLink(link.rawText);
+
+        logger.verbose("[everiPay] " + link.rawText);
+        logger.verbose("[everiPay] \n" + JSON.stringify(parsed, null, 2));
+        
+        assert(link.rawText, "should produce a EvtLink");
+        assert(parsed.segments.length === 4, "struct is wrong: " + parsed.segments.length);
+        assert(parsed.flag === 5, "flag is wrong: " + parsed.flag);
+        assert(parsed.publicKeys[0] === EVT.EvtKey.privateToPublic(wif2), "publicKey is wrong");
+    });
+
+    it("everiPay_execPush", async () => {
+        let link = await evtLink.getEvtLinkForEveriPay({
+            symbol: 1,
+            maxAmount: 10000000,
+            keyProvider: [ wif ],
+            linkId: await evtLink.getUniqueLinkId()
+        });
+
+        // execute the pass
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: [ wif2 ]
+        });
+
+        await apiCaller.pushTransaction(
+            { maxCharge: 1000000 },
+            new EVT.EvtAction(
+                "everipay",
+                {
+                    link: link.rawText,
+                    "payee": EVT.EvtKey.privateToPublic(wif2),
+                    "number": "50.00000 S#1"
+                }
+            )
+        );
+    });
+
+    it("everiPass_execPush", async () => {
+        let link = await evtLink.getEvtLinkForEveriPass({
+            autoDestroying: true,
+            domainName: testingTmpData.newDomainName,
+            tokenName: testingTmpData.addedTokenNamePrefix + "1",
+            keyProvider: [ wif ],
+            linkId: await evtLink.getUniqueLinkId()
+        });
+        
+        // execute the pass
+        const apiCaller = EVT({
+            endpoint: network,
+            keyProvider: [ wif2 ]
+        });
+
+        await apiCaller.pushTransaction(
+            { maxCharge: 1000000 },
+            new EVT.EvtAction(
+                "everipass",
+                {
+                    link: link.rawText
+                }
+            )
+        );
+    });
+
+    it("parse evtLink", async () => {
+        let parsed = await evtLink.parseEvtLink("0DFYZXZO9-:Y:JLF*3/4JCPG7V1346OZ:R/G2M93-2L*BBT9S0YQ0+JNRIW95*HF*94J0OVUN$KS01-GZ-N7FWK9_FXXJORONB7B58VU9Z2MZKZ5*:NP3::K7UYKD:Y9I1V508HBQZK2AE*ZS85PJZ2N47/41LQ-MZ/4Q6THOX**YN0VMQ*3/CG9-KX2:E7C-OCM*KJJT:Z7640Q6B*FWIQBYMDPIXB4CM:-8*TW-QNY$$AY5$UA3+N-7L/ZSDCWO1I7M*3Q6*SMAYOWWTF5RJAJ:NG**8U5J6WC2VM5Z:OLZPVJXX*12I*6V9FL1HX095$5:$*C3KGCM3FIS-WWRE14E:7VYNFA-3QCH5ULZJ*CRH91BTXIK-N+J1");
+
+        logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
+
+        assert(parsed.segments.length === 4, "struct is wrong: " + parsed.segments.length);
+        assert(parsed.flag === 11, "flag is wrong: " + parsed.flag);
+        assert(parsed.publicKeys[0] === publicKey, "publicKey is wrong");
+
+        parsed = await evtLink.parseEvtLink("0287F2T16JJ4CWK*LA3KAS+:$W:XZ:IQNJDD2UH2N4S$ZWQK4ZGSR9:Y3UDF5C9Y63R64E4R331:QSK+LO9N/WG_PYZ+CWE*$JT4YN66$IN:MV-RO/1/F0O553BB7+5G2V1RZUO73KLV5X5E6S4GB2$8G2-:3FR2Y+N+S4GXC0S6HZT3VDMU*TYH");
+
+        logger.verbose("[everiPass] \n" + JSON.stringify(parsed, null, 2));
+    });
+
+    it("parse bad evtLink", async () => {
+        try {
+            await evtLink.parseEvtLink("1DFYZXZO9-:Y:JLF*3/4JCPG7V1346OZ:R/G2M93-2L*BBT9S0YQ0+JNRIW95*HF*94J0OVUN$S01-GZ-N7FWK9_FXXRONB7B58VU9Z2MZKZ5*:NP3::K7UYKD:Y9I1V508HBQZK2AE*ZS85PJZ2N47/41LQ-MZ/4Q6THOX**YN0VMQ*3/CG9-KX2:E7C-OCM*KJJT:Z7640Q6B*FWIQBYMXB4CM:-8*TW-QNY$$AY5$UA3+N-7L/ZSDCWO1I7M*3Q6*SMAYOWWTF5RJAJ:NG**8U5J6WC2VM5Z:OLZPVJXX*12I*6V9FL1HX095$5:$*C3KGCM3FIS-WWRE14E:7VYNFA-4QCH5ULZJ*CRH91BTXIK-N+J1");
+        }
+        catch (e) {
+            assert(e, "");
+            return;
+        }
+
+        assert(false, "should throw exception");
     });
 });

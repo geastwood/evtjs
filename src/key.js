@@ -41,20 +41,49 @@ EvtKey.isValidPublicKey = function(key) {
     return ecc.isValidPublic("EVT" + key.substr(3)) || ecc.isValidPublic("EOS" + key.substr(3));
 };
 
+EvtKey.sign = function(buf, privateKey, encoding) {
+    return ecc.sign(buf, privateKey, encoding);
+};
+
+EvtKey.signHash = function(buf, privateKey, encoding) {
+    return ecc.signHash(buf, privateKey, encoding);
+};
+
+/**
+ * Check if a address is valid.
+ * @param {*} key address
+ */
+EvtKey.isValidAddress = function(address) {
+    if (typeof address !== "string" || address.length < 8) return false;
+    if (!address.startsWith("EVT")) return false;
+
+    if (address === "EVT00000000000000000000000000000000000000000000000000") return true;
+    if (address.length == 53 && address[3] == "0") return true;
+
+    return ecc.isValidPublic("EVT" + address.substr(3)) || ecc.isValidPublic("EOS" + address.substr(3));
+};
+
+
 /**
  * return safe random bytes as hex.
  */
 EvtKey.random32BytesAsHex = async function() {
-    console.log("[EvtKey] random32BytesAsHex"); //TODO
     await ecc.initialize();
     return ecc.key_utils.random32ByteBuffer({ safe: true }).toString("hex");
+};
+
+/**
+ * return safe random bytes.
+ */
+EvtKey.random32Bytes = async function() {
+    await ecc.initialize();
+    return ecc.key_utils.random32ByteBuffer({ safe: true });
 };
 
 /**
  * return a promise that resolves a safe random string to be used in name128 format.
  */
 EvtKey.randomName128 = async function() {
-    console.log("[EvtKey] randomName128"); //TODO
     await ecc.initialize();
 
     let buffer = ecc.key_utils.random32ByteBuffer({ safe: true });
@@ -74,6 +103,13 @@ EvtKey.randomName128 = async function() {
  */
 EvtKey.isValidPrivateKey = function(key) {
     return ecc.isValidPrivate(key);
+};
+
+/**
+ * return the address representing a null address.
+ */
+EvtKey.getNullAddress = function() {
+    return "EVT00000000000000000000000000000000000000000000000000";
 };
 
 module.exports = EvtKey;
