@@ -134,11 +134,8 @@ const Name128 = (validation) => {
         //   console.error(`${value}`, (Name.appendByteBuffer))
         // }
 
-            const bytes = encodeName128(value, false);
-
-            while (bytes.offset < bytes.limit) {
-                b.writeUint8(bytes.readUint8());
-            }
+            const buf = encodeName128(value);
+            b.append(buf.toString('binary'), 'binary')
             // b is already in littleEndian
         },
   

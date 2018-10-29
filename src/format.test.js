@@ -3,7 +3,7 @@ const assert = require('assert')
 const {
   encodeName, decodeName, encodeNameHex, decodeNameHex,
   isName, UDecimalPad, UDecimalUnimply,
-  parseAssetSymbol
+  parseAssetSymbol, encodeName128, decodeName128
 } = require('./format')
 
 describe('format', () => {
@@ -120,7 +120,25 @@ describe('format', () => {
     assert.throws(() => parseAssetSymbol('TOOLONGSYM'), /7 characters or less/)
   })
 
+  it('encodename128', () => {
+
+    assert.deepEqual(encodeName128('123').toString("hex"), "0c440100".padStart(8, 0))
+    assert.deepEqual(encodeName128('12345').toString("hex"), "0c44611c".padStart(8, 0))
+    assert.deepEqual(encodeName128('123456').toString("hex"), "0d44611c08000000".padStart(16, 0))
+    assert.deepEqual(encodeName128('1234567890').toString("hex"), "0d44611c48a22c02".padStart(16, 0))
+    assert.deepEqual(encodeName128('1234567890A').toString("hex"), "0e44611c48a22c8209000000".padStart(24, 0))
+    assert.deepEqual(encodeName128('11111111111').toString("hex"), "0ec3300cc3300cc300000000".padStart(24, 0))
+    assert.deepEqual(encodeName128('1234567890ABCDE').toString("hex"), "0e44611c48a22c8279a2a90a".padStart(24, 0))
+    assert.deepEqual(encodeName128('1234567890ABCDEF').toString("hex"), "0f44611c48a22c8279a2a9ba02000000".padStart(32, 0))
+    assert.deepEqual(encodeName128('1234567890ABCDEFGHIJK').toString("hex"), "0f44611c48a22c8279a2a9bab2adfbc2".padStart(32, 0))
+    
+  })
+
 })
+
+function hexNumToStr(num) {
+    return num.toString("16").padStart(32, 0)
+}
 
 /* istanbul ignore next */
 function throws (fn, match) {

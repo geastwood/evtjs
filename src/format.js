@@ -1,4 +1,5 @@
 const assert = require('assert')
+const BN = require('bn.js')
 const ByteBuffer = require('bytebuffer')
 const {Long} = ByteBuffer
 
@@ -159,7 +160,7 @@ function decodeName(value, littleEndian = true) {
   @return {string<uint64>} - compressed string (from name arg).  A string is
     always used because a number could exceed JavaScript's 52 bit limit.
 */
-function encodeName128(name, littleEndian = true) {
+function encodeName128(name) {
     if(typeof name !== 'string')
       throw new TypeError('name parameter is a required string')
   
@@ -176,42 +177,25 @@ function encodeName128(name, littleEndian = true) {
       bits = '0'.repeat(6 - bits.length) + bits
       bitstr = bits + bitstr
     }
+
+    let cutSize = 4;
     if (name.length <= 5) {
         bitstr += "00"
+        cutSize = 4
     } else if (name.length <= 10) {
         bitstr += "01"
+        cutSize = 8
     } else if (name.length <= 15) {
         bitstr += "10"
+        cutSize = 12
     } else {
         bitstr += "11"
+        cutSize = 16
     }
 
-    let nameBuffer = new ByteBuffer(undefined, true);
-
-    while (bitstr.length > 0) {
-        let group = bitstr.substr(0, 8);
-        bitstr = bitstr.substr(8);
-
-        nameBuffer.writeUint8(parseInt(group, 2));
-    }
-
-    nameBuffer.offset = 0;
-  
-    /*const value = Long.fromString(bitstr, true, 2)
-  
-    // convert to LITTLE_ENDIAN
-    let leHex = ''
-    const bytes = littleEndian ? value.toBytesLE() : value.toBytesBE()
-    for(const b of bytes) {
-      const n = Number(b).toString(16)
-      leHex += (n.length === 1 ? '0' : '') + n
-    }
-  
-    const ulName = Long.fromString(leHex, true, 16).toString()
-  
-    // console.log('encodeName', name, value.toString(), ulName.toString(), JSON.stringify(bitstr.split(/(.....)/).slice(1)))*/
-  
-    return nameBuffer;
+    let bn = new BN(bitstr, 2)
+    // bn = bn.toTwos(128)
+    return bn.toArrayLike(Buffer, 'le', 128 / 8 / 16 * cutSize)
   }
   
   /**
