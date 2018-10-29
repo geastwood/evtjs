@@ -366,6 +366,24 @@ class APICaller {
     }
 
     /**
+     * Get a raw transaction but does NOT push it to the blockchain
+     */
+    async generateUnsignedTransaction() {
+        /** @type Array */
+        let args = [].slice.call(arguments);
+        if (args.length == 0) throw new Error("invalid arguments");
+        if (args[0] instanceof EvtAction) {
+            args = [ { } ].concat(args);
+        }
+
+        args[0].__estimateCharge = true;
+
+        let p = await this.pushTransaction.apply(this, args);
+
+        return { transaction: p.body.transaction };
+    }
+
+    /**
      * Get estimated charge for a transaction
      */
     async getEstimatedChargeForTransaction() {
@@ -700,7 +718,7 @@ class APICaller {
 
         // default config
         let trxConf = {
-            maxCharge: 100000000  
+            maxCharge: 100000000
         };
 
         // check and copy config from parameters
@@ -786,7 +804,13 @@ class APICaller {
         let expiration, hash, numHex, last_irreversible_block_num, last_irreversible_block_prefix;
  
         // process referenced block number and expiration time for transaction
-        expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
+        if (trxConf.expiration) {
+            expiration = trxConf.expiration;
+        }
+        else {
+            expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
+        }
+        
         hash = ByteBuffer.fromHex(this.__cachedInfo.last_irreversible_block_id, true); // little endian
         numHex = this.__cachedInfo.last_irreversible_block_id.substr(4, 4);
         last_irreversible_block_num = ByteBuffer.fromHex(numHex, false).readUint16(0);

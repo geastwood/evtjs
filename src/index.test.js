@@ -15,14 +15,8 @@ const testingTmpData = {
 };
 logger.writeLog = true;
 
-/*const network = {
-    host: "testnet1.everitoken.io",
-    port: 8888,
-    protocol: "https"
-};*/
-
 const network = {
-    host: "118.31.58.10",
+    host: "testnet1.everitoken.io",
     port: 8888,
     protocol: "http"
 };
@@ -73,7 +67,7 @@ describe("APICaller write API test", () => {
         const apiCaller = new EVT({
             keyProvider: wif,
             endpoint: network,
-            networkTimeout: 1000
+            networkTimeout: 4000
         });
 
         try { await apiCaller.pushTransaction(); }
@@ -84,6 +78,28 @@ describe("APICaller write API test", () => {
         }
 
         assert(true, "expected exception");
+    });
+
+    it("generateUnsignedTransaction", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network,
+            networkTimeout: 4000
+        });
+
+        let trx = await apiCaller.generateUnsignedTransaction(
+            { maxCharge: 1000000 },
+            new EVT.EvtAction("transferft", {
+                from: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
+                to: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
+                memo: "",
+                number: "1.00000 S#1"
+            })
+        );
+
+        console.log("!!!!!" + JSON.stringify(trx));
+        assert(trx.transaction, "expected transaction");
+        assert(trx.transaction.actions.length == 1, "expected one action");
     });
 
     it("new_group", async function () {
@@ -423,6 +439,9 @@ describe("APICaller read API test", () => {
         });
 
         var response = await apiCaller.getFungibleBalance(publicKey);
+        assert(Array.isArray(response), "expected array");
+
+        var response = await apiCaller.getFungibleBalance(publicKey, 1);
         assert(Array.isArray(response), "expected array");
         // TODO must have data (after creating transactions)
     });
