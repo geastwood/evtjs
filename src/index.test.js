@@ -298,7 +298,7 @@ describe("APICaller write API test", function() {
 
 // ==== part 4: APICaller read API ====
 describe("APICaller read API test", function() {
-    this.timeout(5000);
+    this.timeout(10000);
 
     // get evt chain version
     it("getInfo", async function () {
