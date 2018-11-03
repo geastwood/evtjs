@@ -556,14 +556,16 @@ describe("EvtLink", function() {
     });
 
     it("everiPay_execPush", async () => {
+        let linkId = await evtLink.getUniqueLinkId();
+
         let link = await evtLink.getEvtLinkForEveriPay({
             symbol: 1,
             maxAmount: 10000000,
             keyProvider: [ wif ],
-            linkId: await evtLink.getUniqueLinkId()
+            linkId
         });
 
-        // execute the pass
+        // execute the pay
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: [ wif2 ]
@@ -576,10 +578,17 @@ describe("EvtLink", function() {
                 {
                     link: link.rawText,
                     "payee": EVT.EvtKey.privateToPublic(wif2),
-                    "number": "50.00000 S#1"
+                    "number": "1.00000 S#1"
                 }
             )
         );
+
+        // wait for the status
+        let status = await apiCaller.getStatusOfEvtLink({
+            linkId
+        });
+
+        console.log("!!!!!" + JSON.stringify(status, null, 2));
     });
 
     it("everiPass_execPush", async () => {
