@@ -268,6 +268,21 @@ describe("APICaller write API test", function() {
         )).transactionId;
     });
 
+    it("issue_fungible", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("issuefungible", {
+                address: publicKey,
+                number: "1.00000 S#" + testingTmpData.newSymbol,
+                memo: "initial issue"
+            })
+        );
+    });
+
     /*it("cancelsuspend", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,

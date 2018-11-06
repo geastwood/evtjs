@@ -79,6 +79,16 @@ const domainKeyMappers = {
         transfered.key = splited[1];
     },
 
+    "issuefungible": (action, transfered) => {
+        transfered.domain = ".fungible";
+        // remove precision for `key`
+        let splited = action.args.number.split("#");
+        if (splited.length != 2) {
+            throw new Error("Invalid parameter for number");
+        }
+        transfered.key = splited[1];
+    },
+
     "updfungible": (action, transfered) => {
         transfered.domain = ".fungible";
         transfered.key = String(action.args.sym_id);
