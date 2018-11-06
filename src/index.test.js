@@ -17,7 +17,7 @@ logger.writeLog = true;
 
 const network = {
     host: "testnet1.everitoken.io",
-    port: 8888,
+    port: 9999,
     protocol: "http"
 };
 
@@ -63,7 +63,7 @@ describe("EvtKey", () => {
 
 // ==== part 3: APICaller write API ====
 describe("APICaller write API test", function() {
-    this.timeout(5000);
+    this.timeout(8000);
 
     it("empty actions", async function () {
         const apiCaller = new EVT({
@@ -476,7 +476,7 @@ describe("APICaller read API test", function() {
 
 // ==== part 5: EvtLink ====
 describe("EvtLink", function() {
-    this.timeout(5000);
+    this.timeout(8000);
 
     let evtLink = EVT.EvtLink;
 
