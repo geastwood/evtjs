@@ -344,10 +344,13 @@ class APICaller {
     }
 
     /**
-     * get transaction id for a linkId
-     * @param {*} id the linkId
+     * (deprecated) get transaction id for a linkId
+     * @param {string} id the linkId
+     * @deprecated
      */
     async getTransactionIdForLinkId(id) {
+        console.warn("[warn] getTransactionIdForLinkId is deprecated, please use getStatusForLinkId instead.");
+
         if (typeof id !== "string" || !id) throw new Error("invalid link id");
 
         let res = await this.__callAPI({
@@ -362,6 +365,56 @@ class APICaller {
         }
         else {
             this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
+     * get transaction status of an evtLink.
+     * Note: please check the `linkId` property of the return value. If it is not the same one as your expectation, just drop it. It is possible if you use a same callback for two calls.
+     * @param {string} linkId the linkId
+     * @param {object} options 
+     * @returns {object} the status of an evtLink
+     * @deprecated
+     */
+    async getStatusOfEvtLink(options) {
+        if (typeof options !== "object" || !options) throw new Error("invalid options");
+        if (!options.linkId || typeof options.linkId !== "string") throw new Error("invalid linkId");
+        options = Object.assign({
+            block: true,
+            throwException: false
+        }, options);
+
+        let url;
+        if (options.block) {
+            url = "/v1/evt_link/get_trx_id_for_link_id";
+        }
+        else {
+            url = "/v1/chain/get_trx_id_for_link_id";
+        }
+
+        let res = await this.__callAPI({
+            url,
+            method: "POST",
+            body: { link_id: options.linkId },
+            sign: false // no need to sign
+        });
+
+        if (res && res.trx_id) {
+            return { pending: false, transactionId: res.trx_id, blockNum: res.block_num };
+        }
+        else {
+            if (options.throwException) {
+                this.__throwServerResponseError(res);
+            }
+            else {
+                try {
+                    this.__throwServerResponseError(res);
+                    return { pending: true };
+                }
+                catch (e) {
+                    return { pending: true, exception: e };
+                }
+            }
         }
     }
 

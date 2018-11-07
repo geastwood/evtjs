@@ -17,7 +17,7 @@ logger.writeLog = true;
 
 const network = {
     host: "testnet1.everitoken.io",
-    port: 8888,
+    port: 9999,
     protocol: "http"
 };
 
@@ -63,7 +63,7 @@ describe("EvtKey", () => {
 
 // ==== part 3: APICaller write API ====
 describe("APICaller write API test", function() {
-    this.timeout(5000);
+    this.timeout(8000);
 
     it("empty actions", async function () {
         const apiCaller = new EVT({
@@ -266,6 +266,21 @@ describe("APICaller write API test", function() {
                 total_supply: "100000.00000 S#" + testingTmpData.newSymbol
             })
         )).transactionId;
+    });
+
+    it("issue_fungible", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("issuefungible", {
+                address: publicKey,
+                number: "1.00000 S#" + testingTmpData.newSymbol,
+                memo: "initial issue"
+            })
+        );
     });
 
     /*it("cancelsuspend", async function () {
@@ -476,7 +491,7 @@ describe("APICaller read API test", function() {
 
 // ==== part 5: EvtLink ====
 describe("EvtLink", function() {
-    this.timeout(5000);
+    this.timeout(8000);
 
     let evtLink = EVT.EvtLink;
 
@@ -556,14 +571,16 @@ describe("EvtLink", function() {
     });
 
     it("everiPay_execPush", async () => {
+        let linkId = await evtLink.getUniqueLinkId();
+
         let link = await evtLink.getEvtLinkForEveriPay({
             symbol: 1,
             maxAmount: 10000000,
             keyProvider: [ wif ],
-            linkId: await evtLink.getUniqueLinkId()
+            linkId
         });
 
-        // execute the pass
+        // execute the pay
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: [ wif2 ]
@@ -576,10 +593,17 @@ describe("EvtLink", function() {
                 {
                     link: link.rawText,
                     "payee": EVT.EvtKey.privateToPublic(wif2),
-                    "number": "50.00000 S#1"
+                    "number": "1.00000 S#1"
                 }
             )
         );
+
+        // wait for the status
+        let status = await apiCaller.getStatusOfEvtLink({
+            linkId
+        });
+
+        console.log("!!!!!" + JSON.stringify(status, null, 2));
     });
 
     it("everiPass_execPush", async () => {

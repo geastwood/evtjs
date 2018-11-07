@@ -1,6 +1,6 @@
 {
     "name": "evtjs",
-    "version": "4.5.0",
+    "version": "4.6.1",
     "description": "Javascript API Bindings for the everiToken blockchain.",
     "main": "lib/index.js",
     "scripts": {
@@ -78,16 +78,7 @@
         ],
         "plugins": [
             "syntax-async-functions",
-            "transform-regenerator",
-            [
-                "transform-runtime",
-                {
-                    "helpers": true,
-                    "polyfill": true,
-                    "regenerator": true,
-                    "moduleName": "babel-runtime"
-                }
-            ]
+            "transform-regenerator"
         ]
     }
 }
