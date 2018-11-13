@@ -322,16 +322,17 @@ class APICaller {
     }
 
     /**
-     * get detail information about a transaction by its id. Make sure you have history_plugin enabled on the chain node
-     * @param {*} id the id of the transaction
+     * get detail information about a transaction by its id.
+     * @param {string} id the id of the transaction.
+     * @param {string} blockNum (optional) the block num of the transaction. If not provided, the system will find it for you.
      */
-    async getTransactionDetailById(id) {
+    async getTransactionDetailById(id, blockNum = undefined) {
         if (typeof id !== "string" || !id) throw new Error("invalid transaction id");
 
         let res = await this.__callAPI({
-            url: "/v1/history/get_transaction",
+            url: "/v1/chain/get_transaction",
             method: "POST",
-            body: { id },
+            body: { id, block_num: blockNum },
             sign: false // no need to sign
         });
 
@@ -496,6 +497,29 @@ class APICaller {
     }
 
     /**
+     * Fetch all the transaction ids in one block
+     * @param {string} blockId the id of the block
+     */
+    async getTransactionIdsInBlock(blockId) {
+        if (typeof blockId !== "string" || !blockId) throw new Error("invalid blockId");
+        if (blockId.length < 64) throw new Error("invalid blockId. Note: block id is not the same as block num.");
+
+        let res = await this.__callAPI({
+            url: "/v1/chain/get_transaction_ids_for_block",
+            method: "POST",
+            body: { block_id: blockId },
+            sign: false // no need to sign
+        });
+
+        if (res && Array.isArray(res)) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * get balances of a user's all kinds of fungible tokens. Make sure you have history_plugin enabled on the chain node
      * @param {string} address the public key of the user you want to query
      * @param {number} symbolId the symbol you want to query, optional
@@ -610,11 +634,18 @@ class APICaller {
      * @param {string[]} publicKeys a single value or a array of public keys to query (required)
      * @param {number} skip the count to be skipped, default to 0 (optional)
      * @param {number} take the count to be taked, default to 10 (optional)
+     * @param {string} direction the direction for sorting the result. Defaults to `desc`. Could only be one of "desc" or "asc". (optional)
      */
-    async getTransactionsDetailOfPublicKeys(publicKeys, skip = 0, take = 10) {
+    async getTransactionsDetailOfPublicKeys(publicKeys, skip = 0, take = 10, direction = "desc") {
         if (!publicKeys) throw new Error("invalid publicKeys");
         if (!Array.isArray(publicKeys)) {
             publicKeys = [ publicKeys ];
+        }
+        if (!direction) {
+            direction = "desc";
+        }
+        if (direction !== "desc" && direction !== "asc") {
+            throw new Error("parameter `direction` could only be one of `desc` or `asc`, but `" + direction + "` given" );
         }
 
         skip = skip || 0;
@@ -623,7 +654,8 @@ class APICaller {
         let body = {
             keys: publicKeys,
             skip,
-            take
+            take,
+            dire: direction
         };
 
         let res = await this.__callAPI({

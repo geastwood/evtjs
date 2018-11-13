@@ -11,9 +11,11 @@ const publicKey = EVT.EvtKey.privateToPublic(wif);
 
 const testingTmpData = {
     newDomainName: null,
-    addedTokenNamePrefix: null
+    addedTokenNamePrefix: null,
+    head_block_num: null,
+    head_block_id: null
 };
-logger.writeLog = true;
+logger.writeLog = false;
 
 const network = {
     host: "testnet1.everitoken.io",
@@ -74,8 +76,6 @@ describe("APICaller write API test", function() {
 
         try { await apiCaller.pushTransaction(); }
         catch (e) {
-            console.log("empty exception:");
-            console.log(e);
             return;
         }
 
@@ -99,7 +99,6 @@ describe("APICaller write API test", function() {
             })
         );
 
-        // console.log("!!!!!" + JSON.stringify(trx));
         assert(trx.transaction, "expected transaction");
         assert(trx.transaction.actions.length == 1, "expected one action");
     });
@@ -336,7 +335,18 @@ describe("APICaller read API test", function() {
         });
 
         var response = await apiCaller.getHeadBlockHeaderState();
+        testingTmpData.head_block_num = response.block_num;
+        testingTmpData.head_block_id = response.id;
         assert(response.block_num, "expected block_num");
+    });
+
+    it("getTransactionIdsInBlock", async function() {
+        const apiCaller = EVT({
+            endpoint: network
+        });
+
+        var response = await apiCaller.getTransactionIdsInBlock(testingTmpData.head_block_id);
+        assert(Array.isArray(response), "expected array");
     });
 
     it("getCreatedDomains", async function () {
@@ -392,7 +402,7 @@ describe("APICaller read API test", function() {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getTransactionsDetailOfPublicKeys("EVT85QEkmFpnDwR4NjnYenqenyCxFRQc45HwjGLNpXQQ1JuSmBzSj");
+        var response = await apiCaller.getTransactionsDetailOfPublicKeys("EVT85QEkmFpnDwR4NjnYenqenyCxFRQc45HwjGLNpXQQ1JuSmBzSj", 0, 10, "asc");
         // console.log("_____++++++++++++++++" + JSON.stringify(response, null, 4));
 
         assert(Array.isArray(response), "expected array");
@@ -602,8 +612,6 @@ describe("EvtLink", function() {
         let status = await apiCaller.getStatusOfEvtLink({
             linkId
         });
-
-        console.log("!!!!!" + JSON.stringify(status, null, 2));
     });
 
     it("everiPass_execPush", async () => {

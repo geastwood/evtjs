@@ -26,7 +26,7 @@ class EvtAction {
         if (!this.domain || !this.key) {
             // use mapper to determine the `domain` and `key` field
             if (!domainKeyMappers[this.actionName]) {
-                throw new Error(`For action "${this.actionName}", parameter "domain" and "key" could not be ignored.`);
+                throw new Error(`When you create EvtAction for action "${this.actionName}", the parameter "domain" and "key" of the constructor of EvtAction could not be ignored. See https://www.everitoken.io/developers/apis,_sdks_and_tools/javascript_sdk_reference#pushtransaction-config-actions-promise and look into EvtAction part.`);
             }
             let ret = { };
             await Promise.resolve(domainKeyMappers[this.actionName]({ action: this.actionName, args: this.abi }, ret));
@@ -139,6 +139,21 @@ const domainKeyMappers = {
 
     "execsuspend": (action, transfered) => {
         transfered.domain = ".suspend";
+        transfered.key = action.args.name;
+    },
+
+    "newlock": (action, transfered) => {
+        transfered.domain = ".lock";
+        transfered.key = action.args.name;
+    },
+
+    "aprvlock": (action, transfered) => {
+        transfered.domain = ".lock";
+        transfered.key = action.args.name;
+    },
+
+    "tryunlock": (action, transfered) => {
+        transfered.domain = ".lock";
         transfered.key = action.args.name;
     },
 
