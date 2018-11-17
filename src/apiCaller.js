@@ -3,7 +3,7 @@ const { signHash } = ecc;
 const EvtConfig = require("./evtConfig");
 const { fetch } = require("./fetch");
 const ByteBuffer = require("bytebuffer");
-const EvtAction = require("./action");
+const { EvtAction } = require("./action");
 const Logger = require("./logger");
 const EvtKey = require("./key");
 

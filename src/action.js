@@ -190,10 +190,6 @@ const domainKeyMappers = {
             throw new Error("Invalid EvtLink: No symbol in the link (integer)");
         }
 
-        /*if (symbolSeg.value.indexOf(",") > 0) {
-            symbolSeg.value = symbolSeg.value.substr(symbolSeg.value.indexOf(",") + 1);
-        }*/
-
         transfered.domain = ".fungible";
         transfered.key = String(symbolSeg.value);
 
@@ -201,4 +197,16 @@ const domainKeyMappers = {
     },
 };
 
-module.exports = EvtAction;
+class TransferFungibleTokenAction extends EvtAction {
+    constructor(options) {
+        super("transferft", { from: options.from, to: options.to, memo: options.memo, number: options.number });
+    }
+}
+
+
+module.exports = {
+    EvtAction,
+    EvtActions: {
+        TransferFungibleTokenAction
+    }
+};

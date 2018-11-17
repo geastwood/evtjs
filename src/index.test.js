@@ -91,7 +91,7 @@ describe("APICaller write API test", function() {
 
         let trx = await apiCaller.generateUnsignedTransaction(
             { maxCharge: 1000000 },
-            new EVT.EvtAction("transferft", {
+            new EVT.EvtActions.TransferFungibleTokenAction({
                 from: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
                 to: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
                 memo: "",
@@ -280,6 +280,25 @@ describe("APICaller write API test", function() {
                 memo: "initial issue"
             })
         );
+    });
+
+    it("transferft", async function() {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        let trx = await apiCaller.pushTransaction(
+            { maxCharge: 1000000 },
+            new EVT.EvtActions.TransferFungibleTokenAction({
+                from: publicKey,
+                to: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
+                memo: "",
+                number: "0.00001 S#" + testingTmpData.newSymbol
+            })
+        );
+
+        console.log(JSON.stringify(trx, null, 4));
     });
 
     /*it("cancelsuspend", async function () {
