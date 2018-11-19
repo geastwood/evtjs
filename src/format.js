@@ -1,7 +1,11 @@
 const assert = require('assert')
 const BN = require('bn.js')
 const ByteBuffer = require('bytebuffer')
+const basex = require('base-x')
 const {Long} = ByteBuffer
+
+const BASE58_STR = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+const base58 = basex(BASE58_STR)
 
 module.exports = {
   ULong,
@@ -10,6 +14,8 @@ module.exports = {
   decodeName, // decode from uint64 to human readable
   encodeName128,
   decodeName128,
+  encodeAddress,
+  decodeAddress,
   encodeNameHex: name => Long.fromString(encodeName(name), true).toString(16),
   decodeNameHex: (hex, littleEndian = true) =>
     decodeName(Long.fromString(hex, true, 16).toString(), littleEndian),
@@ -362,4 +368,23 @@ function parseAssetSymbol(assetSymbol, precision = null) {
   assert(symbol.length <= 7, `Asset symbol is 7 characters or less`)
 
   return {precision, symbol}
+}
+/* Encode EVT Address in address.cpp */
+function encodeAddress(str) {
+
+    /* Check avalibility of evt_address */
+    if (typeof str !== "string" || str.length !== 53 || !str.startsWith("EVT")) throw new Error("EVTAddress should be a string with length 53 starts with EVT.");
+    str = str.substr(3);
+
+    if (str === "0".repeat(50)) return Buffer.from([0, 0]);
+    buf = Buffer.concat([Buffer.from([1, 0]), base58.decode(str)]);
+    return buf.slice(0, buf.length - 4);
+
+}
+/* Decode EVT Address in address.cpp */
+function decodeAddress(bytes) {
+
+    if (bytes.length === 4 && bytes[0] === 0 && bytes[1] === 0 && bytes[2] === 0 && bytes[3] === 0) return "EVT" + "0".repeat(50);
+    return "EVT" + base58.encode(Buffer.concat([bytes, Buffer.from([0, 0, 0, 0])]));
+
 }

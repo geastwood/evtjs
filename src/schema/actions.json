@@ -1,6 +1,6 @@
 {
     "proposal_name": "name",
-    "address_list": "address[]",
+    "address_list": "evt_address[]",
 
     "cancelsuspend": {
         "base": "",
