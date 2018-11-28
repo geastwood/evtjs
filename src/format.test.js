@@ -3,7 +3,12 @@ const assert = require('assert')
 const {
   encodeName, decodeName, encodeNameHex, decodeNameHex,
   isName, UDecimalPad, UDecimalUnimply,
-  parseAssetSymbol, encodeName128, decodeName128
+  parseAssetSymbol, encodeName128, decodeName128,
+  encodeAddress,
+  encodeJsonAddressToBin,
+  decodeJsonAddressFromBin,
+  encodeGeneratedAddressToJson,
+  decodeGeneratedAddressFromJson,
 } = require('./format')
 
 describe('format', () => {
@@ -120,7 +125,7 @@ describe('format', () => {
     assert.throws(() => parseAssetSymbol('TOOLONGSYM'), /7 characters or less/)
   })
 
-  it('encodename128', () => {
+  it('name128', () => {
 
     assert.deepEqual(encodeName128('123').toString("hex"), "0c440100".padStart(8, 0))
     assert.deepEqual(encodeName128('12345').toString("hex"), "0c44611c".padStart(8, 0))
@@ -141,6 +146,22 @@ describe('format', () => {
     assert.deepEqual(decodeName128("0e44611c48a22c8279a2a90a"), '1234567890ABCDE')
     assert.deepEqual(decodeName128("0f44611c48a22c8279a2a9ba02000000"), '1234567890ABCDEF')
     assert.deepEqual(decodeName128("0f44611c48a22c8279a2a9bab2adfbc2"), '1234567890ABCDEFGHIJK')
+    
+  })
+
+  it('evtaddress', () => {
+      
+    assert.deepEqual(encodeAddress("EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND").toString('hex'), "010002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c2")
+    assert.deepEqual(encodeAddress("EVT7rbe5ZqAEtwQT6Tw39R29vojFqrCQasK3nT5s2pEzXh1BABXHF").toString('hex'), "01000386cb0bbed3c087475efbae3c51f6825deb3be68ae013411fd509f3e361139e88")
+
+  })
+
+  it('generatedAddress', () => {
+
+      // assert.deepEqual(encodeJsonAddressToBin({prefix: "apibd2g5", key: "1", nonce: 0}).toString(), "020000008589745c35000000000c000000");
+      // assert.deepEqual(decodeJsonAddressFromBin("020000008589745c35000000000c000000"), {prefix: "apibd2g5", key: "1", nonce: 0});
+      assert.deepEqual(encodeGeneratedAddressToJson("EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95"), {prefix: "apibd2g5", key: "1", nonce: 0});
+      assert.deepEqual(decodeGeneratedAddressFromJson({prefix: "apibd2g5", key: "1", nonce: 0}), "EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95");
     
   })
 

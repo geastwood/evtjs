@@ -2,6 +2,7 @@ const assert = require('assert')
 const BN = require('bn.js')
 const ByteBuffer = require('bytebuffer')
 const basex = require('base-x')
+const RIPEMD160 = require('ripemd160')
 const {Long} = ByteBuffer
 
 const BASE58_STR = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
@@ -16,6 +17,10 @@ module.exports = {
   decodeName128,
   encodeAddress,
   decodeAddress,
+  encodeJsonAddressToBin,
+  decodeJsonAddressFromBin,
+  encodeGeneratedAddressToJson,
+  decodeGeneratedAddressFromJson,
   encodeNameHex: name => Long.fromString(encodeName(name), true).toString(16),
   decodeNameHex: (hex, littleEndian = true) =>
     decodeName(Long.fromString(hex, true, 16).toString(), littleEndian),
@@ -115,7 +120,6 @@ function encodeName(name, littleEndian = true) {
   const ulName = Long.fromString(leHex, true, 16).toString()
 
   // console.log('encodeName', name, value.toString(), ulName.toString(), JSON.stringify(bitstr.split(/(.....)/).slice(1)))
-
   return ulName.toString()
 }
 
@@ -377,6 +381,7 @@ function encodeAddress(str) {
     str = str.substr(3);
 
     if (str === "0".repeat(50)) return Buffer.from([0, 0]);
+    else if (str[0] === "0") return Buffer.from([0, 0]);
     buf = Buffer.concat([Buffer.from([1, 0]), base58.decode(str)]);
     return buf.slice(0, buf.length - 4);
 
@@ -384,7 +389,67 @@ function encodeAddress(str) {
 /* Decode EVT Address in address.cpp */
 function decodeAddress(bytes) {
 
-    if (bytes.length === 4 && bytes[0] === 0 && bytes[1] === 0 && bytes[2] === 0 && bytes[3] === 0) return "EVT" + "0".repeat(50);
+    if (bytes.length === 4 && bytes == [0,0,0,0]) return "EVT" + "0".repeat(50);
     return "EVT" + base58.encode(Buffer.concat([bytes, Buffer.from([0, 0, 0, 0])]));
 
+}
+
+function encodeJsonAddressToBin({prefix=null, key=null, nonce=null}={}) {
+
+    
+
+}
+
+function decodeJsonAddressFromBin(bytes) {
+
+}
+
+function encodeGeneratedAddressToJson(str) {
+
+    if (!str.startsWith("EVT0") || str.length !== 53) throw new Error("incorrect generated address");
+    str = str.substr(4);
+
+    // trim 0 on the left
+    let _t = 0;
+    while(str.length > _t && str[_t] === "0") _t ++;
+    str = str.substr(_t);
+
+    // split bytes
+    let bBin = base58.decode(str);
+    let bCheck = new Buffer(4);
+    let bNonce = new Buffer(4);
+    let bPrefix = new Buffer(8);
+    let bKey = new Buffer(16);
+    bBin.copy(bCheck, 0, 0, 4);
+    bBin.copy(bNonce, 0, 4, 8);
+    bBin.copy(bPrefix, 0, 8, 16);
+    bBin.copy(bKey, 0, 16, 32);
+
+    // check sum
+    if (bCheck.toString('hex') !== (new RIPEMD160().update(Buffer.concat([bPrefix, bKey, bNonce])).digest('hex').substr(0, 8))) throw new Error("check sum failed");
+
+    let prefix = decodeName(Long.fromString(bPrefix.toString('hex'), true, 16).toString());
+    let nonce = bNonce.readUInt32LE(0);
+    let key = decodeName128(bKey.toString("hex"));
+
+    return {prefix, key, nonce};
+
+}
+
+function decodeGeneratedAddressFromJson({prefix=null, key=null, nonce=null}={}) {
+
+    if (!prefix || !key || !Number.isInteger(nonce) || nonce < 0) throw new Error("incorrect json format of generated address");
+
+    let bCheck = new Buffer(4);
+    let bNonce = new Buffer(4);
+    let bPrefix = new ByteBuffer(8);
+    let bKey = new Buffer(16);
+
+    encodeName128(key).copy(bKey, 0);
+    bNonce.writeUInt32LE(nonce);
+    bPrefix.writeUint64(encodeName(prefix));
+    bCheck = Buffer.from(new RIPEMD160().update(Buffer.concat([bPrefix.buffer, bKey, bNonce])).digest('hex').substr(0, 8), 'hex');
+
+    return "EVT" + base58.encode(Buffer.concat([bCheck, bNonce, bPrefix.buffer, bKey])).padStart(50, "0");
+    
 }
