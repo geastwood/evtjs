@@ -109,7 +109,6 @@ describe("Action ABI Test", () => {
             "owner": [
                 Key.privateToPublic(wif),
                 Key.privateToPublic(wif2),
-                "EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95"
             ]
             // ["EVT00000000000000000000000000000000000000000000000000"] => "010000"
             // ["EVT00000000000000000000000000000000000000000000000000" x2] => "0200000000" 
@@ -123,9 +122,9 @@ describe("Action ABI Test", () => {
 
         let throughAPI = await apiCaller.__chainAbiJsonToBinByAPI(action);
         let throughFC = await apiCaller.__chainAbiJsonToBinByFC(action);
-        console.log(throughAPI.binargs);
-        console.log("----------");
-        console.log(throughFC);
+        // console.log(throughAPI.binargs);
+        // console.log("----------");
+        // console.log(throughFC);
 
         assert(throughFC === throughAPI.binargs);
 

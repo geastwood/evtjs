@@ -5,8 +5,8 @@ const {
   isName, UDecimalPad, UDecimalUnimply,
   parseAssetSymbol, encodeName128, decodeName128,
   encodeAddress,
-  encodeJsonAddressToBin,
-  decodeJsonAddressFromBin,
+  encodeGeneratedAddressToBin,
+  decodeGeneratedAddressFromBin,
   encodeGeneratedAddressToJson,
   decodeGeneratedAddressFromJson,
 } = require('./format')
@@ -15,8 +15,8 @@ describe('format', () => {
   // In isname111111k, 'k' overflows the last 4 bits of the name
   describe('name', () => {
     const nameFixture = {
-      isname: ['isname111111j', 'a', '1', '5', 'sam5', 'sam', 'adam.applejjj'],
-      noname: ['isname111111k', undefined, null, 1, '6', 'a6', ' ']
+      isname: ['isname111111o', 'a', '1', '5', 'sam5', 'sam', 'adam.applejjj'],
+      noname: ['isname111111p', undefined, null, 1, '6', 'a6', ' ']
     }
 
     it('isName', () => {
@@ -29,12 +29,12 @@ describe('format', () => {
     })
 
     it('encode / decode', () => {
-      assert.equal('12373', encodeName('eos'), 'encode')
-      assert.equal('3055', encodeNameHex('eos'), 'encode hex')
+      assert.equal('58923', encodeName('eos'), 'encode')
+      assert.equal('e62b', encodeNameHex('eos'), 'encode hex')
       assert.equal(decodeName(encodeName('eos')), 'eos', 'decode')
 
-      assert.equal('572d3ccdcd', encodeNameHex('transfer'), 'encode')
-      assert.equal(decodeNameHex('572d3ccdcd'), 'transfer', 'decode')
+      assert.equal('b298e982a4', encodeNameHex('transfer'), 'encode')
+      assert.equal(decodeNameHex('b298e982a4'), 'transfer', 'decode')
 
       for(let name of nameFixture.isname) {
         assert.equal(decodeName(encodeName(name)), name)
@@ -158,10 +158,17 @@ describe('format', () => {
 
   it('generatedAddress', () => {
 
-      // assert.deepEqual(encodeJsonAddressToBin({prefix: "apibd2g5", key: "1", nonce: 0}).toString(), "020000008589745c35000000000c000000");
-      // assert.deepEqual(decodeJsonAddressFromBin("020000008589745c35000000000c000000"), {prefix: "apibd2g5", key: "1", nonce: 0});
-      assert.deepEqual(encodeGeneratedAddressToJson("EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95"), {prefix: "apibd2g5", key: "1", nonce: 0});
-      assert.deepEqual(decodeGeneratedAddressFromJson({prefix: "apibd2g5", key: "1", nonce: 0}), "EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95");
+      assert.deepEqual(encodeGeneratedAddressToBin("EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95").toString('hex'), "020000008589745c35000000000c000000");
+      assert.deepEqual(decodeGeneratedAddressFromBin(Buffer.from("020000008589745c35000000000c000000", "hex")), "EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95");
+      
+      assert.deepEqual(encodeGeneratedAddressToBin("EVT000000AiCjTBuNN92tpgeqUZjaMuxkvNr5Tgsv9hTqv5Zkub9R").toString('hex'), "02000000600c113adf2f0000001b9d2210c50281c2420d956074000000");
+      assert.deepEqual(decodeGeneratedAddressFromBin(Buffer.from("02000000600c113adf2f0000001b9d2210c50281c2420d956074000000", "hex")), "EVT000000AiCjTBuNN92tpgeqUZjaMuxkvNr5Tgsv9hTqv5Zkub9R");
+      
+      assert.deepEqual(encodeGeneratedAddressToJson("EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95"), {prefix: "fungible", key: "1", nonce: 0});
+      assert.deepEqual(decodeGeneratedAddressFromJson({prefix: "fungible", key: "1", nonce: 0}), "EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95");
+      
+      assert.deepEqual(encodeGeneratedAddressToJson("EVT000000AiCjTBuNN92tpgeqUZjaMuxkvNr5Tgsv9hTqv5Zkub9R"), {prefix: "123abcc", key: "4r80239eu09i1j04r", nonce: 47});
+      assert.deepEqual(decodeGeneratedAddressFromJson({prefix: "123abcc", key: "4r80239eu09i1j04r", nonce: 47}), "EVT000000AiCjTBuNN92tpgeqUZjaMuxkvNr5Tgsv9hTqv5Zkub9R");
     
   })
 

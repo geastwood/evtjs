@@ -17,8 +17,8 @@ module.exports = {
   decodeName128,
   encodeAddress,
   decodeAddress,
-  encodeJsonAddressToBin,
-  decodeJsonAddressFromBin,
+  encodeGeneratedAddressToBin,
+  decodeGeneratedAddressFromBin,
   encodeGeneratedAddressToJson,
   decodeGeneratedAddressFromJson,
   encodeNameHex: name => Long.fromString(encodeName(name), true).toString(16),
@@ -59,7 +59,7 @@ function isName(str, err) {
   }
 }
 
-const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
+const charmap = '.abcdefghijklmnopqrstuvwxyz12345'
 const charmap128 = '.-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const charidx = ch => {
   const idx = charmap.indexOf(ch)
@@ -223,6 +223,7 @@ function encodeName128(name) {
     }
 
     // remove 2 bits length indicator
+    length = parseInt(binarray.substr(binarray.length - 2), 2);
     binarray = binarray.substr(0, binarray.length - 2);
 
     // calculate pad start of '0'
@@ -236,7 +237,15 @@ function encodeName128(name) {
         returnStr = charmap128[binCode] + returnStr;
     }
     
-    return returnStr.replace(/\.+$/, '');
+    returnStr = returnStr.replace(/\.+$/, '');
+    let returnStrLen = returnStr.length;
+
+    if ((length * 5 < returnStrLen && returnStrLen <= (length+1) * 5) || (returnStrLen > 20) && length === 3) {
+        return returnStr;
+    } else {
+        throw new Error("wrong length of decoded string");
+    }
+
   }
 
 /**
@@ -381,7 +390,7 @@ function encodeAddress(str) {
     str = str.substr(3);
 
     if (str === "0".repeat(50)) return Buffer.from([0, 0]);
-    else if (str[0] === "0") return Buffer.from([0, 0]);
+    else if (str[0] === "0") return encodeGeneratedAddressToBin("EVT" + str);
     buf = Buffer.concat([Buffer.from([1, 0]), base58.decode(str)]);
     return buf.slice(0, buf.length - 4);
 
@@ -394,19 +403,47 @@ function decodeAddress(bytes) {
 
 }
 
-function encodeJsonAddressToBin({prefix=null, key=null, nonce=null}={}) {
+function encodeGeneratedAddressToBin(str) {
 
-    
+    let {prefix, key, nonce} = encodeGeneratedAddressToJson(str);
+
+    let bNonce = new Buffer(4);
+    let bPrefix = new ByteBuffer(8);
+    let bKey = encodeName128(key);
+    bNonce.writeUInt32LE(nonce);
+    bPrefix.writeUint64(encodeName(prefix));
+
+    let result = "02" + bPrefix.buffer.toString("hex") + bNonce.toString("hex") + bKey.toString("hex");
+    return Buffer.from(result, "hex");
 
 }
 
-function decodeJsonAddressFromBin(bytes) {
+function decodeGeneratedAddressFromBin(bytes) {
+
+    if (!Buffer.isBuffer(bytes)) throw new Error("only bytes can be passed in");
+
+    let byteHex = bytes.toString("hex");
+    if (!byteHex.startsWith("02")) throw new Error("wrong type of address");
+    byteHex = byteHex.substr(2);
+
+    // parse Prefix path
+    let prefix = decodeName(Long.fromString(byteHex.substr(0, 16), true, 16).toString());
+    byteHex = byteHex.substr(16);
+
+    // parse Nonce path
+    let nonce = Buffer.from(byteHex.substr(0, 8), "hex").readUInt32LE(0);
+    byteHex = byteHex.substr(8);
+
+    // parse Key path
+    let key = decodeName128(byteHex);
+
+    return decodeGeneratedAddressFromJson({key, nonce, prefix});
 
 }
 
 function encodeGeneratedAddressToJson(str) {
 
-    if (!str.startsWith("EVT0") || str.length !== 53) throw new Error("incorrect generated address");
+    if (!str.startsWith("EVT0") || str.length !== 53 || str === ("EVT" + "0".repeat(50))) throw new Error("incorrect generated address");
     str = str.substr(4);
 
     // trim 0 on the left
