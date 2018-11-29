@@ -11,19 +11,15 @@ const publicKey = EVT.EvtKey.privateToPublic(wif);
 
 const testingTmpData = {
     newDomainName: null,
-    addedTokenNamePrefix: null
+    addedTokenNamePrefix: null,
+    head_block_num: null,
+    head_block_id: null
 };
-logger.writeLog = true;
-
-/*const network = {
-    host: "testnet1.everitoken.io",
-    port: 8888,
-    protocol: "https"
-};*/
+logger.writeLog = false;
 
 const network = {
-    host: "118.31.58.10",
-    port: 8888,
+    host: "testnet1.everitoken.io",
+    port: 9999,
     protocol: "http"
 };
 
@@ -68,22 +64,43 @@ describe("EvtKey", () => {
 });
 
 // ==== part 3: APICaller write API ====
-describe("APICaller write API test", () => {
+describe("APICaller write API test", function() {
+    this.timeout(8000);
+
     it("empty actions", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
             endpoint: network,
-            networkTimeout: 1000
+            networkTimeout: 4000
         });
 
         try { await apiCaller.pushTransaction(); }
         catch (e) {
-            console.log("empty exception:");
-            console.log(e);
             return;
         }
 
         assert(true, "expected exception");
+    });
+
+    it("generateUnsignedTransaction", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network,
+            networkTimeout: 4000
+        });
+
+        let trx = await apiCaller.generateUnsignedTransaction(
+            { maxCharge: 1000000 },
+            new EVT.EvtActions.TransferFungibleTokenAction({
+                from: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
+                to: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
+                memo: "",
+                number: "1.00000 S#1"
+            })
+        );
+
+        assert(trx.transaction, "expected transaction");
+        assert(trx.transaction.actions.length == 1, "expected one action");
     });
 
     it("new_group", async function () {
@@ -250,6 +267,40 @@ describe("APICaller write API test", () => {
         )).transactionId;
     }).timeout(5000);
 
+    it("issue_fungible", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("issuefungible", {
+                address: publicKey,
+                number: "1.00000 S#" + testingTmpData.newSymbol,
+                memo: "initial issue"
+            })
+        );
+    });
+
+    it("transferft", async function() {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        let trx = await apiCaller.pushTransaction(
+            { maxCharge: 1000000 },
+            new EVT.EvtActions.TransferFungibleTokenAction({
+                from: publicKey,
+                to: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
+                memo: "",
+                number: "0.00001 S#" + testingTmpData.newSymbol
+            })
+        );
+
+        console.log(JSON.stringify(trx, null, 4));
+    });
+
     /*it("cancelsuspend", async function () {
         const apiCaller = new EVT({
             keyProvider: wif,
@@ -279,7 +330,9 @@ describe("APICaller write API test", () => {
 });
 
 // ==== part 4: APICaller read API ====
-describe("APICaller read API test", () => {
+describe("APICaller read API test", function() {
+    this.timeout(10000);
+
     // get evt chain version
     it("getInfo", async function () {
         const apiCaller = EVT({
@@ -301,7 +354,18 @@ describe("APICaller read API test", () => {
         });
 
         var response = await apiCaller.getHeadBlockHeaderState();
+        testingTmpData.head_block_num = response.block_num;
+        testingTmpData.head_block_id = response.id;
         assert(response.block_num, "expected block_num");
+    });
+
+    it("getTransactionIdsInBlock", async function() {
+        const apiCaller = EVT({
+            endpoint: network
+        });
+
+        var response = await apiCaller.getTransactionIdsInBlock(testingTmpData.head_block_id);
+        assert(Array.isArray(response), "expected array");
     });
 
     it("getCreatedDomains", async function () {
@@ -357,7 +421,7 @@ describe("APICaller read API test", () => {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getTransactionsDetailOfPublicKeys("EVT85QEkmFpnDwR4NjnYenqenyCxFRQc45HwjGLNpXQQ1JuSmBzSj");
+        var response = await apiCaller.getTransactionsDetailOfPublicKeys("EVT85QEkmFpnDwR4NjnYenqenyCxFRQc45HwjGLNpXQQ1JuSmBzSj", 0, 10, "asc");
         // console.log("_____++++++++++++++++" + JSON.stringify(response, null, 4));
 
         assert(Array.isArray(response), "expected array");
@@ -424,6 +488,9 @@ describe("APICaller read API test", () => {
 
         var response = await apiCaller.getFungibleBalance(publicKey);
         assert(Array.isArray(response), "expected array");
+
+        var response = await apiCaller.getFungibleBalance(publicKey, 1);
+        assert(Array.isArray(response), "expected array");
         // TODO must have data (after creating transactions)
     });
 
@@ -452,7 +519,9 @@ describe("APICaller read API test", () => {
 
 
 // ==== part 5: EvtLink ====
-describe("EvtLink", () => {
+describe("EvtLink", function() {
+    this.timeout(8000);
+
     let evtLink = EVT.EvtLink;
 
     it("b2base42", async () => {
@@ -531,14 +600,16 @@ describe("EvtLink", () => {
     });
 
     it("everiPay_execPush", async () => {
+        let linkId = await evtLink.getUniqueLinkId();
+
         let link = await evtLink.getEvtLinkForEveriPay({
             symbol: 1,
             maxAmount: 10000000,
             keyProvider: [ wif ],
-            linkId: await evtLink.getUniqueLinkId()
+            linkId
         });
 
-        // execute the pass
+        // execute the pay
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: [ wif2 ]
@@ -551,10 +622,15 @@ describe("EvtLink", () => {
                 {
                     link: link.rawText,
                     "payee": EVT.EvtKey.privateToPublic(wif2),
-                    "number": "50.00000 S#1"
+                    "number": "1.00000 S#1"
                 }
             )
         );
+
+        // wait for the status
+        let status = await apiCaller.getStatusOfEvtLink({
+            linkId
+        });
     });
 
     it("everiPass_execPush", async () => {

@@ -3,7 +3,7 @@ const { signHash } = ecc;
 const EvtConfig = require("./evtConfig");
 const { fetch } = require("./fetch");
 const ByteBuffer = require("bytebuffer");
-const EvtAction = require("./action");
+const { EvtAction } = require("./action");
 const Logger = require("./logger");
 const EvtKey = require("./key");
 
@@ -322,16 +322,17 @@ class APICaller {
     }
 
     /**
-     * get detail information about a transaction by its id. Make sure you have history_plugin enabled on the chain node
-     * @param {*} id the id of the transaction
+     * get detail information about a transaction by its id.
+     * @param {string} id the id of the transaction.
+     * @param {string} blockNum (optional) the block num of the transaction. If not provided, the system will find it for you.
      */
-    async getTransactionDetailById(id) {
+    async getTransactionDetailById(id, blockNum = undefined) {
         if (typeof id !== "string" || !id) throw new Error("invalid transaction id");
 
         let res = await this.__callAPI({
-            url: "/v1/history/get_transaction",
+            url: "/v1/chain/get_transaction",
             method: "POST",
-            body: { id },
+            body: { id, block_num: blockNum },
             sign: false // no need to sign
         });
 
@@ -344,10 +345,13 @@ class APICaller {
     }
 
     /**
-     * get transaction id for a linkId
-     * @param {*} id the linkId
+     * (deprecated) get transaction id for a linkId
+     * @param {string} id the linkId
+     * @deprecated
      */
     async getTransactionIdForLinkId(id) {
+        console.warn("[warn] getTransactionIdForLinkId is deprecated, please use getStatusForLinkId instead.");
+
         if (typeof id !== "string" || !id) throw new Error("invalid link id");
 
         let res = await this.__callAPI({
@@ -363,6 +367,74 @@ class APICaller {
         else {
             this.__throwServerResponseError(res);
         }
+    }
+
+    /**
+     * get transaction status of an evtLink.
+     * Note: please check the `linkId` property of the return value. If it is not the same one as your expectation, just drop it. It is possible if you use a same callback for two calls.
+     * @param {string} linkId the linkId
+     * @param {object} options 
+     * @returns {object} the status of an evtLink
+     * @deprecated
+     */
+    async getStatusOfEvtLink(options) {
+        if (typeof options !== "object" || !options) throw new Error("invalid options");
+        if (!options.linkId || typeof options.linkId !== "string") throw new Error("invalid linkId");
+        options = Object.assign({
+            block: true,
+            throwException: false
+        }, options);
+
+        let url;
+        if (options.block) {
+            url = "/v1/evt_link/get_trx_id_for_link_id";
+        }
+        else {
+            url = "/v1/chain/get_trx_id_for_link_id";
+        }
+
+        let res = await this.__callAPI({
+            url,
+            method: "POST",
+            body: { link_id: options.linkId },
+            sign: false // no need to sign
+        });
+
+        if (res && res.trx_id) {
+            return { pending: false, transactionId: res.trx_id, blockNum: res.block_num };
+        }
+        else {
+            if (options.throwException) {
+                this.__throwServerResponseError(res);
+            }
+            else {
+                try {
+                    this.__throwServerResponseError(res);
+                    return { pending: true };
+                }
+                catch (e) {
+                    return { pending: true, exception: e };
+                }
+            }
+        }
+    }
+
+    /**
+     * Get a raw transaction but does NOT push it to the blockchain
+     */
+    async generateUnsignedTransaction() {
+        /** @type Array */
+        let args = [].slice.call(arguments);
+        if (args.length == 0) throw new Error("invalid arguments");
+        if (args[0] instanceof EvtAction) {
+            args = [ { } ].concat(args);
+        }
+
+        args[0].__estimateCharge = true;
+
+        let p = await this.pushTransaction.apply(this, args);
+
+        return { transaction: p.body.transaction };
     }
 
     /**
@@ -425,6 +497,29 @@ class APICaller {
     }
 
     /**
+     * Fetch all the transaction ids in one block
+     * @param {string} blockId the id of the block
+     */
+    async getTransactionIdsInBlock(blockId) {
+        if (typeof blockId !== "string" || !blockId) throw new Error("invalid blockId");
+        if (blockId.length < 64) throw new Error("invalid blockId. Note: block id is not the same as block num.");
+
+        let res = await this.__callAPI({
+            url: "/v1/chain/get_transaction_ids_for_block",
+            method: "POST",
+            body: { block_id: blockId },
+            sign: false // no need to sign
+        });
+
+        if (res && Array.isArray(res)) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * get balances of a user's all kinds of fungible tokens. Make sure you have history_plugin enabled on the chain node
      * @param {string} address the public key of the user you want to query
      * @param {number} symbolId the symbol you want to query, optional
@@ -466,6 +561,9 @@ class APICaller {
 
         if (res && Array.isArray(res)) {
             return res;
+        }
+        if (res && (typeof res === "string")) {
+            return [ res ];
         }
         else {
             this.__throwServerResponseError(res);
@@ -536,11 +634,18 @@ class APICaller {
      * @param {string[]} publicKeys a single value or a array of public keys to query (required)
      * @param {number} skip the count to be skipped, default to 0 (optional)
      * @param {number} take the count to be taked, default to 10 (optional)
+     * @param {string} direction the direction for sorting the result. Defaults to `desc`. Could only be one of "desc" or "asc". (optional)
      */
-    async getTransactionsDetailOfPublicKeys(publicKeys, skip = 0, take = 10) {
+    async getTransactionsDetailOfPublicKeys(publicKeys, skip = 0, take = 10, direction = "desc") {
         if (!publicKeys) throw new Error("invalid publicKeys");
         if (!Array.isArray(publicKeys)) {
             publicKeys = [ publicKeys ];
+        }
+        if (!direction) {
+            direction = "desc";
+        }
+        if (direction !== "desc" && direction !== "asc") {
+            throw new Error("parameter `direction` could only be one of `desc` or `asc`, but `" + direction + "` given" );
         }
 
         skip = skip || 0;
@@ -549,7 +654,8 @@ class APICaller {
         let body = {
             keys: publicKeys,
             skip,
-            take
+            take,
+            dire: direction
         };
 
         let res = await this.__callAPI({
@@ -700,7 +806,7 @@ class APICaller {
 
         // default config
         let trxConf = {
-            maxCharge: 100000000  
+            maxCharge: 100000000
         };
 
         // check and copy config from parameters
@@ -755,9 +861,11 @@ class APICaller {
         let body = { transaction: params.transaction };
 
         // make sure that it there is basic information about the chain
-        //if (!this.__cachedInfo) {
+        // because we need some information from getInfo and the information will be expired after some time
+        // so at the time being we will call getInfo eachtime we push a transaction
+        // It can not be changed to do in cycle because node split some information into sections
+        // and you can't guess when it will be expired
         await this.getInfo();
-        //}
 
         for (let i = 0; i < body.transaction.actions.length; ++i) {
             if (!(body.transaction.actions[i] instanceof EvtAction)) {
@@ -784,7 +892,13 @@ class APICaller {
         let expiration, hash, numHex, last_irreversible_block_num, last_irreversible_block_prefix;
  
         // process referenced block number and expiration time for transaction
-        expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
+        if (trxConf.expiration) {
+            expiration = trxConf.expiration;
+        }
+        else {
+            expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
+        }
+        
         hash = ByteBuffer.fromHex(this.__cachedInfo.last_irreversible_block_id, true); // little endian
         numHex = this.__cachedInfo.last_irreversible_block_id.substr(4, 4);
         last_irreversible_block_num = ByteBuffer.fromHex(numHex, false).readUint16(0);

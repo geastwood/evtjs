@@ -26,7 +26,7 @@ class EvtAction {
         if (!this.domain || !this.key) {
             // use mapper to determine the `domain` and `key` field
             if (!domainKeyMappers[this.actionName]) {
-                throw new Error(`For action "${this.actionName}", parameter "domain" and "key" could not be ignored.`);
+                throw new Error(`When you create EvtAction for action "${this.actionName}", the parameter "domain" and "key" of the constructor of EvtAction could not be ignored. See https://www.everitoken.io/developers/apis,_sdks_and_tools/javascript_sdk_reference#pushtransaction-config-actions-promise and look into EvtAction part.`);
             }
             let ret = { };
             await Promise.resolve(domainKeyMappers[this.actionName]({ action: this.actionName, args: this.abi }, ret));
@@ -75,6 +75,16 @@ const domainKeyMappers = {
         let splited = action.args.sym.split("#");
         if (splited.length != 2) {
             throw new Error("Invalid parameter for sym");
+        }
+        transfered.key = splited[1];
+    },
+
+    "issuefungible": (action, transfered) => {
+        transfered.domain = ".fungible";
+        // remove precision for `key`
+        let splited = action.args.number.split("#");
+        if (splited.length != 2) {
+            throw new Error("Invalid parameter for number");
         }
         transfered.key = splited[1];
     },
@@ -132,6 +142,21 @@ const domainKeyMappers = {
         transfered.key = action.args.name;
     },
 
+    "newlock": (action, transfered) => {
+        transfered.domain = ".lock";
+        transfered.key = action.args.name;
+    },
+
+    "aprvlock": (action, transfered) => {
+        transfered.domain = ".lock";
+        transfered.key = action.args.name;
+    },
+
+    "tryunlock": (action, transfered) => {
+        transfered.domain = ".lock";
+        transfered.key = action.args.name;
+    },
+
     "everipass": async (action, transfered) => {
         let parsed = await EvtLink.parseEvtLink(action.args.link, { recoverPublicKeys: false });
 
@@ -164,10 +189,6 @@ const domainKeyMappers = {
         if (symbolSeg == undefined || parseInt(symbolSeg.value).toString() != symbolSeg.value ) {
             throw new Error("Invalid EvtLink: No symbol in the link (integer)");
         }
-
-        /*if (symbolSeg.value.indexOf(",") > 0) {
-            symbolSeg.value = symbolSeg.value.substr(symbolSeg.value.indexOf(",") + 1);
-        }*/
 
         transfered.domain = ".fungible";
         transfered.key = String(symbolSeg.value);
@@ -225,4 +246,16 @@ const domainKeyMappers = {
 
 };
 
-module.exports = EvtAction;
+class TransferFungibleTokenAction extends EvtAction {
+    constructor(options) {
+        super("transferft", { from: options.from, to: options.to, memo: options.memo, number: options.number });
+    }
+}
+
+
+module.exports = {
+    EvtAction,
+    EvtActions: {
+        TransferFungibleTokenAction
+    }
+};

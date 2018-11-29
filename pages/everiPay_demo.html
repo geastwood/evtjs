@@ -89,7 +89,17 @@ NEVER SHOW IT TO ANY OTHER PEOPLE</pre>
                     }
                 }
 
+                window.checkPay = async function() {
+                    let ret = await apiCaller.getStatusOfEvtLink({ linkId: linkId });
+                    
+                    if (!ret.pending && ret.transactionId) {
+                        document.getElementById("fullpage-tip").style.display = "block";
+                        linkId = await EVT.EvtLink.getUniqueLinkId();
+                    }
+                }
+
                 setTimeout(() => window.generateCode(), 1);
+                setTimeout(() => window.checkPay(), 100);
             });
         </script>
 
