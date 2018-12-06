@@ -299,6 +299,33 @@ class APICaller {
     }
 
     /**
+     * batch get tokens from one domain, the max allowed to get in one request to get is 100.
+     * @param {string} domain the domain to query
+     * @param {number} skip the offset of request data
+     * @param {number} take the amount of data to get
+     */
+    async getTokens(domain, skip, take) {
+
+        if (typeof domain !== "string" || !Number.isInteger(skip) || !Number.isInteger(take)) throw new Error('please check your datatype of params');
+
+        let res = await this.__callAPI({
+            url: "/v1/evt/get_tokens",
+            method: "POST",
+            body: {
+                domain, skip, take
+            },
+            sign: false // no need to sign
+        });
+
+        if (!res.code || !res.error) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * Query actions by domain, key and action names. Make sure you have history_plugin enabled on the chain node
      * @param {*} params
      */
