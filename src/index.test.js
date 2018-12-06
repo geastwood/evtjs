@@ -37,7 +37,7 @@ describe("EvtKey", () => {
         assert(name128.length == 21, "should produce a string with a length of 21");
 
         assert((await EVT.EvtKey.random32BytesAsHex()), "should produce a 32 bytes hex");
-    });
+    }).timeout(5000);
 
     it("test ecc key generation", async () => {
         let key = await EVT.EvtKey.randomPrivateKey();
@@ -204,7 +204,7 @@ describe("APICaller write API test", function() {
 
         let res = await apiCaller.getDomainDetail(testingTmpData.newDomainName);
         assert(res.name === testingTmpData.newDomainName, "expected right domain name");
-    });
+    }).timeout(10000);
 
     it("issue_tokens", async function () {
         const apiCaller = new EVT({
@@ -244,7 +244,7 @@ describe("APICaller write API test", function() {
                 ]
             })
         );
-    });
+    }).timeout(10000);
 
     it("new_fungible", async function () {
         const apiCaller = new EVT({
@@ -265,7 +265,7 @@ describe("APICaller write API test", function() {
                 total_supply: "100000.00000 S#" + testingTmpData.newSymbol
             })
         )).transactionId;
-    });
+    }).timeout(5000);
 
     it("issue_fungible", async function () {
         const apiCaller = new EVT({
@@ -426,7 +426,7 @@ describe("APICaller read API test", function() {
 
         assert(Array.isArray(response), "expected array");
         // TODO must have data (after creating transactions)
-    });
+    }).timeout(10000);
 
     it("getFungibleSymbolDetail", async () => {
         const apiCaller = EVT({

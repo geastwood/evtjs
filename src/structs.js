@@ -8,7 +8,7 @@ const json = {schema: require("./schema")};
 const {
     isName, encodeName, decodeName, encodeName128, decodeName128,
     UDecimalPad, UDecimalImply, UDecimalUnimply,
-    parseAssetSymbol
+    parseAssetSymbol, encodeAddress, decodeAddress
 } = require("./format");
 
 /** Configures Fcbuffer for EVT specific structs and types. */
@@ -52,6 +52,7 @@ module.exports = (config = {}, extendedSchema) => {
     const {assetCache} = config;
 
     const evtTypes = {
+        evt_address: ()=> [EvtAddress],
         name: ()=> [Name],
         name128: ()=> [Name128],
         public_key: () => [variant(PublicKeyEcc)],
@@ -133,11 +134,9 @@ const Name128 = (validation) => {
         // if(validation.debug) {
         //   console.error(`${value}`, (Name.appendByteBuffer))
         // }
-            const bytes = encodeName128(value, false);
 
-            while (bytes.offset < bytes.limit) {
-                b.writeUint8(bytes.readUint8());
-            }
+            const buf = encodeName128(value);
+            b.append(buf.toString('binary'), 'binary')
             // b is already in littleEndian
         },
   
@@ -145,6 +144,31 @@ const Name128 = (validation) => {
             return value;
         },
   
+        toObject (value) {
+            if (validation.defaults && value == null) {
+                return "";
+            }
+            return value;
+        }
+    };
+};
+
+const EvtAddress = (validation) => {
+    return {
+        fromByteBuffer (b) {
+            // b.offset += 1;
+            // return String.fromCharCode(b[b.offset-1]);
+            console.log("Decode", b);
+            return "";
+        },
+        appendByteBuffer (b, value) {
+            let bytes = encodeAddress(value);
+            b.append(bytes.toString('binary'), 'binary');
+            // b.append(Buffer.from(value[0]).toString('binary'), 'binary');
+        },
+        fromObject (value) {
+            return value;
+        },
         toObject (value) {
             if (validation.defaults && value == null) {
                 return "";

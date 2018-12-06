@@ -983,29 +983,32 @@ class APICaller {
             }
         }
     }
-    
-    async __chainAbiJsonToBin(abi) {
+
+    async __chainAbiJsonToBinByAPI(abi) {
         let ret = await this.__callAPI({
             url: "/v1/chain/abi_json_to_bin",
             method: "POST",
             body: abi
         });
 
-        if (ret.binargs) {
-            /*console.log("hhhh" + abi.action);
-            if (structs.structs[abi.action]) {
-                
-                let obj = structs.structs[abi.action].fromObject(abi.args);
-                let bin = Fcbuffer.toBuffer(structs.structs[abi.action], obj);
+        if (ret.binargs) return ret;
+        else this.__throwServerResponseError(ret);
+    }
 
-                console.log("==== abi testing ===");
-                console.log("local: " + bin.toString("hex"));
-                console.log("remote:" + ret.binargs);
-            } TODO */
-            return ret;
+    async __chainAbiJsonToBinByFC(abi) {
+        if (structs.structs[abi.action]) {
+            let obj = structs.structs[abi.action].fromObject(abi.args);
+            let bin = Fcbuffer.toBuffer(structs.structs[abi.action], obj);
+            return bin.toString("hex");
+        } else {
+            this.__throwServerResponseError("Unknown Action");
         }
-
-        this.__throwServerResponseError(ret);
+        
+    }
+    
+    async __chainAbiJsonToBin(abi, throughAPI=true) {
+        if (throughAPI) return await this.__chainAbiJsonToBinByAPI(abi);
+        else return await this.__chainAbiJsonToBinByFC(abi);
     }
 
     /**
