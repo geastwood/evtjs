@@ -19,7 +19,7 @@ logger.writeLog = false;
 
 const network = {
     host: "testnet1.everitoken.io",
-    port: 9999,
+    port: 8888,
     protocol: "http"
 };
 
