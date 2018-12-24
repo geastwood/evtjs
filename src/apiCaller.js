@@ -352,12 +352,20 @@ class APICaller {
      * get detail information about a transaction by its id.
      * @param {string} id the id of the transaction.
      * @param {string} blockNum (optional) the block num of the transaction. If not provided, the system will find it for you.
+     * @param {object} options (optional) addtional options. available field: usingHistoryPlugin - (default true) whether to use history plugin. If you want to query transactions on a node that doesn't have history plugin, please set it to false. But in this case you can't query old transactions.
      */
-    async getTransactionDetailById(id, blockNum = undefined) {
+    async getTransactionDetailById(id, blockNum = undefined, options = undefined) {
         if (typeof id !== "string" || !id) throw new Error("invalid transaction id");
+        let _options = {
+            usingHistoryPlugin: true
+        };
+
+        if (options) {
+            Object.assign(_options, options);
+        }
 
         let res = await this.__callAPI({
-            url: "/v1/chain/get_transaction",
+            url: _options.usingHistoryPlugin == false ? "/v1/chain/get_transaction" : "/v1/history/get_transaction",
             method: "POST",
             body: { id, block_num: blockNum },
             sign: false // no need to sign
