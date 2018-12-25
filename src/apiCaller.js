@@ -992,10 +992,10 @@ class APICaller {
         else {
             if (trxConf.__hasEveriPay) {
                 // for everiPay, only 10s is allowed for expiration
-                expiration = new Date(await this.getNodeTimestamp()).toISOString().substr(0, 19);
+                expiration = new Date(await this.getNodeTimestamp() + 10000).toISOString().substr(0, 19);
             }
             else {
-                expiration = new Date(await this.getNodeTimestamp()).toISOString().substr(0, 19);
+                expiration = new Date(await this.getNodeTimestamp() + 100000).toISOString().substr(0, 19);
             }
         }
         
