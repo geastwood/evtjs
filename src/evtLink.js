@@ -549,12 +549,12 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
 
             if (imgParams.canvas) {
                 qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#000000" } }, (err) => {
-                    callback(err, { rawText: res.rawText, timeConsumed: time } );
+                    callback(err, { rawText: res.rawText, timeConsumed: time, intervalId } );
                 });
             }
             else {
                 qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#000000" } }, (err, url) => {
-                    callback(err, { dataUrl: url, rawText: res.rawText, timeConsumed: time } );
+                    callback(err, { dataUrl: url, rawText: res.rawText, timeConsumed: time, intervalId } );
                 });
             }
         })

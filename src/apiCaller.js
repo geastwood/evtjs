@@ -33,9 +33,7 @@ class APICaller {
             this.config.signProvider = defaultSignProvider(this, this.config);
         }
 
-        // var buffer = new Buffer(32).fill(0, 0, 32);
-        // this.config.signProvider({sign: signHash, buf: buffer, transaction: {}});
-
+        this.getNodeTimestamp();
         // try to get info to get the diff from local time to server time. It is useful to improve the rate of success in everiPay / everiPass
         /*this.timeDiff = null;
         this.getNodeTimestamp().then(() => {
@@ -48,10 +46,13 @@ class APICaller {
      */
     async getNodeTimestamp() {
         if (this.timeDiff == null) {
+            console.log("===2");
             try {
-                await this.getInfo({ timeout: 600 });
+                await this.getInfo({ timeout: 2000 });
             }
-            catch (e) { }
+            catch (e) {
+                console.log(e);
+            }
         }
 
         if (this.timeDiff == null) {
@@ -109,6 +110,12 @@ class APICaller {
         if (!info.evt_api_version.startsWith("2.") && !info.evt_api_version.startsWith("3.")) {
             throw new Error(`[Fatal] The API version of remote net (${info.evt_api_version}) is not compatible with current evtjs's version. Please upgrade your evtjs's version.`);
         }
+
+        if (info.head_block_time.length == 19) {
+            info.head_block_time += "Z";
+        }
+
+        this.timeDiff = new Date(info.head_block_time).getTime() + 70 - new Date().getTime();
 
         return info;
     }
@@ -986,10 +993,10 @@ class APICaller {
         else {
             if (trxConf.__hasEveriPay) {
                 // for everiPay, only 10s is allowed for expiration
-                expiration = (new Date(new Date().valueOf() + 10000)).toISOString().substr(0, 19);
+                expiration = new Date(await this.getNodeTimestamp()).toISOString().substr(0, 19);
             }
             else {
-                expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
+                expiration = new Date(await this.getNodeTimestamp()).toISOString().substr(0, 19);
             }
         }
         
