@@ -226,7 +226,7 @@ function decodeName128(value) {
     }
 
     // remove 2 bits length indicator
-    length = parseInt(binarray.substr(binarray.length - 2), 2);
+    let length = parseInt(binarray.substr(binarray.length - 2), 2);
     binarray = binarray.substr(0, binarray.length - 2);
 
     // calculate pad start of '0'
@@ -394,7 +394,7 @@ function encodeAddress(str) {
 
     if (str === "0".repeat(50)) return Buffer.from([0, 0]); // 0000
     else if (str[0] === "0") return encodeGeneratedAddressToBin("EVT" + str); // generated address
-    buf = Buffer.concat([Buffer.from([1, 0]), base58.decode(str)]); // normal
+    let buf = Buffer.concat([Buffer.from([1, 0]), base58.decode(str)]); // normal
     //console.log(buf)
     return buf.slice(0, buf.length - 4);
 
