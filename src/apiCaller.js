@@ -6,7 +6,7 @@ const ByteBuffer = require("bytebuffer");
 const { EvtAction } = require("./action");
 const Logger = require("./logger");
 const EvtKey = require("./key");
-
+const EvtLink = require("./evtLink");
 const Structs = require("./structs");
 const Fcbuffer = require("fcbuffer");
 
@@ -428,29 +428,68 @@ class APICaller {
             url = "/v1/chain/get_trx_id_for_link_id";
         }
 
-        let res = await this.__callAPI({
-            url,
-            method: "POST",
-            body: { link_id: options.linkId },
-            sign: false // no need to sign
-        });
+        let res, currentTime = new Date().valueOf();
+        let lastTimeInternet = false, lastError = null;
 
-        if (res && res.trx_id) {
-            return { pending: false, transactionId: res.trx_id, blockNum: res.block_num };
-        }
-        else {
-            if (options.throwException) {
-                this.__throwServerResponseError(res);
+        do {
+            lastTimeInternet = false;
+            res = undefined;
+            try {
+                res = await this.__callAPI({
+                    url,
+                    method: "POST",
+                    body: { link_id: options.linkId },
+                    sign: false // no need to sign
+                });
+            }
+            catch (e) {
+                if (!options.block && options.throwException) {
+                    throw e;
+                }
+                else {
+                    if (e.isServerError) {
+                        lastTimeInternet = true;
+                    }
+                    lastError = e;
+                }
+            }
+
+            if (res && res.trx_id) {
+                lastTimeInternet = true;
+                return { pending: false, successful: true, transactionId: res.trx_id, blockNum: res.block_num };
             }
             else {
-                try {
-                    this.__throwServerResponseError(res);
-                    return { pending: true };
+                if (res && res.error) {
+                    lastTimeInternet = true;
+
+                    if (options.throwException && !options.block) {
+                        this.__throwServerResponseError(res);
+                    }
+                    else {
+                        try {
+                            this.__throwServerResponseError(res);
+                        }
+                        catch (e) {
+                            if (e.isServerError) {
+                                lastTimeInternet = true;
+                            }
+                            if (!options.block)
+                                return { pending: false, successful: false, exception: e };
+    
+                            lastError = e;
+                        }
+                    }
                 }
-                catch (e) {
-                    return { pending: true, exception: e };
-                }
+                // else: the error is handled already in last catch block
             }
+        }
+        while (new Date().valueOf() - currentTime < 15000 && options.block)
+
+        if (lastTimeInternet) {
+            return { pending: false, successful: false, exception: lastError || new Error("everiPay timeOut or network issue") };
+        }
+        else {
+            return { pending: true, exception: new Error("No available network connection") };
         }
     }
 
@@ -501,7 +540,7 @@ class APICaller {
             sign: false // no need to sign
         });
  
-        if (res && res.charge) {
+        if (res && res.charge !== undefined) {
             return res;
         }
         else {
@@ -700,7 +739,11 @@ class APICaller {
             sign: false // no need to sign
         });
 
-        if (Array.isArray(res)) {
+        // fix backend bug: for empty dataset, remove quote
+        if (res == '[]') {
+            return [ ]; // tricky bug fix TODO
+        }
+        else if (Array.isArray(res)) {
             return res;
         }
         else {
@@ -919,19 +962,35 @@ class APICaller {
                 domain: originalAction.domain,
                 key: originalAction.key
             };
+
+            // if everiPay is included, expiration is not supported
+            if (binAction.name == "everipay") {
+                trxConf.__hasEveriPay = true;
+                trxConf.__linkId = (await EvtLink.parseEvtLink(originalAction.abi.link)).segments.filter(x => x.typeKey == 156)[0].value.toString("hex")
+                console.log("!!__linkId:" + trxConf.__linkId);
+                if (trxConf.expiration) {
+                    throw new Error("Expiration can not be set in a transaction including a everipay action, the expiration must be set automatically by evtjs");
+                }
+            }
             
             // override action
             body.transaction.actions[i] = binAction;
         }
 
         let expiration, hash, numHex, last_irreversible_block_num, last_irreversible_block_prefix;
- 
+
         // process referenced block number and expiration time for transaction
         if (trxConf.expiration) {
             expiration = trxConf.expiration;
         }
         else {
-            expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
+            if (trxConf.__hasEveriPay) {
+                // for everiPay, only 10s is allowed for expiration
+                expiration = (new Date(new Date().valueOf() + 10000)).toISOString().substr(0, 19);
+            }
+            else {
+                expiration = (new Date(new Date().valueOf() + 100000)).toISOString().substr(0, 19);
+            }
         }
         
         hash = ByteBuffer.fromHex(this.__cachedInfo.last_irreversible_block_id, true); // little endian
@@ -978,7 +1037,19 @@ class APICaller {
         var res = await this.__chainPushTransaction(body);
 
         // check if it is successful
-        if (res && res.processed && res.processed.receipt && res.processed.receipt.status === "executed") {
+        if (trxConf.__hasEveriPay) {
+            // For everiPay transaction, for safety, use strict mode
+            console.log("!!!test status");
+            let ret = await this.getStatusOfEvtLink({ linkId: trxConf.__linkId, block: true, throwException: false });
+
+            if (ret && ret.pending == false && ret.successful && ret.transactionId) {
+                return { transactionId: ret.transactionId };
+            }
+            else {
+                throw ret.exception || new Error("transaction is timeout");
+            }
+        }
+        else if (res && res.processed && res.processed.receipt && res.processed.receipt.status === "executed") {
             return { transactionId: res.transaction_id };
         }
         else {

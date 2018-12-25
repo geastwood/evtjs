@@ -229,7 +229,7 @@ describe("APICaller write API test", function() {
             })
         );
 
-        assert(charge.charge && Number.isInteger(charge.charge) && charge.charge > 0, "expected integer charge");
+        assert(charge.charge !== undefined && Number.isInteger(charge.charge) && charge.charge >= 0, "expected integer charge: " + JSON.stringify(charge));
 
         await apiCaller.pushTransaction(
             new EVT.EvtAction("issuetoken", {

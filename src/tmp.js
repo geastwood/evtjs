@@ -35,6 +35,7 @@ const network = {
 async function test() {
     let evtLink = EVT.EvtLink;
     let linkId = await evtLink.getUniqueLinkId();
+    console.log(linkId);
 
     let link = await evtLink.getEvtLinkForEveriPay({
         symbol: 1,
@@ -59,33 +60,32 @@ async function test() {
             {
                 link: link.rawText,
                 "payee": EVT.EvtKey.privateToPublic(wif2),
-                "number": "1.00000 S#1"
+                "number": "0.00001 S#1"
             }
         )
     );
-
+/*
     let trxId = transactionId;
 
-    apiCaller.getTransactionDetailById()
+    apiCaller.getTransactionDetailById()*/
 
     console.log("haha" + JSON.stringify(trx));
 
     // wait for the status
-    let promises = [], count = 20;
+    let promises = [], count = 3;
     for (let i = 0; i < count; ++i) {
         promises.push(apiCaller.getStatusOfEvtLink({
-            linkId
+            linkId: "1a2b99c7c7601eae13add86e6a5b50f3" || linkId
         }));
     }
     
     let statuses = await Promise.all(promises);
-    
     /*let status = await apiCaller.getStatusOfEvtLink({
         linkId
     });*/
 
-
-    console.log("!!!!!" + JSON.stringify(statuses[count - 1], null, 2));
+    //console.log("!!!!!" + JSON.stringify(statuses[count - 1], null, 2));
+    console.log(statuses[count - 1].exception.message);
 }
 
 test();
