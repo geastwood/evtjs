@@ -514,7 +514,7 @@ EvtLink.getEvtLinkForPayeeCode = async function(params) {
 EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
     let intervalId;
     if (imgParams.autoReload) {
-        intervalId = setInterval(() => EvtLink.getEVTLinkQrImage(qrType, qrParams, Object.assign(imgParams, { autoReload: false }), callback), 5000);
+        intervalId = setInterval(() => EvtLink.getEVTLinkQrImage(qrType, qrParams, Object.assign(imgParams, { autoReload: false, intervalId }), callback), 5000);
     }
 
     let errorCorrectionLevel = "M";
@@ -549,12 +549,12 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
 
             if (imgParams.canvas) {
                 qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#000000" } }, (err) => {
-                    callback(err, { rawText: res.rawText, timeConsumed: time, intervalId } );
+                    callback(err, { rawText: res.rawText, timeConsumed: time, intervalId: intervalId || imgParams.intervalId } );
                 });
             }
             else {
                 qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#000000" } }, (err, url) => {
-                    callback(err, { dataUrl: url, rawText: res.rawText, timeConsumed: time, intervalId } );
+                    callback(err, { dataUrl: url, rawText: res.rawText, timeConsumed: time, intervalId: intervalId || imgParams.intervalId } );
                 });
             }
         })
