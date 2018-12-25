@@ -46,7 +46,6 @@ class APICaller {
      */
     async getNodeTimestamp() {
         if (this.timeDiff == null) {
-            console.log("===2");
             try {
                 await this.getInfo({ timeout: 2000 });
             }
@@ -974,7 +973,7 @@ class APICaller {
             if (binAction.name == "everipay") {
                 trxConf.__hasEveriPay = true;
                 trxConf.__linkId = (await EvtLink.parseEvtLink(originalAction.abi.link)).segments.filter(x => x.typeKey == 156)[0].value.toString("hex")
-                console.log("!!__linkId:" + trxConf.__linkId);
+
                 if (trxConf.expiration) {
                     throw new Error("Expiration can not be set in a transaction including a everipay action, the expiration must be set automatically by evtjs");
                 }
@@ -1046,7 +1045,6 @@ class APICaller {
         // check if it is successful
         if (trxConf.__hasEveriPay) {
             // For everiPay transaction, for safety, use strict mode
-            console.log("!!!test status");
             let ret = await this.getStatusOfEvtLink({ linkId: trxConf.__linkId, block: true, throwException: false });
 
             if (ret && ret.pending == false && ret.successful && ret.transactionId) {
