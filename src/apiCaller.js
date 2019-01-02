@@ -480,7 +480,7 @@ class APICaller {
                                 lastTimeInternet = true;
                             }
                             if (!options.block)
-                                return { pending: false, successful: false, exception: e };
+                                return { pending: true, successful: false, exception: e };
     
                             lastError = e;
                         }
