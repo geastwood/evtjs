@@ -1156,7 +1156,7 @@ const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, 
     let keys = privateKeys;
 
     if (!keys) {
-        throw new TypeError("This transaction requires a config.keyProvider for signing");
+        throw new TypeError("This transaction requires keyProvider for signing, please check your initial parameter of APICaller class.");
     }
 
     keys = keys.map(key => {
