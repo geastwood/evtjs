@@ -10,6 +10,12 @@ module.exports = {
       toJSON: encodeGeneratedAddressToJson,
       fromJSON: decodeGeneratedAddressFromJson,
       toBin: encodeGeneratedAddressToBin,
-      fromBin: decodeGeneratedAddressFromBin
+      fromBin: function(data, encoding="buffer") {
+        /* Supporting buffer, base64, hex formats */
+        if (encoding !== "buffer") {
+            data = Buffer.from(data, encoding);
+        }
+        return decodeGeneratedAddressFromBin(data);
+      }
   }
 };
