@@ -1105,7 +1105,7 @@ class APICaller {
         return this.config.signProvider({signHash, buf, transaction, privateKeys});
     }
 
-    async __getDigestToSign(transaction) {
+    async __getDigestToSign(transaction) { 
         let ret = null;
         try {
             ret = await this.__callAPI({
