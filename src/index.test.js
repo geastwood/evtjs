@@ -265,7 +265,7 @@ describe("APICaller write API test", function() {
                 total_supply: "100000.00000 S#" + testingTmpData.newSymbol
             })
         )).transactionId;
-    }).timeout(5000);
+    }).timeout(10000);
 
     it("issue_fungible", async function () {
         const apiCaller = new EVT({
@@ -500,23 +500,23 @@ describe("APICaller read API test", function() {
         });
     });
 
-    it("getBlockHeaderState", () => {
-        return new Promise(async (res, rej) => {
-            setTimeout(async () => {
-                const apiCaller = EVT({
-                    endpoint: network,
-                    keyProvider: wif
-                });
-                var response1 = await apiCaller.getBlockHeaderState(testingTmpData.head_block_id);
-                var response2 = await apiCaller.getBlockHeaderState(testingTmpData.head_block_num);
-                logger.verbose("[getBlockStateById] " + JSON.stringify(response1, null, 2));
-                logger.verbose("[getBlockStateByNum] " + JSON.stringify(response2, null, 2));
-                assert(response1.id === response2.id, "expected same id");
+    // it("getBlockHeaderState", () => {
+    //     return new Promise(async (res, rej) => {
+    //         setTimeout(async () => {
+    //             const apiCaller = EVT({
+    //                 endpoint: network,
+    //                 keyProvider: wif
+    //             });
+    //             var response1 = await apiCaller.getBlockHeaderState(testingTmpData.head_block_id);
+    //             var response2 = await apiCaller.getBlockHeaderState(testingTmpData.head_block_num);
+    //             logger.verbose("[getBlockStateById] " + JSON.stringify(response1, null, 2));
+    //             logger.verbose("[getBlockStateByNum] " + JSON.stringify(response2, null, 2));
+    //             assert(response1.id === response2.id, "expected same id");
 
-                res();
-            }, 500);
-        });
-    });
+    //             res();
+    //         }, 500);
+    //     });
+    // });
 
     it("getTransactionActions", () => {
         return new Promise(async (res, rej) => {
@@ -684,7 +684,7 @@ describe("EvtLink", function() {
         let status = await apiCaller.getStatusOfEvtLink({
             linkId
         });
-    });
+    }).timeout(10000);
 
     it("everiPass_execPush", async () => {
         let link = await evtLink.getEvtLinkForEveriPass({
