@@ -27,6 +27,26 @@ const newCaller = () => new EVT({
     endpoint: network,
 });
 
+const testAbi = async (testAction, print=false) => {
+
+    const apiCaller = newCaller();
+    await apiCaller.getInfo();
+
+    await testAction.calculateDomainAndKey();
+    let action = { action: testAction.actionName, args: testAction.abi };
+
+    let throughAPI = await apiCaller.__chainAbiJsonToBinByAPI(action);
+    let throughFC = await apiCaller.__chainAbiJsonToBinByFC(action);
+    if (throughFC !== throughAPI.binargs || print) {
+        console.info("LFC:\t", throughFC);
+        console.info("API:\t", throughAPI.binargs);
+    }
+    if (throughFC !== throughAPI.binargs) {
+        throw new Error("Not Equal!");
+    }
+
+}
+
 /* New Actions Test Script Here */
 /**
  * Including:
@@ -40,6 +60,7 @@ const balanceThrd = {
 
 describe("Preparation", () => {
 
+    if (!"Check Remainings")
     it('check remains', async () => {
 
         const apiCaller1 = EVT({
@@ -71,35 +92,18 @@ describe("Preparation", () => {
 
 describe("Action ABI Test", () => {
 
-    /* recycle tokens: not available on testnet yet */
-    if (!"Test Recycleft")
+    if ("Check Recycleft")
     it("recycleft", async function () {
+        await testAbi(new EVT.EvtAction("recycleft", {
+            address: publicKey2,
+            number: "1.01201 S#1",
+            memo: "Test of recycleft"
+        }));
+    }).timeout(5000);
 
-        const apiCaller = new EVT({
-            keyProvider: wif2,
-            endpoint: network
-        });
-
-        let anwser = await apiCaller.pushTransaction(
-            new EVT.EvtAction("recycleft", {
-                address: publicKey2,
-                number: "0.00001 S#1",
-                memo: "Test of recycleft"
-            })
-        );
-
-        let { transactionId } = anwser || {};
-        if (!transactionId) {
-            if (answer) console.error(anwser);
-            throw Error(`Test recycleft, but received empty anwser.`);
-        }
-
-    }).timeout(3000);
-
+    if (!"Check Token")
     it("issuetoken", async () => {
-
-        let apiCaller = newCaller();
-        let testAction = new EVT.EvtAction("issuetoken", {
+        await testAbi(new EVT.EvtAction("issuetoken", {
             "domain": "shoRt",
             "names": [
                 "oneUnder10",
@@ -113,21 +117,7 @@ describe("Action ABI Test", () => {
             // ["EVT00000000000000000000000000000000000000000000000000"] => "010000"
             // ["EVT00000000000000000000000000000000000000000000000000" x2] => "0200000000" 
             // ["EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95"]
-        });
-        await testAction.calculateDomainAndKey();
-        await apiCaller.getInfo();
-        let action = { action: testAction.actionName, args: testAction.abi };
-
-        // console.log(action);
-
-        let throughAPI = await apiCaller.__chainAbiJsonToBinByAPI(action);
-        let throughFC = await apiCaller.__chainAbiJsonToBinByFC(action);
-        // console.log(throughAPI.binargs);
-        // console.log("----------");
-        // console.log(throughFC);
-
-        assert(throughFC === throughAPI.binargs);
-
+        }));
     }).timeout(5000);
 
 });

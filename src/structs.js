@@ -53,6 +53,7 @@ module.exports = (config = {}, extendedSchema) => {
 
     const evtTypes = {
         evt_address: ()=> [EvtAddress],
+        evt_asset: ()=> [EvtAsset],
         name: ()=> [Name],
         name128: ()=> [Name128],
         public_key: () => [variant(PublicKeyEcc)],
@@ -164,7 +165,6 @@ const EvtAddress = (validation) => {
         appendByteBuffer (b, value) {
             let bytes = encodeAddress(value);
             b.append(bytes.toString('binary'), 'binary');
-            // b.append(Buffer.from(value[0]).toString('binary'), 'binary');
         },
         fromObject (value) {
             return value;
@@ -250,12 +250,13 @@ let currentAccount;
 function precisionCache(assetCache, sym) {
     const assetSymbol = parseAssetSymbol(sym);
     let precision = assetSymbol.precision;
+    //console.log(assetCache, sym, assetSymbol, {symbol: assetSymbol.symbol, precision})
 
     if(currentAccount) {
         const asset = assetCache.lookup(assetSymbol.symbol, currentAccount);
         if(asset) {
             if(precision == null) {
-                precision = asset.precision;
+                precision = asset.precision || 5;
             } else {
                 assert.equal(asset.precision, precision,
                     `Precision mismatch for asset: ${sym}@${currentAccount}`);
@@ -264,7 +265,7 @@ function precisionCache(assetCache, sym) {
             // Lookup data for later (appendByteBuffer needs it)
             assetCache.lookupAsync(assetSymbol.symbol, currentAccount);
         }
-    }
+    } else if(precision == null) precision = 5;
     return {symbol: assetSymbol.symbol, precision};
 }
 
@@ -274,25 +275,35 @@ const AssetSymbol = assetCache => validation => {
             const bcopy = b.copy(b.offset, b.offset + 8);
             b.skip(8);
 
-            const precision = bcopy.readUint8();
-            const bin = bcopy.toBinary();
+            // const precision = bcopy.readUint8();
+            // const bin = bcopy.toBinary();
 
-            let symbol = "";
-            for(const code of bin)  {
-                if(code == "\0") {
-                    break;
-                }
-                symbol += code;
-            }
-            precisionCache(assetCache, `${precision},${symbol}`); // validate
-            return `${precision},${symbol}`;
+            // let symbol = "";
+            // for(const code of bin)  {
+            //     if(code == "\0") {
+            //         break;
+            //     }
+            //     symbol += code;
+            // }
+            // precisionCache(assetCache, `${precision},${symbol}`); // validate
+            // return `${precision},${symbol}`;
+
+            bin = bcopy.toBinary();
+            let symbol = bin.readUInt32LE();
+            let precision = bin.readUInt32LE(4);
+
+            return `S#${symbol}`;
         },
 
         appendByteBuffer (b, value) {
             const {symbol, precision} = precisionCache(assetCache, value);
             assert(precision != null, `Precision unknown for asset: ${symbol}@${currentAccount}`);
-            const pad = "\0".repeat(7 - symbol.length);
-            b.append(String.fromCharCode(precision) + symbol + pad);
+
+            let bPrecision = new Buffer(4);
+            let bSymbol = new Buffer(4);
+
+            bSymbol.writeUInt32LE(symbol); b.append(bSymbol);
+            bPrecision.writeUInt32LE(precision); b.append(bPrecision);
         },
 
         fromObject (value) {
@@ -327,7 +338,7 @@ const Asset = assetCache => (validation, baseTypes, customTypes) => {
             if(precision == null) {
                 return value;
             }
-            return `${UDecimalPad(amount, precision)} ${symbol}`;
+            return `${UDecimalPad(amount, precision)} S#${symbol}`;
         }
         if(typeof value === "object") {
             const {precision, symbol} = precisionCache(assetCache, value.symbol);

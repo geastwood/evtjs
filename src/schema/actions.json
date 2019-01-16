@@ -2,6 +2,15 @@
     "proposal_name": "name",
     "address_list": "evt_address[]",
 
+    "recycleft": {
+        "base": "",
+        "fields": {
+            "address": "evt_address",
+            "number": "asset",
+            "memo": "string"
+        }
+    },
+
     "cancelsuspend": {
         "base": "",
         "fields": {
