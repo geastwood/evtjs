@@ -1,6 +1,62 @@
 {
+    "evt_address": "uint128",
     "proposal_name": "name",
     "address_list": "evt_address[]",
+    "token_name": "name128",
+    "domain_name": "name128",
+    "public_key": "evt_address",
+    "user_id": "public_key",
+    "permission_name": "name",
+    "weight_type": "uint16",
+    "authorizer_ref": "string",
+    "authorizer_weight": {
+        "fields": {
+            "ref": "authorizer_ref",
+            "weight": "weight_type"
+        }
+    },
+    "permission_def": {
+        "fields": {
+            "name": "permission_name",
+            "threshold": "uint32",
+            "authorizers": "authorizer_weight[]"
+        }
+    },
+    "permission_def_optional": "permission_def?",
+
+
+    "newdomain": {
+        "base": "",
+        "fields": {
+            "name": "domain_name",
+            "creator": "user_id",
+            "issue": "permission_def",
+            "transfer": "permission_def",
+            "manage": "permission_def"
+        }
+    },
+
+
+    "updatedomain": {
+        "base": "",
+        "fields": {
+            "name": "domain_name",
+            "issue": "permission_def_optional",
+            "transfer": "permission_def_optional",
+            "manage": "permission_def_optional"
+        }
+    },
+
+
+    "issuetoken": {
+        "base": "",
+        "fields": {
+            "domain": "domain_name",
+            "names": "token_name[]",
+            "owner": "address_list"
+        }
+    },
+
 
     "recycleft": {
         "base": "",
@@ -11,12 +67,14 @@
         }
     },
 
+
     "cancelsuspend": {
         "base": "",
         "fields": {
             "name": "proposal_name"
         }
     },
+
 
     "destroytoken": {
         "base": "",
@@ -26,14 +84,6 @@
         }
     },
 
-    "issuetoken": {
-        "base": "",
-        "fields": {
-            "domain": "domain_name",
-            "names": "token_name[]",
-            "owner": "address_list"
-        }
-    },
 
     "issuefungible": {
         "base": "",

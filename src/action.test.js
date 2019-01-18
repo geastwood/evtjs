@@ -1,3 +1,5 @@
+const CHECKALL = true;
+
 /* eslint-env mocha */
 const assert = require("assert");
 const EVT = require(".");
@@ -60,7 +62,7 @@ const balanceThrd = {
 
 describe("Preparation", () => {
 
-    if (!"Check Remainings")
+    if (!"Check Remainings" || CHECKALL)
     it('check remains', async () => {
 
         const apiCaller1 = EVT({
@@ -92,7 +94,46 @@ describe("Preparation", () => {
 
 describe("Action ABI Test", () => {
 
-    if ("Check Recycleft")
+    if (!"Check newdomain / updatedomain" || CHECKALL)
+    it("newdomain", async function () {
+        let perm = {
+            name: "issue", 
+            threshold: 1, 
+            authorizers: [{
+                ref: "[A] " + publicKey2, 
+                weight: 1
+            }]
+        }
+        let perm2 = {
+            name: "issue", 
+            threshold: 1, 
+            authorizers: [{
+                ref: "[G] vastchain.technology", 
+                weight: 2
+            }]
+        }
+        let perm3 = {
+            name: "issue", 
+            threshold: 1, 
+            authorizers: [{
+                ref: "[G] .OWNER", 
+                weight: 3
+            }]
+        }
+        await testAbi(new EVT.EvtAction("newdomain", {
+            name: "test112",
+            creator: publicKey2,
+            issue: perm,
+            transfer: perm2,
+            manage: perm3
+        }));
+        await testAbi(new EVT.EvtAction("updatedomain", {
+            name: "test",
+            issue: perm,
+        }));
+    }).timeout(10000);
+
+    if (!"Check Recycleft" || CHECKALL)
     it("recycleft", async function () {
         await testAbi(new EVT.EvtAction("recycleft", {
             address: publicKey2,
@@ -101,7 +142,7 @@ describe("Action ABI Test", () => {
         }));
     }).timeout(5000);
 
-    if (!"Check Token")
+    if (!"Check Token" || CHECKALL)
     it("issuetoken", async () => {
         await testAbi(new EVT.EvtAction("issuetoken", {
             "domain": "shoRt",

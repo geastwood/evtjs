@@ -8,7 +8,7 @@ const json = {schema: require("./schema")};
 const {
     isName, encodeName, decodeName, encodeName128, decodeName128,
     UDecimalPad, UDecimalImply, UDecimalUnimply,
-    parseAssetSymbol, encodeAddress, decodeAddress
+    parseAssetSymbol, encodeAddress, decodeAddress, encodeAuthorizerRef
 } = require("./format");
 
 /** Configures Fcbuffer for EVT specific structs and types. */
@@ -57,6 +57,7 @@ module.exports = (config = {}, extendedSchema) => {
         name: ()=> [Name],
         name128: ()=> [Name128],
         public_key: () => [variant(PublicKeyEcc)],
+        authorizer_ref: () => [AuthorizerRef],
         symbol: () => [AssetSymbol(assetCache)],
         asset: () => [Asset(assetCache)], // must come after AssetSymbol
         extended_asset: () => [ExtendedAsset], // after Asset
@@ -157,13 +158,35 @@ const Name128 = (validation) => {
 const EvtAddress = (validation) => {
     return {
         fromByteBuffer (b) {
-            // b.offset += 1;
-            // return String.fromCharCode(b[b.offset-1]);
+            // TODO
             console.log("Decode", b);
             return "";
         },
         appendByteBuffer (b, value) {
             let bytes = encodeAddress(value);
+            b.append(bytes.toString('binary'), 'binary');
+        },
+        fromObject (value) {
+            return value;
+        },
+        toObject (value) {
+            if (validation.defaults && value == null) {
+                return "";
+            }
+            return value;
+        }
+    };
+};
+
+const AuthorizerRef = (validation) => {
+    return {
+        fromByteBuffer (b) {
+            // TODO
+            console.log("Decode", b);
+            return "";
+        },
+        appendByteBuffer (b, value) {
+            let bytes = encodeAuthorizerRef(value);
             b.append(bytes.toString('binary'), 'binary');
         },
         fromObject (value) {

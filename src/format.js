@@ -22,6 +22,7 @@ module.exports = {
   decodeGeneratedAddressFromBin,
   encodeGeneratedAddressToJson,
   decodeGeneratedAddressFromJson,
+  encodeAuthorizerRef,
   encodeNameHex: name => Long.fromString(encodeName(name), true).toString(16),
   decodeNameHex: (hex, littleEndian = true) =>
     decodeName(Long.fromString(hex, true, 16).toString(), littleEndian),
@@ -495,4 +496,34 @@ function decodeGeneratedAddressFromJson({prefix=null, key=null, nonce=null}={}) 
 
     return "EVT" + base58.encode(Buffer.concat([bCheck, bNonce, bPrefix.buffer, bKey])).padStart(50, "0");
     
+}
+
+function encodeAuthorizerRef(str) {
+
+    /* Check avalibility of authorizer_ref */
+    if (typeof str !== "string" || !/^\[[AG]\]\ [\.\w]+$/.test(str)) throw new Error("authorizer_ref format error, it should look like '[A] EVTxxxxx' OR '[G] xxxxxx'.");
+    let type = str.split(" ")[0][1].trim();
+    let content = str.split(" ")[1].trim();
+
+    let prefix = null;
+    let suffix = null;
+    if (type === "A") {
+        // [A] Type, [01,ADDRESS]
+        prefix = Buffer.from([]);
+        suffix = encodeAddress(content);
+    } else if (type === "G") {
+        if (content === ".OWNER") {
+            // [G] .OWNER Type, 00[00]
+            prefix = Buffer.from([0]);
+            suffix = Buffer.from([0]);
+        } else {
+            // [G] Type, 02[NAME128]
+            prefix = Buffer.from([2]);
+            suffix = encodeName128(content);
+        }
+    } else {
+        throw new Error("authorizer_ref type error, it can be either [A] or [G]");
+    }
+    return Buffer.concat([prefix, suffix]);
+
 }
