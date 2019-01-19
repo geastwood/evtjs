@@ -386,6 +386,70 @@ class APICaller {
     }
 
     /**
+     * query all the actions of one transaction by its id. 
+     * @param {string} id the id of the transaction.
+     */
+    async getTransactionActions(id) {
+        if (typeof id !== "string" || !id) throw new Error("invalid transaction id");
+
+        let res = await this.__callAPI({
+            url: "/v1/history/get_transaction_actions",
+            method: "POST",
+            body: { id },
+            sign: false // no need to sign
+        });
+
+        if (!res) return [];
+        return res;
+    }
+
+    /**
+     * query block information by num or id
+     * @param {string} key id or num of the block
+     * @returns {object} information
+     */
+    async getBlock(key) {
+        if (typeof key !== "string" || !key) throw new Error("invalid query key, it can be either block_num or block_id");
+
+        let res = await this.__callAPI({
+            url: "/v1/chain/get_block",
+            method: "POST",
+            body: { block_num_or_id: key },
+            sign: false // no need to sign
+        });
+
+        if (res && res.id && res.block_num) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
+     * query block header information by num or id
+     * @param {string} key id or num of the block
+     * @returns {object} header state
+     */
+    async getBlockHeaderState(key) {
+        if (typeof key !== "string" || !key) throw new Error("invalid query key, it can be either block_num or block_id");
+
+        let res = await this.__callAPI({
+            url: "/v1/chain/get_block_header_state",
+            method: "POST",
+            body: { block_num_or_id: key },
+            sign: false // no need to sign
+        });
+
+        if (!res.error) {
+            return res;
+        }
+        else {
+            this.__throwServerResponseError(res);
+        }
+    }
+
+    /**
      * (deprecated) get transaction id for a linkId
      * @param {string} id the linkId
      * @deprecated
