@@ -4,11 +4,15 @@
     "address_list": "evt_address[]",
     "token_name": "name128",
     "domain_name": "name128",
+    "group_name": "name128",
+    "fungible_name": "name128",
+    "symbol_name": "name128",
     "public_key": "evt_address",
     "user_id": "public_key",
     "permission_name": "name",
     "weight_type": "uint16",
     "authorizer_ref": "string",
+    "group_def": "group",
     "authorizer_weight": {
         "fields": {
             "ref": "authorizer_ref",
@@ -23,6 +27,32 @@
         }
     },
     "permission_def_optional": "permission_def?",
+    "weighted_node": {
+        "fields": {
+            "key": "evt_address",
+            "weight": "uint8"
+        }
+    },
+    "group_weighted_node": {
+        "fields": {
+            "threshold": "uint8",
+            "weight": "uint8",
+            "nodes": "weighted_node[]"
+        }
+    },
+    "group_root": {
+        "fields": {
+            "threshold": "uint8",
+            "nodes": "weighted_node[]"
+        }
+    },
+    "group": {
+        "fields": {
+            "name": "group_name",
+            "key": "evt_address",
+            "root": "group_root"
+        }
+    },
 
 
     "newdomain": {
@@ -58,6 +88,58 @@
     },
 
 
+    "transfer": {
+        "base": "",
+        "fields": {
+            "domain": "domain_name",
+            "name": "token_name",
+            "to": "address_list",
+            "memo": "string"
+        }
+    },
+
+
+    "destroytoken": {
+        "base": "",
+        "fields": {
+            "domain": "domain_name",
+            "name": "token_name"
+        }
+    },
+
+
+    "newgroup__await": {
+        "base": "",
+        "fields": {
+            "name": "group_name",
+            "group": "group_def"
+        }
+    },
+
+
+    "updategroup__await": {
+        "base": "",
+        "fields": {
+            "name": "group_name",
+            "group": "group_def"
+        }
+    },
+
+
+    "newfungible": {
+        "base": "",
+        "fields": {
+            "name": "fungible_name",
+            "sym_name": "symbol_name",
+            "sym": "symbol",
+            "creator": "user_id",
+            "issue": "permission_def",
+            "manage": "permission_def",
+            "total_supply": "asset"
+        }
+    },
+
+
     "recycleft": {
         "base": "",
         "fields": {
@@ -76,13 +158,7 @@
     },
 
 
-    "destroytoken": {
-        "base": "",
-        "fields": {
-            "domain": "domain_name",
-            "name": "token_name"
-        }
-    },
+    
 
 
     "issuefungible": {

@@ -270,9 +270,13 @@ const PublicKeyEcc = (validation) => {
 let currentAccount;
 
 /** @private */
-function precisionCache(assetCache, sym) {
+function precisionCache(assetCache, sym, amount=null) {
+    // console.log(sym);
     const assetSymbol = parseAssetSymbol(sym);
     let precision = assetSymbol.precision;
+    if (!precision) {
+        precision = (`${amount}`.split(".")[1] || "").length || null;
+    }
     //console.log(assetCache, sym, assetSymbol, {symbol: assetSymbol.symbol, precision})
 
     if(currentAccount) {
@@ -318,8 +322,8 @@ const AssetSymbol = assetCache => validation => {
             return `S#${symbol}`;
         },
 
-        appendByteBuffer (b, value) {
-            const {symbol, precision} = precisionCache(assetCache, value);
+        appendByteBuffer (b, value, _amount=null) {
+            const {symbol, precision} = precisionCache(assetCache, value, _amount);
             assert(precision != null, `Precision unknown for asset: ${symbol}@${currentAccount}`);
 
             let bPrecision = new Buffer(4);
@@ -357,14 +361,14 @@ const Asset = assetCache => (validation, baseTypes, customTypes) => {
     function toAssetString(value) {
         if(typeof value === "string") {
             const [amount, sym] = value.split(" ");
-            const {precision, symbol} = precisionCache(assetCache, sym);
+            const {precision, symbol} = precisionCache(assetCache, sym, amount);
             if(precision == null) {
                 return value;
             }
             return `${UDecimalPad(amount, precision)} S#${symbol}`;
         }
         if(typeof value === "object") {
-            const {precision, symbol} = precisionCache(assetCache, value.symbol);
+            const {precision, symbol} = precisionCache(assetCache, value.symbol, value.amount);
             assert(precision != null, `Precision unknown for asset: ${symbol}@${currentAccount}`);
             return `${UDecimalUnimply(value.amount, precision)} ${symbol}`;
         }
@@ -375,17 +379,18 @@ const Asset = assetCache => (validation, baseTypes, customTypes) => {
         fromByteBuffer (b) {
             const amount = amountType.fromByteBuffer(b);
             const sym = symbolType.fromByteBuffer(b);
-            const {precision} = precisionCache(assetCache, sym);
+            if (!`${sym}`.startsWith("S#")) sym = `S#${sym}`;
+            const {precision} = precisionCache(assetCache, sym, amount);
             return `${UDecimalUnimply(amount, precision)} ${sym}`;
         },
 
         appendByteBuffer (b, value) {
             assert.equal(typeof value, "string", "expecting string, got " + (typeof value));
             const [amount, sym] = value.split(" ");
-            const {precision} = precisionCache(assetCache, sym);
+            const {precision} = precisionCache(assetCache, sym, amount);
             assert(precision != null, `Precision unknown for asset: ${sym}@${currentAccount}`);
             amountType.appendByteBuffer(b, UDecimalImply(amount, precision));
-            symbolType.appendByteBuffer(b, sym);
+            symbolType.appendByteBuffer(b, sym, amount);
         },
 
         fromObject (value) {

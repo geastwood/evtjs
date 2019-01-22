@@ -1,4 +1,4 @@
-const CHECKALL = true;
+const CHECKALL = false;
 
 /* eslint-env mocha */
 const assert = require("assert");
@@ -39,11 +39,11 @@ const testAbi = async (testAction, print=false) => {
 
     let throughAPI = await apiCaller.__chainAbiJsonToBinByAPI(action);
     let throughFC = await apiCaller.__chainAbiJsonToBinByFC(action);
-    if (throughFC !== throughAPI.binargs || print) {
-        console.info("LFC:\t", throughFC);
+    if (throughFC.binargs !== throughAPI.binargs || print) {
+        console.info("LFC:\t", throughFC.binargs);
         console.info("API:\t", throughAPI.binargs);
     }
-    if (throughFC !== throughAPI.binargs) {
+    if (throughFC.binargs !== throughAPI.binargs) {
         throw new Error("Not Equal!");
     }
 
@@ -94,6 +94,7 @@ describe("Preparation", () => {
 
 describe("Action ABI Test", () => {
 
+
     if (!"Check newdomain / updatedomain" || CHECKALL)
     it("newdomain", async function () {
         let perm = {
@@ -133,14 +134,6 @@ describe("Action ABI Test", () => {
         }));
     }).timeout(10000);
 
-    if (!"Check Recycleft" || CHECKALL)
-    it("recycleft", async function () {
-        await testAbi(new EVT.EvtAction("recycleft", {
-            address: publicKey2,
-            number: "1.01201 S#1",
-            memo: "Test of recycleft"
-        }));
-    }).timeout(5000);
 
     if (!"Check Token" || CHECKALL)
     it("issuetoken", async () => {
@@ -160,5 +153,103 @@ describe("Action ABI Test", () => {
             // ["EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95"]
         }));
     }).timeout(5000);
+
+
+    if (!"Check Transfer" || CHECKALL)
+    it("transfer", async () => {
+        await testAbi(new EVT.EvtAction("transfer", {
+            "domain": "shoRt",
+            "name": "moreStrUnder.15",
+            "to": [
+                Key.privateToPublic(wif),
+                Key.privateToPublic(wif2),
+            ],
+            "memo": "Test"
+        }));
+    }).timeout(5000);
+
+
+    if (!"Check Destroy Token" || CHECKALL)
+    it("destroytoken", async () => {
+        await testAbi(new EVT.EvtAction("destroytoken", {
+            "domain": "shoRt",
+            "name": "moreStrUnder.15"
+        }));
+    }).timeout(5000);
+
+
+    if (!"Check New Group / Update Group" || CHECKALL)
+    it("newgroup / Update Group", async () => {
+        let groupArgs = {
+            "name": "newGrou.p",
+            "group": {
+                "name": "newGrou.p",
+                "key": Key.privateToPublic(wif2),
+                "root": {
+                    "threshold": 6,
+                    "nodes": [
+                        {
+                            "key": Key.privateToPublic(wif),
+                            "weight": 3
+                        },
+                        {
+                            "key": Key.privateToPublic(wif2),
+                            "weight": 2
+                        },
+                        {
+                            "threshold": 1,
+                            "weight": 3,
+                            "nodes": [
+                                {
+                                    "key": Key.privateToPublic(wif2),
+                                    "weight": 1
+                                },
+                                {
+                                    "key": Key.privateToPublic(wif),
+                                    "weight": 1
+                                }
+                            ]
+                        },
+                    ]
+                }
+            }
+        };
+        await testAbi(new EVT.EvtAction("newgroup", groupArgs));
+        await testAbi(new EVT.EvtAction("updategroup", groupArgs));
+    }).timeout(10000);
+
+
+    if (!"Check New Fungible" || CHECKALL)
+    it("newfungible", async () => {
+        let perm = {
+            name: "issue", 
+            threshold: 1, 
+            authorizers: [{
+                ref: "[A] " + publicKey2, 
+                weight: 1
+            }]
+        }
+        await testAbi(new EVT.EvtAction("newfungible", {
+            "name": "testtoken",
+            "sym_name": "testtoken",
+            "sym": "7,S#1059",
+            "creator": publicKey2,
+            "issue": perm,
+            "manage": perm,
+            "total_supply": "10000.0003000 S#1059"
+        }));
+    }).timeout(5000);
+
+
+    if (!"Check Recycleft" || CHECKALL)
+    it("recycleft", async function () {
+        await testAbi(new EVT.EvtAction("recycleft", {
+            address: publicKey2,
+            number: "1.01942 S#1",
+            memo: "Test of recycleft"
+        }));
+    }).timeout(5000);
+
+    
 
 });

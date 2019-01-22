@@ -380,8 +380,13 @@ function parseAssetSymbol(assetSymbol, precision = null) {
         assert(precision > -1, "precision must be positive");
     }
     
-    assert(/^S#[0-9]+$/.test(symbol), `Asset symbol should looks like 'S#{num}', but got ${symbol}.`);
-    symbol = symbol.replace("S#", "");
+    if (!/^[0-9]+$/.test(symbol)) {
+        if (/^S#[0-9]+$/.test(symbol)) {
+            symbol = symbol.replace("S#", "");
+        } else {
+            throw new Error(`Asset symbol should looks like 'S#{num}', but got ${symbol}.`);
+        }
+    }
     assert(precision <= 18, "Precision should be 18 characters or less");
     assert(symbol.length <= 7, "Asset symbol is 7 characters or less");
 
