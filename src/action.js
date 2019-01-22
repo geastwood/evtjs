@@ -205,6 +205,15 @@ const domainKeyMappers = {
         }
     },
 
+    "destroyft": (action, transfered) => {
+        transfered.domain = ".fungible";
+        transfered.key = String(action.args.number.split("#")[1]);
+
+        if (!transfered.key) {
+            throw new Error("number is invalid");
+        }
+    },
+
     "newlock": (action, transfered) => {
         transfered.domain = ".lock";
         transfered.key = String(action.args.name);

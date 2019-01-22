@@ -13,6 +13,7 @@
     "weight_type": "uint16",
     "authorizer_ref": "string",
     "group_def": "group",
+    "symbol_id_type": "uint32",
     "authorizer_weight": {
         "fields": {
             "ref": "authorizer_ref",
@@ -140,7 +141,48 @@
     },
 
 
+    "updfungible": {
+        "base": "",
+        "fields": {
+            "sym_id": "symbol_id_type",
+            "issue": "permission_def?",
+            "manage": "permission_def?"
+        }
+    },
+
+
+    "issuefungible": {
+        "base": "",
+        "fields": {
+            "address": "evt_address",
+            "number": "asset",
+            "memo": "string"
+        }
+    },
+
+
+    "transferft": {
+        "base": "",
+        "fields": {
+            "from": "evt_address",
+            "to": "evt_address",
+            "number": "asset",
+            "memo": "string"
+        }
+    },
+
+
     "recycleft": {
+        "base": "",
+        "fields": {
+            "address": "evt_address",
+            "number": "asset",
+            "memo": "string"
+        }
+    },
+
+    
+    "destroyft": {
         "base": "",
         "fields": {
             "address": "evt_address",
@@ -155,18 +197,9 @@
         "fields": {
             "name": "proposal_name"
         }
-    },
-
-
+    }
     
 
 
-    "issuefungible": {
-        "base": "",
-        "fields": {
-            "address": "address",
-            "memo": "string",
-            "number": "asset"
-        }
-    }
+    
 }

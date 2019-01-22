@@ -241,9 +241,57 @@ describe("Action ABI Test", () => {
     }).timeout(5000);
 
 
+    if (!"Check Update Fungible" || CHECKALL)
+    it("updfungible", async () => {
+        let perm = {
+            name: "issue", 
+            threshold: 1, 
+            authorizers: [{
+                ref: "[A] " + publicKey2, 
+                weight: 1
+            }]
+        }
+        await testAbi(new EVT.EvtAction("updfungible", {
+            "sym_id": 1059,
+            "manage": perm
+        }));
+    }).timeout(5000);
+
+
+    if (!"Check Issue Fungible" || CHECKALL)
+    it("issuefungible", async () => {
+        await testAbi(new EVT.EvtAction("issuefungible", {
+            "address": publicKey2,
+            "number": "2.0040310 S#1059",
+            "memo": "Test"
+        }));
+    }).timeout(5000);
+
+
+    if (!"Check Transferft" || CHECKALL)
+    it("transferft", async () => {
+        await testAbi(new EVT.EvtAction("transferft", {
+            "from": publicKey2,
+            "to": publicKey,
+            "number": "2.0040310 S#1059",
+            "memo": "Test"
+        }));
+    }).timeout(5000);
+
+
     if (!"Check Recycleft" || CHECKALL)
     it("recycleft", async function () {
         await testAbi(new EVT.EvtAction("recycleft", {
+            address: publicKey2,
+            number: "1.01942 S#1",
+            memo: "Test of recycleft"
+        }));
+    }).timeout(5000);
+
+
+    if (!"Check Destroyft" || CHECKALL)
+    it("destroyft", async function () {
+        await testAbi(new EVT.EvtAction("destroyft", {
             address: publicKey2,
             number: "1.01942 S#1",
             memo: "Test of recycleft"
