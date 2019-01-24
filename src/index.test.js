@@ -421,7 +421,7 @@ describe("APICaller read API test", function() {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getTransactionsDetailOfPublicKeys("EVT85QEkmFpnDwR4NjnYenqenyCxFRQc45HwjGLNpXQQ1JuSmBzSj", 0, 10, "asc");
+        var response = await apiCaller.getTransactionsDetailOfPublicKeys(publicKey, 0, 10, "asc");
         // console.log("_____++++++++++++++++" + JSON.stringify(response, null, 4));
 
         assert(Array.isArray(response), "expected array");
@@ -521,15 +521,21 @@ describe("APICaller read API test", function() {
     it("getTransactionActions", () => {
         return new Promise(async (res, rej) => {
             setTimeout(async () => {
-                const apiCaller = EVT({
-                    endpoint: network,
-                    keyProvider: wif
-                });
-                var response = await apiCaller.getTransactionActions(testingTmpData.trxid);
-                assert(Array.isArray(response), "Should be an array.");
+                try {
+                    const apiCaller = EVT({
+                        endpoint: network,
+                        keyProvider: wif
+                    });
+                    var response = await apiCaller.getTransactionActions(testingTmpData.trxid);
+                    assert(Array.isArray(response), "Should be an array.");
 
-                res();
-            }, 500);
+                    res();
+                }
+                catch (e) {
+                    //res();
+                    rej(e);
+                }
+            }, 1500);
         });
     });
 

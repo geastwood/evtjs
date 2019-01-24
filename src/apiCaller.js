@@ -116,6 +116,11 @@ class APICaller {
 
         this.timeDiff = new Date(info.head_block_time).getTime() + 70 - new Date().getTime();
 
+        // sync time to global
+        if (global || window) {
+            (global || window).__evtjs_timeDiff = this.timeDiff;
+        }
+
         return info;
     }
 
@@ -774,7 +779,7 @@ class APICaller {
     }
 
     /**
-     * get detail information about a transaction by its id. Make sure you have history_plugin enabled on the chain node
+     * get detail information about transactions which involves specific public keys. Make sure you have history_plugin enabled on the chain node
      * @param {string[]} publicKeys a single value or a array of public keys to query (required)
      * @param {number} skip the count to be skipped, default to 0 (optional)
      * @param {number} take the count to be taked, default to 10 (optional)
@@ -810,7 +815,7 @@ class APICaller {
         });
 
         // fix backend bug: for empty dataset, remove quote
-        if (res == '[]') {
+        if (res == "[]") {
             return [ ]; // tricky bug fix TODO
         }
         else if (Array.isArray(res)) {
