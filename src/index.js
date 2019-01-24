@@ -11,8 +11,9 @@ const pkg = require("../package.json");
 const { APICaller } = require("./apiCaller");
 const EvtConfig = require("./evtConfig");
 const EvtKey = require("./key");
-const EvtAction = require("./action");
+const { EvtAction, EvtActions } = require("./action");
 const EvtLink = require("./evtLink");
+const Helper = require("./helper.js");
 
 // Global EVT Object for exporting
 let EVT = function(config) {
@@ -25,7 +26,9 @@ EVT = Object.assign(EVT, {
     EvtConfig,
     EvtKey,
     EvtAction,
-    EvtLink
+    EvtActions,
+    EvtLink,
+    Helper
 });
 
 module.exports = EVT;

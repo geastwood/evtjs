@@ -1,5 +1,6 @@
 {
     "proposal_name": "name",
+    "address_list": "evt_address[]",
 
     "cancelsuspend": {
         "base": "",
@@ -13,6 +14,24 @@
         "fields": {
             "domain": "domain_name",
             "name": "token_name"
+        }
+    },
+
+    "issuetoken": {
+        "base": "",
+        "fields": {
+            "domain": "domain_name",
+            "names": "token_name[]",
+            "owner": "address_list"
+        }
+    },
+
+    "issuefungible": {
+        "base": "",
+        "fields": {
+            "address": "address",
+            "memo": "string",
+            "number": "asset"
         }
     }
 }

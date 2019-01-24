@@ -11,9 +11,11 @@ const publicKey = EVT.EvtKey.privateToPublic(wif);
 
 const testingTmpData = {
     newDomainName: null,
-    addedTokenNamePrefix: null
+    addedTokenNamePrefix: null,
+    head_block_num: null,
+    head_block_id: null
 };
-logger.writeLog = true;
+logger.writeLog = false;
 
 const network = {
     host: "testnet1.everitoken.io",
@@ -35,7 +37,7 @@ describe("EvtKey", () => {
         assert(name128.length == 21, "should produce a string with a length of 21");
 
         assert((await EVT.EvtKey.random32BytesAsHex()), "should produce a 32 bytes hex");
-    });
+    }).timeout(5000);
 
     it("test ecc key generation", async () => {
         let key = await EVT.EvtKey.randomPrivateKey();
@@ -63,7 +65,7 @@ describe("EvtKey", () => {
 
 // ==== part 3: APICaller write API ====
 describe("APICaller write API test", function() {
-    this.timeout(5000);
+    this.timeout(8000);
 
     it("empty actions", async function () {
         const apiCaller = new EVT({
@@ -74,8 +76,6 @@ describe("APICaller write API test", function() {
 
         try { await apiCaller.pushTransaction(); }
         catch (e) {
-            console.log("empty exception:");
-            console.log(e);
             return;
         }
 
@@ -91,7 +91,7 @@ describe("APICaller write API test", function() {
 
         let trx = await apiCaller.generateUnsignedTransaction(
             { maxCharge: 1000000 },
-            new EVT.EvtAction("transferft", {
+            new EVT.EvtActions.TransferFungibleTokenAction({
                 from: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
                 to: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
                 memo: "",
@@ -99,7 +99,6 @@ describe("APICaller write API test", function() {
             })
         );
 
-        // console.log("!!!!!" + JSON.stringify(trx));
         assert(trx.transaction, "expected transaction");
         assert(trx.transaction.actions.length == 1, "expected one action");
     });
@@ -205,7 +204,7 @@ describe("APICaller write API test", function() {
 
         let res = await apiCaller.getDomainDetail(testingTmpData.newDomainName);
         assert(res.name === testingTmpData.newDomainName, "expected right domain name");
-    });
+    }).timeout(10000);
 
     it("issue_tokens", async function () {
         const apiCaller = new EVT({
@@ -230,7 +229,7 @@ describe("APICaller write API test", function() {
             })
         );
 
-        assert(charge.charge && Number.isInteger(charge.charge) && charge.charge > 0, "expected integer charge");
+        assert(charge.charge !== undefined && Number.isInteger(charge.charge) && charge.charge >= 0, "expected integer charge: " + JSON.stringify(charge));
 
         await apiCaller.pushTransaction(
             new EVT.EvtAction("issuetoken", {
@@ -245,7 +244,7 @@ describe("APICaller write API test", function() {
                 ]
             })
         );
-    });
+    }).timeout(10000);
 
     it("new_fungible", async function () {
         const apiCaller = new EVT({
@@ -266,6 +265,40 @@ describe("APICaller write API test", function() {
                 total_supply: "100000.00000 S#" + testingTmpData.newSymbol
             })
         )).transactionId;
+    }).timeout(10000);
+
+    it("issue_fungible", async function () {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        await apiCaller.pushTransaction(
+            new EVT.EvtAction("issuefungible", {
+                address: publicKey,
+                number: "1.00000 S#" + testingTmpData.newSymbol,
+                memo: "initial issue"
+            })
+        );
+    });
+
+    it("transferft", async function() {
+        const apiCaller = new EVT({
+            keyProvider: wif,
+            endpoint: network
+        });
+
+        let trx = await apiCaller.pushTransaction(
+            { maxCharge: 1000000 },
+            new EVT.EvtActions.TransferFungibleTokenAction({
+                from: publicKey,
+                to: "EVT5RsxormWcjvVBvEdQFonu5RNG4js8Zvz9pTjABLZaYxo6NNbSJ",
+                memo: "",
+                number: "0.00001 S#" + testingTmpData.newSymbol
+            })
+        );
+
+        console.log(JSON.stringify(trx, null, 4));
     });
 
     /*it("cancelsuspend", async function () {
@@ -321,7 +354,18 @@ describe("APICaller read API test", function() {
         });
 
         var response = await apiCaller.getHeadBlockHeaderState();
+        testingTmpData.head_block_num = response.block_num;
+        testingTmpData.head_block_id = response.id;
         assert(response.block_num, "expected block_num");
+    });
+
+    it("getTransactionIdsInBlock", async function() {
+        const apiCaller = EVT({
+            endpoint: network
+        });
+
+        var response = await apiCaller.getTransactionIdsInBlock(testingTmpData.head_block_id);
+        assert(Array.isArray(response), "expected array");
     });
 
     it("getCreatedDomains", async function () {
@@ -377,12 +421,13 @@ describe("APICaller read API test", function() {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getTransactionsDetailOfPublicKeys("EVT85QEkmFpnDwR4NjnYenqenyCxFRQc45HwjGLNpXQQ1JuSmBzSj");
+        var response = await apiCaller.getTransactionsDetailOfPublicKeys(publicKey, 0, 10, "asc");
         // console.log("_____++++++++++++++++" + JSON.stringify(response, null, 4));
 
         assert(Array.isArray(response), "expected array");
+        testingTmpData.trxid = response[0].id;
         // TODO must have data (after creating transactions)
-    });
+    }).timeout(10000);
 
     it("getFungibleSymbolDetail", async () => {
         const apiCaller = EVT({
@@ -436,6 +481,64 @@ describe("APICaller read API test", function() {
         });
     });
 
+    it("getBlock", () => {
+        return new Promise(async (res, rej) => {
+            setTimeout(async () => {
+                const apiCaller = EVT({
+                    endpoint: network,
+                    keyProvider: wif
+                });
+                
+                var response1 = await apiCaller.getBlockDetail(testingTmpData.head_block_id);
+                var response2 = await apiCaller.getBlockDetail(testingTmpData.head_block_num.toString());
+                logger.verbose("[getBlockById] " + JSON.stringify(response1, null, 2));
+                logger.verbose("[getBlockByNum] " + JSON.stringify(response2, null, 2));
+                assert(response1.id === response2.id, "expected same id");
+
+                res();
+            }, 500);
+        });
+    });
+
+    // it("getBlockHeaderState", () => {
+    //     return new Promise(async (res, rej) => {
+    //         setTimeout(async () => {
+    //             const apiCaller = EVT({
+    //                 endpoint: network,
+    //                 keyProvider: wif
+    //             });
+    //             var response1 = await apiCaller.getBlockHeaderState(testingTmpData.head_block_id);
+    //             var response2 = await apiCaller.getBlockHeaderState(testingTmpData.head_block_num);
+    //             logger.verbose("[getBlockStateById] " + JSON.stringify(response1, null, 2));
+    //             logger.verbose("[getBlockStateByNum] " + JSON.stringify(response2, null, 2));
+    //             assert(response1.id === response2.id, "expected same id");
+
+    //             res();
+    //         }, 500);
+    //     });
+    // });
+
+    it("getTransactionActions", () => {
+        return new Promise(async (res, rej) => {
+            setTimeout(async () => {
+                try {
+                    const apiCaller = EVT({
+                        endpoint: network,
+                        keyProvider: wif
+                    });
+                    var response = await apiCaller.getTransactionActions(testingTmpData.trxid);
+                    assert(Array.isArray(response), "Should be an array.");
+
+                    res();
+                }
+                catch (e) {
+                    //res();
+                    rej(e);
+                }
+            }, 1500);
+        });
+    });
+
     it("getFungibleBalance", async () => {
         const apiCaller = EVT({
             endpoint: network,
@@ -476,7 +579,7 @@ describe("APICaller read API test", function() {
 
 // ==== part 5: EvtLink ====
 describe("EvtLink", function() {
-    this.timeout(5000);
+    this.timeout(8000);
 
     let evtLink = EVT.EvtLink;
 
@@ -556,14 +659,16 @@ describe("EvtLink", function() {
     });
 
     it("everiPay_execPush", async () => {
+        let linkId = await evtLink.getUniqueLinkId();
+
         let link = await evtLink.getEvtLinkForEveriPay({
             symbol: 1,
             maxAmount: 10000000,
             keyProvider: [ wif ],
-            linkId: await evtLink.getUniqueLinkId()
+            linkId
         });
 
-        // execute the pass
+        // execute the pay
         const apiCaller = EVT({
             endpoint: network,
             keyProvider: [ wif2 ]
@@ -576,11 +681,16 @@ describe("EvtLink", function() {
                 {
                     link: link.rawText,
                     "payee": EVT.EvtKey.privateToPublic(wif2),
-                    "number": "50.00000 S#1"
+                    "number": "1.00000 S#1"
                 }
             )
         );
-    });
+
+        // wait for the status
+        let status = await apiCaller.getStatusOfEvtLink({
+            linkId
+        });
+    }).timeout(10000);
 
     it("everiPass_execPush", async () => {
         let link = await evtLink.getEvtLinkForEveriPass({
