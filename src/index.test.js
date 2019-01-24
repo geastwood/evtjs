@@ -489,8 +489,8 @@ describe("APICaller read API test", function() {
                     keyProvider: wif
                 });
                 
-                var response1 = await apiCaller.getBlock(testingTmpData.head_block_id);
-                var response2 = await apiCaller.getBlock(testingTmpData.head_block_num.toString());
+                var response1 = await apiCaller.getBlockDetail(testingTmpData.head_block_id);
+                var response2 = await apiCaller.getBlockDetail(testingTmpData.head_block_num.toString());
                 logger.verbose("[getBlockById] " + JSON.stringify(response1, null, 2));
                 logger.verbose("[getBlockByNum] " + JSON.stringify(response2, null, 2));
                 assert(response1.id === response2.id, "expected same id");
