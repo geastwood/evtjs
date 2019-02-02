@@ -30,6 +30,23 @@ EvtLink.b2dec = function(buffer) {
 };
 
 /**
+ * Get current time using remote server time. The return value will fallback to local time if remote server time is not available.
+ */
+EvtLink.getFixedCurrentTime = function getFixedCurrentTime() {
+    let remoteDiff = 0;
+
+    if ( (global || window) && (global || window).__evtjs_timeDiff ) {
+        remoteDiff = remoteDiff || (global || window).__evtjs_timeDiff;
+        console.log("[evtjs] using timestamp with diff:" + remoteDiff);
+    }
+    else {
+        console.log("[evtjs] warning: can not get time from node; it's recommended to use EvtLink function after initializing one APICaller instance with valid endpoint.");
+    }
+
+    return new Date().getTime() + remoteDiff;
+};
+
+/**
  * Convert a base10 representation to buffer.
  * @param {string} base10 string.
  */
@@ -350,7 +367,7 @@ EvtLink.validateEveriPassUnsafe = async function validateEveriPassUnsafe(options
         throw new Error("everiPass is in wrong format: the evtLink is not a well-formatted everiPass string.");
     }
 
-    if (Math.abs(timestamp - new Date().getTime()) > 60000) {
+    if (Math.abs(timestamp - EvtLink.getFixedCurrentTime()) > 60000) {
         throw new Error("everiPass is expired");
     }
 
@@ -413,7 +430,7 @@ EvtLink.getEveriPassText = async function(params) {
 
     // add segments
     let flag = (1 + 2 + (params.autoDestroying ? 8 : 0));                            // everiPass
-    byteSegments.push(createSegment(42, Math.floor(new Date().valueOf() / 1000) ));  // timestamp
+    byteSegments.push(createSegment(42, Math.floor(EvtLink.getFixedCurrentTime() / 1000) ));  // timestamp
     if (params.domainName) byteSegments.push(createSegment(91, params.domainName));  // domainName for everiPass
     if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));    // tokenName for everiPass
     // byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));       // random link id 
@@ -452,7 +469,7 @@ EvtLink.getEveriPayText = async function(params) {
 
     // add segments
     let flag =  (1 + 4);  // everiPay
-    byteSegments.push(createSegment(42, Math.floor(new Date().valueOf() / 1000) ));  // timestamp
+    byteSegments.push(createSegment(42, Math.floor(EvtLink.getFixedCurrentTime() / 1000) ));  // timestamp
     byteSegments.push(createSegment(44, params.symbol.toString()));  // symbol for everiPay
 
     if (params.maxAmount && params.maxAmount < 4294967295) 
@@ -538,11 +555,11 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
         throw new Error("invalid QR Type");
     }
 
-    let time = new Date().valueOf();
+    let time = EvtLink.getFixedCurrentTime();
     
     func(qrParams)
         .then((res) => {
-            time = (new Date().valueOf()) - time;
+            time = (EvtLink.getFixedCurrentTime()) - time;
 
             if (res.rawText.length > 300) {
                 errorCorrectionLevel = "M";
