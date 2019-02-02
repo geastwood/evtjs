@@ -415,7 +415,7 @@ class APICaller {
             url: "/v1/chain/get_block",
             method: "POST",
             body: { block_num_or_id: blockNumOrId },
-            sign: false // no need to sign 
+            sign: false // no need to sign
         });
 
         if (res && res.id && res.block_num) {
