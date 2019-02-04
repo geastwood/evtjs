@@ -106,8 +106,17 @@ class APICaller {
         this.__cachedInfo = info;
 
         // check version of remote net
-        if (!info.evt_api_version.startsWith("2.") && !info.evt_api_version.startsWith("3.")) {
+        if (!info.evt_api_version.startsWith("2.") && !info.evt_api_version.startsWith("3.") && !info.evt_api_version.startsWith("4.")) {
             throw new Error(`[Fatal] The API version of remote net (${info.evt_api_version}) is not compatible with current evtjs's version. Please upgrade your evtjs's version.`);
+        }
+
+        this.__node_evt_api_version = info.evt_api_version;
+
+        if (info.enabled_plugins && !info.enabled_plugins.includes("evt::history_plugin")) {
+            this.__node_history_plugin_enabled = false;
+        }
+        else {
+            this.__node_history_plugin_enabled = true;
         }
 
         if (info.head_block_time.length == 19) {
@@ -681,17 +690,23 @@ class APICaller {
         //}
 
         // If the version is lower than 2.2 (including), then user old API, else use the new API
-        let isNewerVersion = false;
-        if (!this.__cachedInfo.evt_api_version.startsWith("2.0") 
-        && !this.__cachedInfo.evt_api_version.startsWith("2.1")
-        && !this.__cachedInfo.evt_api_version.startsWith("2.2")
-        ) {
-            isNewerVersion = true;
+        let isNewerVersion = true;
+        if (this.__cachedInfo.evt_api_version.startsWith("3.")) {
+            isNewerVersion = false;
         }
 
-        let body = {
-            address
-        };
+        let body;
+        
+        if (symbolId || !isNewerVersion) {
+            body = {
+                address
+            };
+        }
+        else {
+            body = {
+                addr: address
+            };
+        }
 
         if (symbolId) {
             body.sym_id = symbolId;
@@ -700,9 +715,14 @@ class APICaller {
                 throw new Error("sym_id must be integer");
             }
         }
+        else {
+            if (isNewerVersion && !this.__node_history_plugin_enabled) {
+                throw new Error("calling getFungibleBalance without symbolId parameter is only supported when history plugin is eneabled on the connected node if evt api version >= 4.0");
+            }
+        }
 
         let res = await this.__callAPI({
-            url: isNewerVersion ? "/v1/evt/get_fungible_balance" : "/v1/evt/get_assets",
+            url: isNewerVersion && !symbolId ? "/v1/history/get_fungibles_balance" : "/v1/evt/get_fungible_balance",
             method: "POST",
             body,
             sign: false // no need to sign
