@@ -721,12 +721,16 @@ class APICaller {
             }
         }
 
-        let res = await this.__callAPI({
+        let args = {
             url: isNewerVersion && !symbolId ? "/v1/history/get_fungibles_balance" : "/v1/evt/get_fungible_balance",
             method: "POST",
             body,
             sign: false // no need to sign
-        });
+        };
+
+        console.log(args); // For Test Only, TODO
+
+        let res = await this.__callAPI(args);
 
         if (res && Array.isArray(res)) {
             return res;

@@ -10,7 +10,7 @@ const wif3 = "5K3nUWxfkUjfLQu9PL6NZLKWV41PiFyuQdrckArA59jz19M6zgq";
 const publicKey = EVT.EvtKey.privateToPublic(wif);
 
 const testingTmpData = {
-    newDomainName: null,
+    newDomainName: null, 
     addedTokenNamePrefix: null,
     head_block_num: null,
     head_block_id: null
@@ -19,7 +19,7 @@ logger.writeLog = false;
 
 const network = {
     host: "testnet1.everitoken.io",
-    port: 8888,
+    port: 9999,
     protocol: "http"
 };
 
