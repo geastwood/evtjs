@@ -727,14 +727,18 @@ class APICaller {
             body,
             sign: false // no need to sign
         };
+        
+        console.log("[args]!!!!!!!!!!");
 
         console.log(args); // For Test Only, TODO
 
         let res = await this.__callAPI(args);
 
+        // console.log(res);
+
         if (res && Array.isArray(res)) {
             return res;
-        }
+        } 
         if (res && (typeof res === "string")) {
             return [ res ];
         }
