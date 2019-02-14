@@ -106,7 +106,7 @@ class APICaller {
         this.__cachedInfo = info;
 
         // check version of remote net
-        if (!info.evt_api_version.startsWith("2.") && !info.evt_api_version.startsWith("3.")) {
+        if (!info.evt_api_version.startsWith("2.") && !info.evt_api_version.startsWith("3.") && !info.evt_api_version.startsWith("4.")) {
             throw new Error(`[Fatal] The API version of remote net (${info.evt_api_version}) is not compatible with current evtjs's version. Please upgrade your evtjs's version.`);
         }
 

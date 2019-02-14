@@ -109,7 +109,7 @@
     },
 
 
-    "newgroup__await": {
+    "newgroup": {
         "base": "",
         "fields": {
             "name": "group_name",

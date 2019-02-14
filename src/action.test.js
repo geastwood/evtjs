@@ -12,8 +12,8 @@ const publicKey = EVT.EvtKey.privateToPublic(wif);
 const publicKey2 = EVT.EvtKey.privateToPublic(wif2);
 
 const network = {
-    host: "118.31.58.10",
-    port: 9999,
+    host: "testnet1.everitoken.io",
+    port: 8888,
     protocol: "http"
 };
 
@@ -178,7 +178,7 @@ describe("Action ABI Test", () => {
     }).timeout(5000);
 
 
-    if (!"Check New Group / Update Group" || CHECKALL)
+    if ("Check New Group / Update Group" || CHECKALL)
     it("newgroup / Update Group", async () => {
         let groupArgs = {
             "name": "newGrou.p",
@@ -214,8 +214,32 @@ describe("Action ABI Test", () => {
                 }
             }
         };
+        groupArgs = {
+            "name": "newGrou.p",
+            "group": {
+                "name": "newGrou.p",
+                "key": Key.privateToPublic(wif2),
+                "root": {
+                    "threshold": 6,
+                    "nodes": [
+                        {
+                            "key": Key.privateToPublic(wif),
+                            "weight": 3
+                        },
+                        {
+                            "key": Key.privateToPublic(wif),
+                            "weight": 3
+                        },
+                        {
+                            "key": Key.privateToPublic(wif),
+                            "weight": 3
+                        }
+                    ]
+                }
+            }
+        };
         await testAbi(new EVT.EvtAction("newgroup", groupArgs));
-        await testAbi(new EVT.EvtAction("updategroup", groupArgs));
+        // await testAbi(new EVT.EvtAction("updategroup", groupArgs));
     }).timeout(10000);
 
 
