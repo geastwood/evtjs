@@ -534,26 +534,50 @@ function encodeAuthorizerRef(str) {
 
 }
 
-let keyIndex = 0;
-function getKeys(node) {
+function getKeys(node, config) {
     if (node.nodes) {
-        return node.nodes.reduce((prev, curr) => prev = prev.concat(getKeys(curr)), []);
+        return node.nodes.reduce((prev, curr) => prev = prev.concat(getKeys(curr, config)), []);
     } else if (node.key) {
         let tmp = node.key;
-        node.key = keyIndex++;
+        node.key = config.keyIndex++;
         return [tmp];
     } else {
         throw new Error("Invalid Group Node Object.");
     }
 }
 
+function packNodeValue(value) {
+    return `${parseInt(value) || 0}`.padStart(4, '0');
+}
+
+function encodeGroupNode(root, keys) {
+    let queue = [root];
+    let res = [];
+    while (queue.length) {
+        let node = queue.pop(0);
+        let hexCode = packNodeValue(node.weight) +
+            packNodeValue(node.threshold) +
+            packNodeValue(node.key || node.weight) + 
+            packNodeValue((node.nodes || []).length);
+        res.push(hexCode);
+        if (node.nodes && node.nodes.length) {
+            queue = queue.concat(node.nodes);
+        }
+    }
+    res[0] = substr(4);
+    return res;
+}
+
 function encodeGroup(root) {
     
-    keyIndex = 0;
-    let keys = getKeys(root);
-    console.log(keys, root)
+    let config = { keyIndex: 0 };
+    let keys = getKeys(root, config);
+    
+    let nodes = encodeGroupNode(root, keys, true);
+    let hex = `${nodes.length}00`.padStart(4, '0') + nodes.join('') + '00' + keys.map(k => encodeGeneratedAddressToBin(k).toString('hex').substr(2));
+    console.log(hex);
 
-    return Buffer.from([]);
+    return Buffer.from(hex, 'hex');
 }
 
 // 01 00 000900010000 00 00
