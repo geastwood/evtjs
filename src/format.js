@@ -417,7 +417,7 @@ function decodeAddress(bytes) {
 }
 
 function encodeGeneratedAddressToBin(str) {
-
+    
     let {prefix, key, nonce} = encodeGeneratedAddressToJson(str);
 
     let bNonce = new Buffer(4);
@@ -550,11 +550,11 @@ function packNodeValue(value) {
     return `${parseInt(value) || 0}`.padStart(4, '0');
 }
 
-function encodeGroupNode(root, keys) {
+function encodeGroupNode(root) {
     let queue = [root];
     let res = [];
     while (queue.length) {
-        let node = queue.pop(0);
+        let node = queue.shift(0);
         let hexCode = packNodeValue(node.weight) +
             packNodeValue(node.threshold) +
             packNodeValue(node.key || node.weight) + 
@@ -564,7 +564,7 @@ function encodeGroupNode(root, keys) {
             queue = queue.concat(node.nodes);
         }
     }
-    res[0] = substr(4);
+    res[0] = res[0].substr(4);
     return res;
 }
 
@@ -572,41 +572,11 @@ function encodeGroup(root) {
     
     let config = { keyIndex: 0 };
     let keys = getKeys(root, config);
+    let keyArr = `${keys.length}`.padStart(2, '0') + keys.map(k => encodeAddress(k).toString('hex').substr(2)).join('');
     
-    let nodes = encodeGroupNode(root, keys, true);
-    let hex = `${nodes.length}00`.padStart(4, '0') + nodes.join('') + '00' + keys.map(k => encodeGeneratedAddressToBin(k).toString('hex').substr(2));
-    console.log(hex);
+    let nodes = encodeGroupNode(root);
+    let hex = `${nodes.length}00`.padStart(4, '0') + nodes.join('') + '00' + keyArr + '00';
 
     return Buffer.from(hex, 'hex');
 }
-
-// 01 00 000900010000 00 00
-
-// 04 00 000600010002 0003000000000000 0003000800030001 0003000000010000 00 02000386cb0bbed3c087475efbae3c51f6825deb3be68ae013411fd509f3e361139e880002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c200
-
-// 04 00 000600010002 0003000800030001 0003000000010000 0003000000000000 00 020002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c2000386cb0bbed3c087475efbae3c51f6825deb3be68ae013411fd509f3e361139e8800
-
-// 04 00 000600010002 0003000800030001 0003000000010000 0003000000000000 00 02000386cb0bbed3c087475efbae3c51f6825deb3be68ae013411fd509f3e361139e880002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c200
-
-// 04 00 000600010003 0003000000000000 0003000000010000 0003000000020000 00 030002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c20002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c20002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c200
-
-// 05 00 000600010004 0003000000000000 0003000000010000 0003000000020000 0003000000030000 00 040002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c20002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c20002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c20002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c200
-
 // 0X 00 (WEIGHT)THRD INDEXSIZE
-
-// {
-//     "threshold": 8,
-//     "weight": 3,
-//     "nodes": [
-//         {
-//             "key": Key.privateToPublic(wif),
-//             "weight": 3
-//         }
-//     ]
-// },
-// {
-//     "key": Key.privateToPublic(wif2),
-//     "weight": 3
-// },
-
-// 0400 000600010
