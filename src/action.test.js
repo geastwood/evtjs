@@ -13,7 +13,7 @@ const publicKey2 = EVT.EvtKey.privateToPublic(wif2);
 
 const network = {
     host: "testnet1.everitoken.io",
-    port: 8888,
+    port: 9999,
     protocol: "http"
 };
 
@@ -37,8 +37,14 @@ const testAbi = async (testAction, print=false) => {
     await testAction.calculateDomainAndKey();
     let action = { action: testAction.actionName, args: testAction.abi };
 
-    let throughAPI = await apiCaller.__chainAbiJsonToBinByAPI(action);
-    let throughFC = await apiCaller.__chainAbiJsonToBinByFC(action);
+    let throughFC, throughAPI;
+    throughAPI = await apiCaller.__chainAbiJsonToBinByAPI(action);
+    try {
+        throughFC = await apiCaller.__chainAbiJsonToBinByFC(action);
+    } catch (err) {
+        console.info("API:\t", throughAPI.binargs);
+        throw err;
+    }
     if (throughFC.binargs !== throughAPI.binargs || print) {
         console.info("LFC:\t", throughFC.binargs);
         console.info("API:\t", throughAPI.binargs);
@@ -218,22 +224,24 @@ describe("Action ABI Test", () => {
             "name": "newGrou.p",
             "group": {
                 "name": "newGrou.p",
-                "key": Key.privateToPublic(wif2),
-                "root": {
+                "key": Key.privateToPublic(wif2), // 003
+                "root": { // [0]
                     "threshold": 6,
                     "nodes": [
-                        {
-                            "key": Key.privateToPublic(wif),
+                        { // [1]
+                            "threshold": 8,
+                            "weight": 3,
+                            "nodes": [
+                                { // [3]
+                                    "key": Key.privateToPublic(wif), // 002 [0]
+                                    "weight": 3
+                                }
+                            ]
+                        },
+                        { // [2]
+                            "key": Key.privateToPublic(wif2), // 003 [1]
                             "weight": 3
                         },
-                        {
-                            "key": Key.privateToPublic(wif),
-                            "weight": 3
-                        },
-                        {
-                            "key": Key.privateToPublic(wif),
-                            "weight": 3
-                        }
                     ]
                 }
             }

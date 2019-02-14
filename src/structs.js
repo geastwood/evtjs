@@ -6,7 +6,7 @@ const assert = require("assert");
 const json = {schema: require("./schema")};
 
 const {
-    isName, encodeName, decodeName, encodeName128, decodeName128,
+    isName, encodeGroup, encodeName, decodeName, encodeName128, decodeName128,
     UDecimalPad, UDecimalImply, UDecimalUnimply,
     parseAssetSymbol, encodeAddress, decodeAddress, encodeAuthorizerRef
 } = require("./format");
@@ -56,6 +56,7 @@ module.exports = (config = {}, extendedSchema) => {
         evt_asset: ()=> [EvtAsset],
         name: ()=> [Name],
         name128: ()=> [Name128],
+        group_root: ()=> [GroupRoot],
         public_key: () => [variant(PublicKeyEcc)],
         authorizer_ref: () => [AuthorizerRef],
         symbol: () => [AssetSymbol(assetCache)],
@@ -109,6 +110,35 @@ const Name = (validation) => {
             return value;
         },
 
+        toObject (value) {
+            if (validation.defaults && value == null) {
+                return "";
+            }
+            return value;
+        }
+    };
+};
+
+/**
+    Group
+ */
+const GroupRoot = (validation) => {
+    return {
+        fromByteBuffer (b) {
+            return null; /* TODO */
+        },
+  
+        appendByteBuffer (b, value) {
+
+            const buf = encodeGroup(value);
+            b.append(buf.toString('binary'), 'binary');
+
+        },
+  
+        fromObject (value) {
+            return value;
+        },
+  
         toObject (value) {
             if (validation.defaults && value == null) {
                 return "";

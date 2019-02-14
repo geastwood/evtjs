@@ -12,6 +12,7 @@ const base58 = basex(BASE58_STR);
 module.exports = {
   ULong,
   isName,
+  encodeGroup,
   encodeName, // encode human readable name to uint64 (number string)
   decodeName, // decode from uint64 to human readable
   encodeName128,
@@ -532,3 +533,56 @@ function encodeAuthorizerRef(str) {
     return Buffer.concat([prefix, suffix]);
 
 }
+
+let keyIndex = 0;
+function getKeys(node) {
+    if (node.nodes) {
+        return node.nodes.reduce((prev, curr) => prev = prev.concat(getKeys(curr)), []);
+    } else if (node.key) {
+        let tmp = node.key;
+        node.key = keyIndex++;
+        return [tmp];
+    } else {
+        throw new Error("Invalid Group Node Object.");
+    }
+}
+
+function encodeGroup(root) {
+    
+    keyIndex = 0;
+    let keys = getKeys(root);
+    console.log(keys, root)
+
+    return Buffer.from([]);
+}
+
+// 01 00 000900010000 00 00
+
+// 04 00 000600010002 0003000000000000 0003000800030001 0003000000010000 00 02000386cb0bbed3c087475efbae3c51f6825deb3be68ae013411fd509f3e361139e880002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c200
+
+// 04 00 000600010002 0003000800030001 0003000000010000 0003000000000000 00 020002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c2000386cb0bbed3c087475efbae3c51f6825deb3be68ae013411fd509f3e361139e8800
+
+// 04 00 000600010002 0003000800030001 0003000000010000 0003000000000000 00 02000386cb0bbed3c087475efbae3c51f6825deb3be68ae013411fd509f3e361139e880002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c200
+
+// 04 00 000600010003 0003000000000000 0003000000010000 0003000000020000 00 030002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c20002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c20002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c200
+
+// 05 00 000600010004 0003000000000000 0003000000010000 0003000000020000 0003000000030000 00 040002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c20002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c20002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c20002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c200
+
+// 0X 00 (WEIGHT)THRD INDEXSIZE
+
+// {
+//     "threshold": 8,
+//     "weight": 3,
+//     "nodes": [
+//         {
+//             "key": Key.privateToPublic(wif),
+//             "weight": 3
+//         }
+//     ]
+// },
+// {
+//     "key": Key.privateToPublic(wif2),
+//     "weight": 3
+// },
+
+// 0400 000600010

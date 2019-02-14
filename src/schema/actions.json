@@ -41,12 +41,7 @@
             "nodes": "weighted_node[]"
         }
     },
-    "group_root": {
-        "fields": {
-            "threshold": "uint8",
-            "nodes": "weighted_node[]"
-        }
-    },
+    "group_root": "string",
     "group": {
         "fields": {
             "name": "group_name",
