@@ -553,22 +553,28 @@ function packNodeValue(value) {
 function encodeGroupNode(root) {
     let queue = [root];
     let res = [];
+    let currentIndex = 0;
     while (queue.length) {
         let node = queue.shift(0);
-        let hexCode = packNodeValue(node.weight) +
-            packNodeValue(node.threshold) +
-            packNodeValue(node.key || node.weight) + 
-            packNodeValue((node.nodes || []).length);
-        res.push(hexCode);
+        let index = 0;
         if (node.nodes && node.nodes.length) {
             queue = queue.concat(node.nodes);
+            index = currentIndex + 1;
+            currentIndex += node.nodes.length;
         }
+        let hexCode = packNodeValue(node.weight) +
+            packNodeValue(node.threshold) +
+            packNodeValue(node.nodes ? index : node.key) + 
+            packNodeValue((node.nodes || []).length);
+        res.push(hexCode);
     }
     res[0] = res[0].substr(4);
     return res;
 }
 
 function encodeGroup(root) {
+    
+    root = JSON.parse(JSON.stringify(root)); // Deep copy
     
     let config = { keyIndex: 0 };
     let keys = getKeys(root, config);

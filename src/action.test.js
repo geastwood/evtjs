@@ -1,4 +1,4 @@
-const CHECKALL = false;
+const CHECKALL = true;
 
 /* eslint-env mocha */
 const assert = require("assert");
@@ -184,7 +184,7 @@ describe("Action ABI Test", () => {
     }).timeout(5000);
 
 
-    if ("Check New Group / Update Group" || CHECKALL)
+    if (!"Check New Group / Update Group" || CHECKALL)
     it("newgroup / Update Group", async () => {
         let groupArgs = {
             "name": "newGrou.p",
@@ -220,34 +220,34 @@ describe("Action ABI Test", () => {
                 }
             }
         };
-        groupArgs = {
-            "name": "newGrou.p",
-            "group": {
-                "name": "newGrou.p",
-                "key": Key.privateToPublic(wif2), // 003
-                "root": { // [0]
-                    "threshold": 6,
-                    "nodes": [
-                        { // [1]
-                            "threshold": 8,
-                            "weight": 3,
-                            "nodes": [
-                                { // [3]
-                                    "key": Key.privateToPublic(wif), // 002 [0]
-                                    "weight": 3
-                                }
-                            ]
-                        },
-                        { // [2]
-                            "key": Key.privateToPublic(wif2), // 003 [1]
-                            "weight": 3
-                        },
-                    ]
-                }
-            }
-        };
+        // groupArgs = {
+        //     "name": "newGrou.p",
+        //     "group": {
+        //         "name": "newGrou.p",
+        //         "key": Key.privateToPublic(wif2), // 003
+        //         "root": { // [0]
+        //             "threshold": 6,
+        //             "nodes": [
+        //                 { // [1]
+        //                     "threshold": 8,
+        //                     "weight": 3,
+        //                     "nodes": [
+        //                         { // [3]
+        //                             "key": Key.privateToPublic(wif), // 002 [0]
+        //                             "weight": 3
+        //                         }
+        //                     ]
+        //                 },
+        //                 { // [2]
+        //                     "key": Key.privateToPublic(wif2), // 003 [1]
+        //                     "weight": 3
+        //                 },
+        //             ]
+        //         }
+        //     }
+        // };
         await testAbi(new EVT.EvtAction("newgroup", groupArgs));
-        // await testAbi(new EVT.EvtAction("updategroup", groupArgs));
+        await testAbi(new EVT.EvtAction("updategroup", groupArgs));
     }).timeout(10000);
 
 
