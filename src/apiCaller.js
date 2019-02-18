@@ -728,9 +728,9 @@ class APICaller {
             sign: false // no need to sign
         };
         
-        console.log("[args]!!!!!!!!!!");
+        //console.log("[args]!!!!!!!!!!");
 
-        console.log(args); // For Test Only, TODO
+        //console.log(args); // For Test Only, TODO
 
         let res = await this.__callAPI(args);
 
