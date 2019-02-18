@@ -1,5 +1,5 @@
 const {Signature, PublicKey} = require("./ecc/index");
-const Fcbuffer = require("fcbuffer");
+const Fcbuffer = require("evt-fcbuffer");
 const ByteBuffer = require("bytebuffer");
 const assert = require("assert");
 
