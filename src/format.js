@@ -1,12 +1,9 @@
 const assert = require('assert');
 const BN = require('bn.js');
 const ByteBuffer = require('bytebuffer');
-const basex = require('base-x');
+const base58 = require("bs58");
 const RIPEMD160 = require('ripemd160');
 const {Long} = ByteBuffer;
-
-const BASE58_STR = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-const base58 = basex(BASE58_STR);
 
 module.exports = {
   ULong,
@@ -393,7 +390,7 @@ function encodeAddress(str) {
 
     if (str === "0".repeat(50)) return Buffer.from([0, 0]);
     else if (str[0] === "0") return encodeGeneratedAddressToBin("EVT" + str);
-    buf = Buffer.concat([Buffer.from([1, 0]), base58.decode(str)]);
+    buf = Buffer.concat([Buffer.from([1, 0]), new Buffer(base58.decode(str))]);
     return buf.slice(0, buf.length - 4);
 
 }
@@ -454,7 +451,7 @@ function encodeGeneratedAddressToJson(str) {
     str = str.substr(_t);
 
     // split bytes
-    let bBin = base58.decode(str);
+    let bBin = new Buffer(base58.decode(str));
     let bCheck = new Buffer(4);
     let bNonce = new Buffer(4);
     let bPrefix = new Buffer(8);
