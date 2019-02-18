@@ -4,7 +4,7 @@ const {
   encodeName, decodeName, encodeNameHex, decodeNameHex,
   isName, UDecimalPad, UDecimalUnimply,
   parseAssetSymbol, encodeName128, decodeName128,
-  encodeAddress,
+  encodeAddress, decodeAddress,
   encodeGeneratedAddressToBin,
   decodeGeneratedAddressFromBin,
   encodeGeneratedAddressToJson,
@@ -153,6 +153,15 @@ describe('format', () => {
       
     assert.deepEqual(encodeAddress("EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND").toString('hex'), "010002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c2")
     assert.deepEqual(encodeAddress("EVT7rbe5ZqAEtwQT6Tw39R29vojFqrCQasK3nT5s2pEzXh1BABXHF").toString('hex'), "01000386cb0bbed3c087475efbae3c51f6825deb3be68ae013411fd509f3e361139e88")
+    assert.deepEqual(encodeAddress("EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95").toString('hex'), "020000008589745c35000000000c000000")
+    assert.deepEqual(encodeAddress("EVT000000AiCjTBuNN92tpgeqUZjaMuxkvNr5Tgsv9hTqv5Zkub9R").toString('hex'), "02000000600c113adf2f0000001b9d2210c50281c2420d956074000000")
+    assert.deepEqual(encodeAddress("EVT00000000000000000000000000000000000000000000000000").toString('hex'), "0000")
+    
+    assert.deepEqual("EVT00000000000000000000000000000000000000000000000000", decodeAddress(Buffer.from("0000", "hex")))
+    assert.deepEqual("EVT0000009tDnxK74wjkVZidAeyT339HkhMozkmdkju2pFx32QS95", decodeAddress(Buffer.from("020000008589745c35000000000c000000", "hex")))
+    assert.deepEqual("EVT000000AiCjTBuNN92tpgeqUZjaMuxkvNr5Tgsv9hTqv5Zkub9R", decodeAddress(Buffer.from("02000000600c113adf2f0000001b9d2210c50281c2420d956074000000", "hex")))
+    assert.deepEqual("EVT6Qz3wuRjyN6gaU3P3XRxpnEZnM4oPxortemaWDwFRvsv2FxgND", decodeAddress(Buffer.from("010002c8f031561c4758c9551cff47246f2c347189fe684c04da35cf88e813f810e3c2", "hex")))
+    assert.deepEqual("EVT7rbe5ZqAEtwQT6Tw39R29vojFqrCQasK3nT5s2pEzXh1BABXHF", decodeAddress(Buffer.from("01000386cb0bbed3c087475efbae3c51f6825deb3be68ae013411fd509f3e361139e88", "hex")))
 
   })
 

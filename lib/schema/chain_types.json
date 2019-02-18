@@ -1,4 +1,5 @@
 {
+  "evt_address": "uint128",
   "name": "uint64",
   "name128": "uint128",
   "checksum160": "fixed_bytes20",
@@ -14,7 +15,7 @@
   "permission_name": "name",
   "field_name": "string",
   "type_name": "string",
-  "token_name": "name",
+  "token_name": "name128",
   "table_name": "name",
   "scope_name": "name",
   "action_name": "name",

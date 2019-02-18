@@ -10,7 +10,7 @@ const wif3 = "5K3nUWxfkUjfLQu9PL6NZLKWV41PiFyuQdrckArA59jz19M6zgq";
 const publicKey = EVT.EvtKey.privateToPublic(wif);
 
 const testingTmpData = {
-    newDomainName: null,
+    newDomainName: null, 
     addedTokenNamePrefix: null,
     head_block_num: null,
     head_block_id: null
@@ -229,7 +229,7 @@ describe("APICaller write API test", function() {
             })
         );
 
-        assert(charge.charge && Number.isInteger(charge.charge) && charge.charge > 0, "expected integer charge");
+        assert(charge.charge !== undefined && Number.isInteger(charge.charge) && charge.charge >= 0, "expected integer charge: " + JSON.stringify(charge));
 
         await apiCaller.pushTransaction(
             new EVT.EvtAction("issuetoken", {
@@ -265,7 +265,7 @@ describe("APICaller write API test", function() {
                 total_supply: "100000.00000 S#" + testingTmpData.newSymbol
             })
         )).transactionId;
-    }).timeout(5000);
+    }).timeout(10000);
 
     it("issue_fungible", async function () {
         const apiCaller = new EVT({
@@ -421,10 +421,11 @@ describe("APICaller read API test", function() {
             keyProvider: wif
         });
 
-        var response = await apiCaller.getTransactionsDetailOfPublicKeys("EVT85QEkmFpnDwR4NjnYenqenyCxFRQc45HwjGLNpXQQ1JuSmBzSj", 0, 10, "asc");
+        var response = await apiCaller.getTransactionsDetailOfPublicKeys(publicKey, 0, 10, "asc");
         // console.log("_____++++++++++++++++" + JSON.stringify(response, null, 4));
 
         assert(Array.isArray(response), "expected array");
+        testingTmpData.trxid = response[0].id;
         // TODO must have data (after creating transactions)
     }).timeout(10000);
 
@@ -477,6 +478,64 @@ describe("APICaller read API test", function() {
 
                 res();
             }, 500);
+        });
+    });
+
+    it("getBlock", () => {
+        return new Promise(async (res, rej) => {
+            setTimeout(async () => {
+                const apiCaller = EVT({
+                    endpoint: network,
+                    keyProvider: wif
+                });
+                
+                var response1 = await apiCaller.getBlockDetail(testingTmpData.head_block_id);
+                var response2 = await apiCaller.getBlockDetail(testingTmpData.head_block_num.toString());
+                logger.verbose("[getBlockById] " + JSON.stringify(response1, null, 2));
+                logger.verbose("[getBlockByNum] " + JSON.stringify(response2, null, 2));
+                assert(response1.id === response2.id, "expected same id");
+
+                res();
+            }, 500);
+        });
+    });
+
+    // it("getBlockHeaderState", () => {
+    //     return new Promise(async (res, rej) => {
+    //         setTimeout(async () => {
+    //             const apiCaller = EVT({
+    //                 endpoint: network,
+    //                 keyProvider: wif
+    //             });
+    //             var response1 = await apiCaller.getBlockHeaderState(testingTmpData.head_block_id);
+    //             var response2 = await apiCaller.getBlockHeaderState(testingTmpData.head_block_num);
+    //             logger.verbose("[getBlockStateById] " + JSON.stringify(response1, null, 2));
+    //             logger.verbose("[getBlockStateByNum] " + JSON.stringify(response2, null, 2));
+    //             assert(response1.id === response2.id, "expected same id");
+
+    //             res();
+    //         }, 500);
+    //     });
+    // });
+
+    it("getTransactionActions", () => {
+        return new Promise(async (res, rej) => {
+            setTimeout(async () => {
+                try {
+                    const apiCaller = EVT({
+                        endpoint: network,
+                        keyProvider: wif
+                    });
+                    var response = await apiCaller.getTransactionActions(testingTmpData.trxid);
+                    assert(Array.isArray(response), "Should be an array.");
+
+                    res();
+                }
+                catch (e) {
+                    //res();
+                    rej(e);
+                }
+            }, 1500);
         });
     });
 
@@ -631,7 +690,7 @@ describe("EvtLink", function() {
         let status = await apiCaller.getStatusOfEvtLink({
             linkId
         });
-    });
+    }).timeout(10000);
 
     it("everiPass_execPush", async () => {
         let link = await evtLink.getEvtLinkForEveriPass({

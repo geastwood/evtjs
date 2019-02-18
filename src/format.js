@@ -4,6 +4,7 @@ const ByteBuffer = require('bytebuffer');
 const base58 = require("bs58");
 const RIPEMD160 = require('ripemd160');
 const {Long} = ByteBuffer;
+const KeyUtils = require("./ecc/key_utils");
 
 module.exports = {
   ULong,
@@ -222,7 +223,7 @@ function decodeName128(value) {
     }
 
     // remove 2 bits length indicator
-    length = parseInt(binarray.substr(binarray.length - 2), 2);
+    let length = parseInt(binarray.substr(binarray.length - 2), 2);
     binarray = binarray.substr(0, binarray.length - 2);
 
     // calculate pad start of '0'
@@ -388,17 +389,19 @@ function encodeAddress(str) {
     if (typeof str !== "string" || str.length !== 53 || !str.startsWith("EVT")) throw new Error("EVTAddress should be a string with length 53 starts with EVT.");
     str = str.substr(3);
 
-    if (str === "0".repeat(50)) return Buffer.from([0, 0]);
-    else if (str[0] === "0") return encodeGeneratedAddressToBin("EVT" + str);
-    buf = Buffer.concat([Buffer.from([1, 0]), new Buffer(base58.decode(str))]);
+    if (str === "0".repeat(50)) return Buffer.from([0, 0]); // 0000
+    else if (str[0] === "0") return encodeGeneratedAddressToBin("EVT" + str); // generated address
+    let buf = Buffer.concat([Buffer.from([1, 0]), new Buffer(base58.decode(str))]); // normal
+    //console.log(buf)
     return buf.slice(0, buf.length - 4);
 
 }
 /* Decode EVT Address in address.cpp */
 function decodeAddress(bytes) {
 
-    if (bytes.length === 4 && bytes == [0,0,0,0]) return "EVT" + "0".repeat(50);
-    return "EVT" + base58.encode(Buffer.concat([bytes, Buffer.from([0, 0, 0, 0])]));
+    if (bytes.length === 2 && bytes.equals(Buffer.from([0,0]))) return "EVT" + "0".repeat(50); // 0000
+    else if (bytes.slice(0, 2).equals(Buffer.from([2,0]))) return decodeGeneratedAddressFromBin(bytes); // generated address
+    return "EVT"+KeyUtils.checkEncode(bytes.slice(2));
 
 }
 
