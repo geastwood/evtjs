@@ -121,6 +121,12 @@ const domainKeyMappers = {
         transfered.domain = ".fungible";
         transfered.key = "1";
     },
+    
+    "addmeta": (action, transfered) => {
+        /* TO CHECK */
+        transfered.domain = ".fungible";
+        transfered.key = "1";
+    },
 
     "newsuspend": (action, transfered) => {
         transfered.domain = ".suspend";

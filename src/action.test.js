@@ -330,7 +330,8 @@ describe("Action ABI Test", () => {
         }));
     }).timeout(5000);
 
-    if ("Check Evt2pevt" || CHECKALL)
+    
+    if (!"Check Evt2pevt" || CHECKALL)
     it("evt2pevt", async function () {
         await testAbi(new EVT.EvtAction("evt2pevt", {
             from: publicKey2,
@@ -339,7 +340,16 @@ describe("Action ABI Test", () => {
             memo: "Test of recycleft"
         }));
     }).timeout(5000);
-
+    
+    
+    if ("Check Addmeta" || CHECKALL)
+    it("addmeta", async function () {
+        await testAbi(new EVT.EvtAction("addmeta", {
+            key: "newdata",
+            value: "somevalueishere",
+            creator: "[A] " + publicKey2
+        }));
+    }).timeout(5000);
     
 
 });

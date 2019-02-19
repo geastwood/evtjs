@@ -7,6 +7,8 @@
     "group_name": "name128",
     "fungible_name": "name128",
     "symbol_name": "name128",
+    "meta_key": "name128",
+    "meta_value": "string",
     "public_key": "evt_address",
     "user_id": "public_key",
     "permission_name": "name",
@@ -197,16 +199,119 @@
         }
     },
 
-
+    "addmeta": {
+        "base": "",
+        "fields": {
+            "key": "meta_key",
+            "value": "meta_value",
+            "creator": "authorizer_ref"
+        }
+    },
+    
+    "newsuspend__n": {
+        "base": "",
+        "fields": {
+            "name": "proposal_name",
+            "proposer": "user_id",
+            "trx": "transaction"
+        }
+    },
+    
+    "aprvsuspend__n": {
+        "base": "",
+        "fields": {
+            "name": "proposal_name",
+            "signatures": "signature[]"
+        }
+    },
 
     "cancelsuspend": {
         "base": "",
         "fields": {
             "name": "proposal_name"
         }
-    }
+    },
+    
+    "execsuspend__n": {
+        "base": "",
+        "fields": {
+            "name": "proposal_name",
+            "executor": "user_id"
+        }
+    },
+    
+    
+    "everipass__n": {
+        "base": "",
+        "fields": {
+            "link": "evt_link"
+        }
+    },
     
 
+    "everipay__n": {
+        "base": "",
+        "fields": {
+            "link": "evt_link",
+            "payee": "evt_address",
+            "number": "asset"
+        }
+    },
     
+    
+    "newlock__n": {
+        "base": "",
+        "fields": {
+            "name": "proposal_name",
+            "proposer": "user_id",
+            "status": "lock_status",
+            "unlock_time": "time_point_sec",
+            "deadline": "time_point_sec",
+            "assets": "lock_asset[]",
+            "condition": "lock_condition",
+            "succeed": "address[]",
+            "failed": "address[]"
+        }
+    },
+    
+    "aprvlock__n": {
+        "base": "",
+        "fields": {
+            "name": `proposal_name`,
+            "approver": `user_id`,
+            "data": `lock_aprvdata`
+        }
+    },
+    
+    "tryunlock__n": {
+        "base": "",
+        "fields": {
+            "name": `proposal_name`,
+            "executor": `user_id`
+        }
+    },
+    
+    "setpsvbonus__n": {
+        "base": "",
+        "fields": {
+            "sym": `symbol`,
+            "rate": `percent`,
+            "base_charge": `asset`,
+            "charge_threshold": `asset?`,
+            "minimum_charge": `asset?`,
+            "dist_threshold": `asset`,
+            "rules", `dist_rule[]`,
+            "methods": `passive_method[]`
+        }
+    },
+    
+    "distpsvbonus__n": {
+        "base": "",
+        "fields": {
+            "sym": `symbol`,
+            "deadline": `time_point`,
+            "final_receiver": `address?`
+        }
+    },
     
 }
