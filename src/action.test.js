@@ -1,4 +1,4 @@
-const CHECKALL = true;
+const CHECKALL = !true;
 
 /* eslint-env mocha */
 const assert = require("assert");
@@ -325,6 +325,16 @@ describe("Action ABI Test", () => {
     it("destroyft", async function () {
         await testAbi(new EVT.EvtAction("destroyft", {
             address: publicKey2,
+            number: "1.01942 S#1",
+            memo: "Test of recycleft"
+        }));
+    }).timeout(5000);
+
+    if ("Check Evt2pevt" || CHECKALL)
+    it("evt2pevt", async function () {
+        await testAbi(new EVT.EvtAction("evt2pevt", {
+            from: publicKey2,
+            to: publicKey2,
             number: "1.01942 S#1",
             memo: "Test of recycleft"
         }));

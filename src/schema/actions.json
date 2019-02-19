@@ -113,7 +113,7 @@
     },
 
 
-    "updategroup__await": {
+    "updategroup": {
         "base": "",
         "fields": {
             "name": "group_name",
@@ -187,6 +187,18 @@
     },
 
 
+    "evt2pevt": {
+        "base": "",
+        "fields": {
+            "from": "evt_address",
+            "to": "evt_address",
+            "number": "asset",
+            "memo": "string"
+        }
+    },
+
+
+
     "cancelsuspend": {
         "base": "",
         "fields": {
@@ -195,6 +207,6 @@
     }
     
 
-
+    
     
 }
