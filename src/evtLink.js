@@ -30,6 +30,23 @@ EvtLink.b2dec = function(buffer) {
 };
 
 /**
+ * Get current time using remote server time. The return value will fallback to local time if remote server time is not available.
+ */
+EvtLink.getFixedCurrentTime = function getFixedCurrentTime() {
+    let remoteDiff = 0;
+
+    if ( (global || window) && (global || window).__evtjs_timeDiff ) {
+        remoteDiff = remoteDiff || (global || window).__evtjs_timeDiff;
+        console.log("[evtjs] using timestamp with diff:" + remoteDiff);
+    }
+    else {
+        console.log("[evtjs] warning: can not get time from node; it's recommended to use EvtLink function after initializing one APICaller instance with valid endpoint.");
+    }
+
+    return new Date().getTime() + remoteDiff;
+};
+
+/**
  * Convert a base10 representation to buffer.
  * @param {string} base10 string.
  */
@@ -350,7 +367,7 @@ EvtLink.validateEveriPassUnsafe = async function validateEveriPassUnsafe(options
         throw new Error("everiPass is in wrong format: the evtLink is not a well-formatted everiPass string.");
     }
 
-    if (Math.abs(timestamp - new Date().getTime()) > 60000) {
+    if (Math.abs(timestamp - EvtLink.getFixedCurrentTime()) > 60000) {
         throw new Error("everiPass is expired");
     }
 
@@ -413,7 +430,7 @@ EvtLink.getEveriPassText = async function(params) {
 
     // add segments
     let flag = (1 + 2 + (params.autoDestroying ? 8 : 0));                            // everiPass
-    byteSegments.push(createSegment(42, Math.floor(new Date().valueOf() / 1000) ));  // timestamp
+    byteSegments.push(createSegment(42, Math.floor(EvtLink.getFixedCurrentTime() / 1000) ));  // timestamp
     if (params.domainName) byteSegments.push(createSegment(91, params.domainName));  // domainName for everiPass
     if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));    // tokenName for everiPass
     // byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));       // random link id 
@@ -446,16 +463,20 @@ EvtLink.getEveriPayText = async function(params) {
     if (!params.linkId || params.linkId.length !== 32) {
         throw new Error("linkId is required");
     }
-    if (params.maxAmount && !Number.isInteger(params.maxAmount)) {
-        throw new Error("maxAmount must be a integer (number)");
+    if (!params.maxAmount || !Number.isInteger(params.maxAmount)) {
+        throw new Error("maxAmount is required, and must be a integer");
     }
 
     // add segments
     let flag =  (1 + 4);  // everiPay
-    byteSegments.push(createSegment(42, Math.floor(new Date().valueOf() / 1000) ));  // timestamp
+    byteSegments.push(createSegment(42, Math.floor(EvtLink.getFixedCurrentTime() / 1000) ));  // timestamp
     byteSegments.push(createSegment(44, params.symbol.toString()));  // symbol for everiPay
-    if (params.maxAmount && params.maxAmount < 4294967295) byteSegments.push(createSegment(43, params.maxAmount));  // max amount
-    if (params.maxAmount && params.maxAmount >= 4294967295) byteSegments.push(createSegment(94, params.maxAmount.toString()));  // max amount
+
+    if (params.maxAmount && params.maxAmount < 4294967295) 
+        byteSegments.push(createSegment(43, params.maxAmount));  // max amount
+    if (params.maxAmount && params.maxAmount >= 4294967295) 
+        byteSegments.push(createSegment(94, params.maxAmount.toString()));  // max amount
+    
     byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));         // random link id 
 
     // convert buffer of segments to text using base10
@@ -514,7 +535,7 @@ EvtLink.getEvtLinkForPayeeCode = async function(params) {
 EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
     let intervalId;
     if (imgParams.autoReload) {
-        intervalId = setInterval(() => EvtLink.getEVTLinkQrImage(qrType, qrParams, Object.assign(imgParams, { autoReload: false }), callback), 5000);
+        intervalId = setInterval(() => EvtLink.getEVTLinkQrImage(qrType, qrParams, Object.assign(imgParams, { autoReload: false, intervalId }), callback), 5000);
     }
 
     let errorCorrectionLevel = "M";
@@ -534,11 +555,11 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
         throw new Error("invalid QR Type");
     }
 
-    let time = new Date().valueOf();
+    let time = EvtLink.getFixedCurrentTime();
     
     func(qrParams)
         .then((res) => {
-            time = (new Date().valueOf()) - time;
+            time = (EvtLink.getFixedCurrentTime()) - time;
 
             if (res.rawText.length > 300) {
                 errorCorrectionLevel = "M";
@@ -549,12 +570,12 @@ EvtLink.getEVTLinkQrImage = function(qrType, qrParams, imgParams, callback) {
 
             if (imgParams.canvas) {
                 qrcode.toCanvas(imgParams.canvas, res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#000000" } }, (err) => {
-                    callback(err, { rawText: res.rawText, timeConsumed: time } );
+                    callback(err, { rawText: res.rawText, timeConsumed: time, intervalId: intervalId || imgParams.intervalId } );
                 });
             }
             else {
                 qrcode.toDataURL(res.rawText, { errorCorrectionLevel, scale: 16, "color": { dark: "#000000" } }, (err, url) => {
-                    callback(err, { dataUrl: url, rawText: res.rawText, timeConsumed: time } );
+                    callback(err, { dataUrl: url, rawText: res.rawText, timeConsumed: time, intervalId: intervalId || imgParams.intervalId } );
                 });
             }
         })
