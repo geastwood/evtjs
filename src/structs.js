@@ -2,8 +2,10 @@ const {Signature, PublicKey} = require("./ecc/index");
 const Fcbuffer = require("evt-fcbuffer");
 const ByteBuffer = require("bytebuffer");
 const assert = require("assert");
+const evtLink = require("./evtLink");
 
 const json = {schema: require("./schema")};
+let _structs = null;
 
 const {
     isName, encodeGroup, encodeName, decodeName, encodeName128, decodeName128,
@@ -12,7 +14,7 @@ const {
 } = require("./format");
 
 /** Configures Fcbuffer for EVT specific structs and types. */
-module.exports = (config = {}, extendedSchema) => {
+const Structs = module.exports = (config = {}, extendedSchema) => {
     const structLookup = (lookupName, account) => {
         const cachedCode = new Set(["eosio", "eosio.token"]);
         if(cachedCode.has(account)) {
@@ -54,6 +56,7 @@ module.exports = (config = {}, extendedSchema) => {
     const evtTypes = {
         evt_address: ()=> [EvtAddress],
         evt_asset: ()=> [EvtAsset],
+        evt_link: ()=> [EvtLink],
         name: ()=> [Name],
         name128: ()=> [Name128],
         group_root: ()=> [GroupRoot],
@@ -184,6 +187,34 @@ const Name128 = (validation) => {
         }
     };
 };
+
+const EvtLink = (validation) => {
+    return {
+        fromByteBuffer (b) {
+            // TODO
+            console.log("Decode", b);
+            return "";
+        },
+        appendByteBuffer (b, value) {
+            let parsed = evtLink.parseEvtLinkSync(value, { recoverPublicKeys: false });
+            
+            if (!_structs) _structs = Structs({});
+            let obj = _structs.structs["everipass_bin"].fromObject(parsed);
+            let bin = Fcbuffer.toBuffer(_structs.structs["everipass_bin"], obj);
+            
+            b.append(bin);
+        },
+        fromObject (value) {
+            return value;
+        },
+        toObject (value) {
+            if (validation.defaults && value == null) {
+                return "";
+            }
+            return value;
+        }
+    };
+}
 
 const EvtAddress = (validation) => {
     return {

@@ -346,6 +346,11 @@ EvtLink.parseEvtLink = async function(text, options) {
     return parseQRCode(text, options);
 };
 
+EvtLink.parseEvtLinkSync = function(text, options) {
+    // console.log("[parseEvtLink] " + text);
+    return parseQRCode(text, options);
+};
+
 EvtLink.validateEveriPassUnsafe = async function validateEveriPassUnsafe(options) {
     // parse
     if (!options.parsedEvtLink) {

@@ -259,6 +259,24 @@
             "link": "evt_link"
         }
     },
+
+    "evt_link_segment": {
+        "base": "",
+        "fields": {
+            "typeKey": "uint8",
+            "value": "string"
+        }
+    },
+
+    "everipass_bin": {
+        "base": "",
+        "fields": {
+            "flag": "uint8",
+            "segments": "evt_link_segment[]",
+            "publicKeys": "evt_address[]",
+            "signatures": "signature[]"
+        }
+    },
     
 
     "everipay__n": {
