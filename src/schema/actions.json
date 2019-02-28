@@ -1,6 +1,6 @@
 {
     "evt_address": "uint128",
-    "proposal_name": "name",
+    "proposal_name": "name128",
     "address_list": "evt_address[]",
     "token_name": "name128",
     "domain_name": "name128",
@@ -229,7 +229,7 @@
         }
     },
     
-    "aprvsuspend__n": {
+    "aprvsuspend": {
         "base": "",
         "fields": {
             "name": "proposal_name",
@@ -244,7 +244,7 @@
         }
     },
     
-    "execsuspend__n": {
+    "execsuspend": {
         "base": "",
         "fields": {
             "name": "proposal_name",
@@ -295,7 +295,7 @@
         }
     },
     
-    "tryunlock__n": {
+    "tryunlock": {
         "base": "",
         "fields": {
             "name": "proposal_name",
@@ -317,12 +317,12 @@
         }
     },
     
-    "distpsvbonus__n": {
+    "distpsvbonus": {
         "base": "",
         "fields": {
-            "sym": "symbol",
+            "sym": "proposal_name",
             "deadline": "time_point",
-            "final_receiver": "address?"
+            "final_receiver": "evt_address?"
         }
     }
     

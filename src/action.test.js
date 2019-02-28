@@ -326,4 +326,119 @@ describe("Action ABI Test", () => {
     }).timeout(5000);
     
 
+    // if ("Check NewSuspend" || CHECKALL)
+    // it("newsuspend", async function () {
+    //     await testAbi(new EVT.EvtAction("newsuspend", {
+    //         name: "test",
+    //         proposer: publicKey,
+    //         trx: ""
+    //     }));
+    // }).timeout(5000);
+
+
+    if (!"Check AprvSuspend" || CHECKALL)
+    it("aprvsuspend", async function () {
+        await testAbi(new EVT.EvtAction("aprvsuspend", {
+            name: "test",
+            signatures: [
+                "SIG_K1_JzrdhWW46N5nFUZzTUmhg2sK4nKNGktPz2UdRz9bSAP5pY4nhicKWCuo6Uc6U7KBBwD8VfjsSxzHWT87R41xMaubnzMq8w"
+            ]
+        }));
+    }).timeout(5000);
+    
+    
+    if (!"Check CancelSuspend" || CHECKALL)
+    it("cancelsuspend", async function () {
+        await testAbi(new EVT.EvtAction("cancelsuspend", {
+            name: "test"
+        }));
+    }).timeout(5000);
+    
+    
+    if (!"Check ExecSuspend" || CHECKALL)
+    it("execsuspend", async function () {
+        await testAbi(new EVT.EvtAction("execsuspend", {
+            name: "test",
+            executor: publicKey2
+        }));
+    }).timeout(5000);
+
+    
+    // if ("Check Everipass" || CHECKALL)
+    // it("everipass", async function () {
+    //     await testAbi(new EVT.EvtAction("everipass", {
+    //         evt_link: ""
+    //     }));
+    // }).timeout(5000);
+
+
+    // if ("Check Everipay" || CHECKALL)
+    // it("everipay", async function () {
+    //     await testAbi(new EVT.EvtAction("everipay", {
+    //         evt_link: "",
+    //         payee: publicKey,
+    //         number: "0.00010 S#1"
+    //     }));
+    // }).timeout(5000);
+
+
+    // if ("Check NewLock" || CHECKALL)
+    // it("newlock", async function () {
+    //     await testAbi(new EVT.EvtAction("newlock", {
+    //         name: "test",
+    //         proposer: publicKey,
+    //         status: "lock_status", // TODO
+    //         unlock_time: "2019-03-02T12:00:00",
+    //         deadline: "2020-03-02T12:00:00",
+    //         assets: "lock_asset[]", // TODO
+    //         condition: "lock_condition", // TODO
+    //         succeed: publicKey,
+    //         failed: publicKey
+    //     }));
+    // }).timeout(5000);
+
+
+    // if ("Check AprvLock" || CHECKALL)
+    // it("aprvlock", async function () {
+    //     await testAbi(new EVT.EvtAction("aprvlock", {
+    //         name: "test",
+    //         approver: publicKey,
+    //         data: "lock_aprvdata" // TODO
+    //     }));
+    // }).timeout(5000);
+    
+
+    if (!"Check TryUnlock" || CHECKALL)
+    it("tryunlock", async function () {
+        await testAbi(new EVT.EvtAction("tryunlock", {
+            name: "test",
+            executor: publicKey
+        }));
+    }).timeout(5000);
+
+
+    // if ("Check SetPsvBonus" || CHECKALL)
+    // it("setpsvbonus", async function () {
+    //     await testAbi(new EVT.EvtAction("setpsvbonus", {
+    //         sym: "7,S#1059",
+    //         rate: "0.01",
+    //         base_charge: "0.00010 S#1",
+    //         charge_threshold: "0.00010 S#1",
+    //         minimum_charge: "0.00010 S#1",
+    //         dist_threshold: "0.00010 S#1",
+    //         rules: "dist_rule[]", // TODO
+    //         methods: "passive_method[]" // TODO
+    //     }));
+    // }).timeout(5000);
+
+
+    // if ("Check DistPsvBonus" || CHECKALL)
+    // it("distpsvbonus", async function () {
+    //     await testAbi(new EVT.EvtAction("distpsvbonus", {
+    //         sym: "71059",
+    //         deadline: "2019-03-02T12:00:00",
+    //         final_receiver: publicKey
+    //     }));
+    // }).timeout(5000);
+
 });

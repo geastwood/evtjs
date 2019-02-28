@@ -259,6 +259,11 @@ const domainKeyMappers = {
         }
     },
 
+    // "distpsvbonus": (action, transfered) => {
+    //     transfered.domain = ".fungible";
+    //     transfered.key = "1";
+    // },
+
 };
 
 class TransferFungibleTokenAction extends EvtAction {
