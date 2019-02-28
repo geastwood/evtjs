@@ -68,7 +68,7 @@ const balanceThrd = {
 
 describe("Preparation", () => {
 
-    if (!"Check Remainings" || CHECKALL)
+    if ("Check Remainings" || CHECKALL)
     it('check remains', async () => {
 
         const apiCaller1 = EVT({
@@ -220,32 +220,6 @@ describe("Action ABI Test", () => {
                 }
             }
         };
-        // groupArgs = {
-        //     "name": "newGrou.p",
-        //     "group": {
-        //         "name": "newGrou.p",
-        //         "key": Key.privateToPublic(wif2), // 003
-        //         "root": { // [0]
-        //             "threshold": 6,
-        //             "nodes": [
-        //                 { // [1]
-        //                     "threshold": 8,
-        //                     "weight": 3,
-        //                     "nodes": [
-        //                         { // [3]
-        //                             "key": Key.privateToPublic(wif), // 002 [0]
-        //                             "weight": 3
-        //                         }
-        //                     ]
-        //                 },
-        //                 { // [2]
-        //                     "key": Key.privateToPublic(wif2), // 003 [1]
-        //                     "weight": 3
-        //                 },
-        //             ]
-        //         }
-        //     }
-        // };
         await testAbi(new EVT.EvtAction("newgroup", groupArgs));
         await testAbi(new EVT.EvtAction("updategroup", groupArgs));
     }).timeout(10000);
@@ -342,7 +316,7 @@ describe("Action ABI Test", () => {
     }).timeout(5000);
     
     
-    if ("Check Addmeta" || CHECKALL)
+    if (!"Check Addmeta" || CHECKALL)
     it("addmeta", async function () {
         await testAbi(new EVT.EvtAction("addmeta", {
             key: "newdata",

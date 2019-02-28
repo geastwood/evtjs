@@ -16,6 +16,18 @@
     "authorizer_ref": "string",
     "group_def": "group",
     "symbol_id_type": "uint32",
+    "percent": "string",
+    "lock_status": "uint8",
+
+    "lock_asset": "asset",
+    "lock_condition": "string",
+    "lock_aprvdata": "string",
+    "dist_rule": "string",
+    "passive_method": "string",
+    "evt_transaction": "string",
+    "evt_link": "string",
+    
+
     "authorizer_weight": {
         "fields": {
             "ref": "authorizer_ref",
@@ -213,7 +225,7 @@
         "fields": {
             "name": "proposal_name",
             "proposer": "user_id",
-            "trx": "transaction"
+            "trx": "evt_transaction"
         }
     },
     
@@ -277,41 +289,41 @@
     "aprvlock__n": {
         "base": "",
         "fields": {
-            "name": `proposal_name`,
-            "approver": `user_id`,
-            "data": `lock_aprvdata`
+            "name": "proposal_name",
+            "approver": "user_id",
+            "data": "lock_aprvdata"
         }
     },
     
     "tryunlock__n": {
         "base": "",
         "fields": {
-            "name": `proposal_name`,
-            "executor": `user_id`
+            "name": "proposal_name",
+            "executor": "user_id"
         }
     },
     
     "setpsvbonus__n": {
         "base": "",
         "fields": {
-            "sym": `symbol`,
-            "rate": `percent`,
-            "base_charge": `asset`,
-            "charge_threshold": `asset?`,
-            "minimum_charge": `asset?`,
-            "dist_threshold": `asset`,
-            "rules", `dist_rule[]`,
-            "methods": `passive_method[]`
+            "sym": "symbol",
+            "rate": "percent",
+            "base_charge": "asset",
+            "charge_threshold": "asset?",
+            "minimum_charge": "asset?",
+            "dist_threshold": "asset",
+            "rules": "dist_rule[]",
+            "methods": "passive_method[]"
         }
     },
     
     "distpsvbonus__n": {
         "base": "",
         "fields": {
-            "sym": `symbol`,
-            "deadline": `time_point`,
-            "final_receiver": `address?`
+            "sym": "symbol",
+            "deadline": "time_point",
+            "final_receiver": "address?"
         }
-    },
+    }
     
 }
