@@ -1,4 +1,4 @@
-const CHECKALL = !true;
+const CHECKALL = (typeof process.env.DEV === "undefined") ? true : !(process.env.DEV);
 
 /* eslint-env mocha */
 const assert = require("assert");
@@ -13,7 +13,7 @@ const publicKey2 = EVT.EvtKey.privateToPublic(wif2);
 
 const network = {
     host: "testnet1.everitoken.io",
-    port: 9999,
+    port: 8888,
     protocol: "http"
 };
 
@@ -68,7 +68,7 @@ const balanceThrd = {
 
 describe("Preparation", () => {
 
-    if ("Check Remainings" || CHECKALL)
+    if (!"Check Remainings" || CHECKALL)
     it('check remains', async () => {
 
         const apiCaller1 = EVT({
