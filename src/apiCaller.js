@@ -8,7 +8,7 @@ const Logger = require("./logger");
 const EvtKey = require("./key");
 const EvtLink = require("./evtLink");
 const Structs = require("./structs");
-const Fcbuffer = require("fcbuffer");
+const Fcbuffer = require("evt-fcbuffer");
 
 let structs = Structs({ });
 
@@ -1180,9 +1180,10 @@ class APICaller {
         if (structs.structs[abi.action]) {
             let obj = structs.structs[abi.action].fromObject(abi.args);
             let bin = Fcbuffer.toBuffer(structs.structs[abi.action], obj);
-            return bin.toString("hex");
+            return { binargs: bin.toString("hex") };
         } else {
-            this.__throwServerResponseError("Unknown Action");
+            return await this.__chainAbiJsonToBinByAPI(abi);
+            // this.__throwServerResponseError("Unknown Action");
         }
         
     }

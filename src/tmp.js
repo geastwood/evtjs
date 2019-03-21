@@ -1,5 +1,5 @@
 // const Structs = require("./structs");
-// const Fcbuffer = require("fcbuffer");
+// const Fcbuffer = require("evt-fcbuffer");
 
 // let structs = Structs({ });
 // let structstransaction = structs.structs.transaction;

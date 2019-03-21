@@ -1,18 +1,20 @@
 const {Signature, PublicKey} = require("./ecc/index");
-const Fcbuffer = require("fcbuffer");
+const Fcbuffer = require("evt-fcbuffer");
 const ByteBuffer = require("bytebuffer");
 const assert = require("assert");
+const evtLink = require("./evtLink");
 
 const json = {schema: require("./schema")};
+let _structs = null;
 
 const {
-    isName, encodeName, decodeName, encodeName128, decodeName128,
+    isName, encodeGroup, encodeName, decodeName, encodeName128, decodeName128,
     UDecimalPad, UDecimalImply, UDecimalUnimply,
-    parseAssetSymbol, encodeAddress, decodeAddress
+    parseAssetSymbol, encodeAddress, decodeAddress, encodeAuthorizerRef
 } = require("./format");
 
 /** Configures Fcbuffer for EVT specific structs and types. */
-module.exports = (config = {}, extendedSchema) => {
+const Structs = module.exports = (config = {}, extendedSchema) => {
     const structLookup = (lookupName, account) => {
         const cachedCode = new Set(["eosio", "eosio.token"]);
         if(cachedCode.has(account)) {
@@ -53,9 +55,13 @@ module.exports = (config = {}, extendedSchema) => {
 
     const evtTypes = {
         evt_address: ()=> [EvtAddress],
+        evt_asset: ()=> [EvtAsset],
+        evt_link: ()=> [EvtLink],
         name: ()=> [Name],
         name128: ()=> [Name128],
+        group_root: ()=> [GroupRoot],
         public_key: () => [variant(PublicKeyEcc)],
+        authorizer_ref: () => [AuthorizerRef],
         symbol: () => [AssetSymbol(assetCache)],
         asset: () => [Asset(assetCache)], // must come after AssetSymbol
         extended_asset: () => [ExtendedAsset], // after Asset
@@ -117,6 +123,35 @@ const Name = (validation) => {
 };
 
 /**
+    Group
+ */
+const GroupRoot = (validation) => {
+    return {
+        fromByteBuffer (b) {
+            return null; /* TODO */
+        },
+  
+        appendByteBuffer (b, value) {
+
+            const buf = encodeGroup(value);
+            b.append(buf.toString('binary'), 'binary');
+
+        },
+  
+        fromObject (value) {
+            return value;
+        },
+  
+        toObject (value) {
+            if (validation.defaults && value == null) {
+                return "";
+            }
+            return value;
+        }
+    };
+};
+
+/**
   Name evt::types native.hpp
 */
 const Name128 = (validation) => {
@@ -153,18 +188,67 @@ const Name128 = (validation) => {
     };
 };
 
+const EvtLink = (validation) => {
+    return {
+        fromByteBuffer (b) {
+            // TODO
+            console.log("Decode", b);
+            return "";
+        },
+        appendByteBuffer (b, value) {
+            let parsed = evtLink.parseEvtLinkSync(value, { recoverPublicKeys: false });
+            
+            if (!_structs) _structs = Structs({});
+            let obj = _structs.structs["everipass_bin"].fromObject(parsed);
+            let bin = Fcbuffer.toBuffer(_structs.structs["everipass_bin"], obj);
+            
+            b.append(bin);
+        },
+        fromObject (value) {
+            return value;
+        },
+        toObject (value) {
+            if (validation.defaults && value == null) {
+                return "";
+            }
+            return value;
+        }
+    };
+}
+
 const EvtAddress = (validation) => {
     return {
         fromByteBuffer (b) {
-            // b.offset += 1;
-            // return String.fromCharCode(b[b.offset-1]);
+            // TODO
             console.log("Decode", b);
             return "";
         },
         appendByteBuffer (b, value) {
             let bytes = encodeAddress(value);
             b.append(bytes.toString('binary'), 'binary');
-            // b.append(Buffer.from(value[0]).toString('binary'), 'binary');
+        },
+        fromObject (value) {
+            return value;
+        },
+        toObject (value) {
+            if (validation.defaults && value == null) {
+                return "";
+            }
+            return value;
+        }
+    };
+};
+
+const AuthorizerRef = (validation) => {
+    return {
+        fromByteBuffer (b) {
+            // TODO
+            console.log("Decode", b);
+            return "";
+        },
+        appendByteBuffer (b, value) {
+            let bytes = encodeAuthorizerRef(value);
+            b.append(bytes.toString('binary'), 'binary');
         },
         fromObject (value) {
             return value;
@@ -247,15 +331,20 @@ const PublicKeyEcc = (validation) => {
 let currentAccount;
 
 /** @private */
-function precisionCache(assetCache, sym) {
+function precisionCache(assetCache, sym, amount=null) {
+    // console.log(sym);
     const assetSymbol = parseAssetSymbol(sym);
     let precision = assetSymbol.precision;
+    if (!precision) {
+        precision = (`${amount}`.split(".")[1] || "").length || null;
+    }
+    //console.log(assetCache, sym, assetSymbol, {symbol: assetSymbol.symbol, precision})
 
     if(currentAccount) {
         const asset = assetCache.lookup(assetSymbol.symbol, currentAccount);
         if(asset) {
             if(precision == null) {
-                precision = asset.precision;
+                precision = asset.precision || 5;
             } else {
                 assert.equal(asset.precision, precision,
                     `Precision mismatch for asset: ${sym}@${currentAccount}`);
@@ -264,7 +353,7 @@ function precisionCache(assetCache, sym) {
             // Lookup data for later (appendByteBuffer needs it)
             assetCache.lookupAsync(assetSymbol.symbol, currentAccount);
         }
-    }
+    } else if(precision == null) precision = 5;
     return {symbol: assetSymbol.symbol, precision};
 }
 
@@ -274,25 +363,35 @@ const AssetSymbol = assetCache => validation => {
             const bcopy = b.copy(b.offset, b.offset + 8);
             b.skip(8);
 
-            const precision = bcopy.readUint8();
-            const bin = bcopy.toBinary();
+            // const precision = bcopy.readUint8();
+            // const bin = bcopy.toBinary();
 
-            let symbol = "";
-            for(const code of bin)  {
-                if(code == "\0") {
-                    break;
-                }
-                symbol += code;
-            }
-            precisionCache(assetCache, `${precision},${symbol}`); // validate
-            return `${precision},${symbol}`;
+            // let symbol = "";
+            // for(const code of bin)  {
+            //     if(code == "\0") {
+            //         break;
+            //     }
+            //     symbol += code;
+            // }
+            // precisionCache(assetCache, `${precision},${symbol}`); // validate
+            // return `${precision},${symbol}`;
+
+            bin = bcopy.toBinary();
+            let symbol = bin.readUInt32LE();
+            let precision = bin.readUInt32LE(4);
+
+            return `S#${symbol}`;
         },
 
-        appendByteBuffer (b, value) {
-            const {symbol, precision} = precisionCache(assetCache, value);
+        appendByteBuffer (b, value, _amount=null) {
+            const {symbol, precision} = precisionCache(assetCache, value, _amount);
             assert(precision != null, `Precision unknown for asset: ${symbol}@${currentAccount}`);
-            const pad = "\0".repeat(7 - symbol.length);
-            b.append(String.fromCharCode(precision) + symbol + pad);
+
+            let bPrecision = new Buffer(4);
+            let bSymbol = new Buffer(4);
+
+            bSymbol.writeUInt32LE(symbol); b.append(bSymbol);
+            bPrecision.writeUInt32LE(precision); b.append(bPrecision);
         },
 
         fromObject (value) {
@@ -323,14 +422,14 @@ const Asset = assetCache => (validation, baseTypes, customTypes) => {
     function toAssetString(value) {
         if(typeof value === "string") {
             const [amount, sym] = value.split(" ");
-            const {precision, symbol} = precisionCache(assetCache, sym);
+            const {precision, symbol} = precisionCache(assetCache, sym, amount);
             if(precision == null) {
                 return value;
             }
-            return `${UDecimalPad(amount, precision)} ${symbol}`;
+            return `${UDecimalPad(amount, precision)} S#${symbol}`;
         }
         if(typeof value === "object") {
-            const {precision, symbol} = precisionCache(assetCache, value.symbol);
+            const {precision, symbol} = precisionCache(assetCache, value.symbol, value.amount);
             assert(precision != null, `Precision unknown for asset: ${symbol}@${currentAccount}`);
             return `${UDecimalUnimply(value.amount, precision)} ${symbol}`;
         }
@@ -341,17 +440,18 @@ const Asset = assetCache => (validation, baseTypes, customTypes) => {
         fromByteBuffer (b) {
             const amount = amountType.fromByteBuffer(b);
             const sym = symbolType.fromByteBuffer(b);
-            const {precision} = precisionCache(assetCache, sym);
+            if (!`${sym}`.startsWith("S#")) sym = `S#${sym}`;
+            const {precision} = precisionCache(assetCache, sym, amount);
             return `${UDecimalUnimply(amount, precision)} ${sym}`;
         },
 
         appendByteBuffer (b, value) {
             assert.equal(typeof value, "string", "expecting string, got " + (typeof value));
             const [amount, sym] = value.split(" ");
-            const {precision} = precisionCache(assetCache, sym);
+            const {precision} = precisionCache(assetCache, sym, amount);
             assert(precision != null, `Precision unknown for asset: ${sym}@${currentAccount}`);
             amountType.appendByteBuffer(b, UDecimalImply(amount, precision));
-            symbolType.appendByteBuffer(b, sym);
+            symbolType.appendByteBuffer(b, sym, amount);
         },
 
         fromObject (value) {

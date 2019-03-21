@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 
 const assert = require('assert')
-const Fcbuffer = require('fcbuffer')
+const Fcbuffer = require('evt-fcbuffer')
 const schema = require('./schema')
 
 describe('schema', () => {

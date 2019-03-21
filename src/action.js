@@ -121,6 +121,12 @@ const domainKeyMappers = {
         transfered.domain = ".fungible";
         transfered.key = "1";
     },
+    
+    "addmeta": (action, transfered) => {
+        /* TO CHECK */
+        transfered.domain = ".fungible";
+        transfered.key = "1";
+    },
 
     "newsuspend": (action, transfered) => {
         transfered.domain = ".suspend";
@@ -159,7 +165,7 @@ const domainKeyMappers = {
 
     "everipass": async (action, transfered) => {
         let parsed = await EvtLink.parseEvtLink(action.args.link, { recoverPublicKeys: false });
-
+        
         if (parsed == null || (parsed.flag & 2) !== 2) {
             throw new Error("Invalid EvtLink: This link is not for everiPass");
         }
@@ -197,6 +203,15 @@ const domainKeyMappers = {
     },
 
     "recycleft": (action, transfered) => {
+        transfered.domain = ".fungible";
+        transfered.key = String(action.args.number.split("#")[1]);
+
+        if (!transfered.key) {
+            throw new Error("number is invalid");
+        }
+    },
+
+    "destroyft": (action, transfered) => {
         transfered.domain = ".fungible";
         transfered.key = String(action.args.number.split("#")[1]);
 
@@ -243,6 +258,11 @@ const domainKeyMappers = {
             throw new Error("proposal executor cannot be empty");
         }
     },
+
+    // "distpsvbonus": (action, transfered) => {
+    //     transfered.domain = ".fungible";
+    //     transfered.key = "1";
+    // },
 
 };
 

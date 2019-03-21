@@ -9,6 +9,7 @@ const KeyUtils = require("./ecc/key_utils");
 module.exports = {
   ULong,
   isName,
+  encodeGroup,
   encodeName, // encode human readable name to uint64 (number string)
   decodeName, // decode from uint64 to human readable
   encodeName128,
@@ -19,6 +20,7 @@ module.exports = {
   decodeGeneratedAddressFromBin,
   encodeGeneratedAddressToJson,
   decodeGeneratedAddressFromJson,
+  encodeAuthorizerRef,
   encodeNameHex: name => Long.fromString(encodeName(name), true).toString(16),
   decodeNameHex: (hex, littleEndian = true) =>
     decodeName(Long.fromString(hex, true, 16).toString(), littleEndian),
@@ -362,8 +364,8 @@ function parseAssetSymbol(assetSymbol, precision = null) {
     const v = assetSymbol.split(",");
     assert(v.length === 2, `Asset symbol "${assetSymbol}" may have a precision like this: 4,SYM`);
 
-    const symbolPrecision = v[0] == "" ? null : parseInt(v[0]);
-    const symbol = v[1];
+    let symbolPrecision = v[0] == "" ? null : parseInt(v[0]);
+    let symbol = v[1];
 
     if(precision != null) {
         assert.equal(precision, symbolPrecision, "Asset symbol precision mismatch");
@@ -375,8 +377,14 @@ function parseAssetSymbol(assetSymbol, precision = null) {
         assert.equal(typeof precision, "number", "precision");
         assert(precision > -1, "precision must be positive");
     }
-
-    assert(/^[A-Z]+$/.test(symbol), "Asset symbol should contain only uppercase letters A-Z");
+    
+    if (!/^[0-9]+$/.test(symbol)) {
+        if (/^S#[0-9]+$/.test(symbol)) {
+            symbol = symbol.replace("S#", "");
+        } else {
+            throw new Error(`Asset symbol should looks like 'S#{num}', but got ${symbol}.`);
+        }
+    }
     assert(precision <= 18, "Precision should be 18 characters or less");
     assert(symbol.length <= 7, "Asset symbol is 7 characters or less");
 
@@ -406,7 +414,7 @@ function decodeAddress(bytes) {
 }
 
 function encodeGeneratedAddressToBin(str) {
-
+    
     let {prefix, key, nonce} = encodeGeneratedAddressToJson(str);
 
     let bNonce = new Buffer(4);
@@ -492,3 +500,86 @@ function decodeGeneratedAddressFromJson({prefix=null, key=null, nonce=null}={}) 
     return "EVT" + base58.encode(Buffer.concat([bCheck, bNonce, bPrefix.buffer, bKey])).padStart(50, "0");
     
 }
+
+function encodeAuthorizerRef(str) {
+
+    /* Check avalibility of authorizer_ref */
+    if (typeof str !== "string" || !/^\[[AG]\]\ [\.\w]+$/.test(str)) throw new Error("authorizer_ref format error, it should look like '[A] EVTxxxxx' OR '[G] xxxxxx'.");
+    let type = str.split(" ")[0][1].trim();
+    let content = str.split(" ")[1].trim();
+
+    let prefix = null;
+    let suffix = null;
+    if (type === "A") {
+        // [A] Type, [01,ADDRESS]
+        prefix = Buffer.from([]);
+        suffix = encodeAddress(content);
+    } else if (type === "G") {
+        if (content === ".OWNER") {
+            // [G] .OWNER Type, 00[00]
+            prefix = Buffer.from([0]);
+            suffix = Buffer.from([0]);
+        } else {
+            // [G] Type, 02[NAME128]
+            prefix = Buffer.from([2]);
+            suffix = encodeName128(content);
+        }
+    } else {
+        throw new Error("authorizer_ref type error, it can be either [A] or [G]");
+    }
+    return Buffer.concat([prefix, suffix]);
+
+}
+
+function getKeys(node, config) {
+    if (node.nodes) {
+        return node.nodes.reduce((prev, curr) => prev = prev.concat(getKeys(curr, config)), []);
+    } else if (node.key) {
+        let tmp = node.key;
+        node.key = config.keyIndex++;
+        return [tmp];
+    } else {
+        throw new Error("Invalid Group Node Object.");
+    }
+}
+
+function packNodeValue(value) {
+    return `${parseInt(value) || 0}`.padStart(4, '0');
+}
+
+function encodeGroupNode(root) {
+    let queue = [root];
+    let res = [];
+    let currentIndex = 0;
+    while (queue.length) {
+        let node = queue.shift(0);
+        let index = 0;
+        if (node.nodes && node.nodes.length) {
+            queue = queue.concat(node.nodes);
+            index = currentIndex + 1;
+            currentIndex += node.nodes.length;
+        }
+        let hexCode = packNodeValue(node.weight) +
+            packNodeValue(node.threshold) +
+            packNodeValue(node.nodes ? index : node.key) + 
+            packNodeValue((node.nodes || []).length);
+        res.push(hexCode);
+    }
+    res[0] = res[0].substr(4);
+    return res;
+}
+
+function encodeGroup(root) {
+    
+    root = JSON.parse(JSON.stringify(root)); // Deep copy
+    
+    let config = { keyIndex: 0 };
+    let keys = getKeys(root, config);
+    let keyArr = `${keys.length}`.padStart(2, '0') + keys.map(k => encodeAddress(k).toString('hex').substr(2)).join('');
+    
+    let nodes = encodeGroupNode(root);
+    let hex = `${nodes.length}00`.padStart(4, '0') + nodes.join('') + '00' + keyArr + '00';
+
+    return Buffer.from(hex, 'hex');
+}
+// 0X 00 (WEIGHT)THRD INDEXSIZE
