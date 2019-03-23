@@ -19,8 +19,8 @@ logger.writeLog = false;
 
 const network = {
     host: "testnet1.everitoken.io",
-    port: 9999,
-    protocol: "http"
+    port: 443,
+    protocol: "https"
 };
 
 // ==== part 1: version ====

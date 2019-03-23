@@ -772,17 +772,20 @@ class APICaller {
     /**
      * Query fungible actions by address
      * @param {number} symbolId the id of the symbol 
-     * @param {string} address the address
+     * @param {string} address the address (optional)
      * @param {number} skip the count to be skipped, default to 0 (optional)
      * @param {number} take the count to be taked, default to 10 (optional)
      */
-    async getFungibleActionsByAddress(symbolId, address, skip = 0, take = 10) {
+    async getFungibleActionsByAddress(symbolId, address = undefined, skip = 0, take = 10) {
         if (!symbolId) throw new Error("invalid symbolId");
-        if (!address) throw new Error("invalid address");
-        
+        // if (!address) throw new Error("invalid address");
 
         skip = skip || 0;
         take = take || 10;
+
+        if (!address) {
+            address = undefined;
+        }
 
         let body = {
             sym_id: symbolId,
