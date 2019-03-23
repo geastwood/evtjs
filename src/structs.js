@@ -439,7 +439,7 @@ const Asset = assetCache => (validation, baseTypes, customTypes) => {
     return {
         fromByteBuffer (b) {
             const amount = amountType.fromByteBuffer(b);
-            const sym = symbolType.fromByteBuffer(b);
+            let sym = symbolType.fromByteBuffer(b);
             if (!`${sym}`.startsWith("S#")) sym = `S#${sym}`;
             const {precision} = precisionCache(assetCache, sym, amount);
             return `${UDecimalUnimply(amount, precision)} ${sym}`;

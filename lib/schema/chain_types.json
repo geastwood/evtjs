@@ -13,7 +13,6 @@
   "field_name": "string",
   "account_name": "name",
   "permission_name": "name",
-  "field_name": "string",
   "type_name": "string",
   "token_name": "name128",
   "table_name": "name",
@@ -21,7 +20,6 @@
   "action_name": "name",
   "domain_name": "name128",
   "domain_key": "name128",
-  "context_free_type": "bytes",
   "time_point": "int64",
   "time_point_sec": "time",
   "block_id": "fixed_bytes32",
@@ -67,13 +65,6 @@
     "base": "transaction",
     "fields": {
       "signatures": "signature[]"
-    }
-  },
-  "clause_pair": {
-    "base": "",
-    "fields": {
-      "id": "string",
-      "body": "string"
     }
   },
   "fields": "field_def[]",
