@@ -1,6 +1,7 @@
 
 
 const ecc = require("./ecc/index");
+const Signature = require("./ecc/signature")
 
 class EvtKey {
 
@@ -111,5 +112,7 @@ EvtKey.isValidPrivateKey = function(key) {
 EvtKey.getNullAddress = function() {
     return "EVT00000000000000000000000000000000000000000000000000";
 };
+
+EvtKey.Signature = Signature
 
 module.exports = EvtKey;

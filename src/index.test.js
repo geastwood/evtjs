@@ -32,6 +32,17 @@ describe("version", () => {
 
 // ==== part 2: EvtKey ====
 describe("EvtKey", () => {
+    it("expose Signature class", async () => {
+        const signature = EVT.EvtKey.Signature.fromString(
+          "SIG_K1_K1UZUC4t9j96LT31VMkEabnzTVPYTdTqh5L1b8LXLsAuT1uddgKtcGXoBw7NRQV8ghrSea4E7WL8ngc2y37ZRxBmWdfrV1"
+        );
+        assert(
+          await signature.verify(
+            "evt",
+            "EVT7f6pEXvD8E2mbytzkirYqv9DBxEd7ebDv9TJpQ6kuKPemLtKUY"
+          ) === true
+        );
+    })
     it("randomBytesAndString", async () => {
         let name128 = await EVT.EvtKey.randomName128();
         assert(name128.length == 21, "should produce a string with a length of 21");
