@@ -282,7 +282,7 @@
     },
     
     
-    "everipass__n": {
+    "everipass": {
         "base": "",
         "fields": {
             "link": "evtlink"

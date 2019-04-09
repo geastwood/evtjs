@@ -58,6 +58,7 @@ const Structs = module.exports = (config = {}, extendedSchema) => {
         evt_address: ()=> [EvtAddress],
         evt_asset: ()=> [EvtAsset],
         evtlink: ()=> [EvtLink],
+        evtlink_segment: ()=> [EvtLinkSegment],
         name: ()=> [Name],
         name128: ()=> [Name128],
         group_root: ()=> [GroupRoot],
@@ -189,6 +190,31 @@ const Name128 = (validation) => {
     };
 };
 
+const EvtLinkSegment = (validation, baseTypes) => {
+    const staticVariant = baseTypes.static_variant({
+        42: baseTypes.uint32(validation),
+        91: baseTypes.string(validation),
+        92: baseTypes.string(validation),
+        156: baseTypes.bytes(validation)
+    });
+    return {
+        fromByteBuffer (b) {
+            const [typeKey, value] = staticVariant.fromByteBuffer(b);
+            return {typeKey, value};
+        },
+        appendByteBuffer (b, value) {
+            staticVariant.appendByteBuffer(b, [value.typeKey, value.value]);
+        },
+        fromObject (value) {
+            console.log("Processing", value);
+            return staticVariant.fromObject([value.typeKey, value.value])[1];
+        },
+        toObject (value) {
+            return staticVariant.toObject([value.typeKey, value.value])[1];
+        }
+    }
+}
+
 const EvtLink = (validation) => {
     return {
         fromByteBuffer (b) {
@@ -202,7 +228,6 @@ const EvtLink = (validation) => {
             if (!_structs) _structs = Structs({});
             let obj = _structs.structs["evtlink_bin"].fromObject(parsed);
             let bin = Fcbuffer.toBuffer(_structs.structs["evtlink_bin"], obj);
-            console.log(obj);
             
             b.append(bin);
         },
