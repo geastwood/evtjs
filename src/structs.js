@@ -20,6 +20,7 @@ const Structs = module.exports = (config = {}, extendedSchema) => {
         if(cachedCode.has(account)) {
             return structs[lookupName];
         }
+        if (!config.abiCache || !config.abiCache.abi) return "";
         const abi = config.abiCache.abi(account);
         const struct = abi.structs[lookupName];
         if(struct != null) {

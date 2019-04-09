@@ -24,9 +24,20 @@
     "lock_aprvdata": "string",
     "dist_rule": "string",
     "passive_method": "string",
-    "evt_transaction": "string",
     "evt_link": "string",
+
+    "transaction_extension": {
+        "fields": {}
+    },
     
+    "evt_transaction": {
+        "base": "transaction_header",
+        "fields": {
+            "actions": "action[]",
+            "payer": "evt_address",
+            "transaction_extensions": "transaction_extension[]"
+        }
+    },
 
     "authorizer_weight": {
         "fields": {
@@ -220,7 +231,7 @@
         }
     },
     
-    "newsuspend__n": {
+    "newsuspend": {
         "base": "",
         "fields": {
             "name": "proposal_name",
@@ -335,7 +346,7 @@
         }
     },
     
-    "distpsvbonus": {
+    "distpsvbonus__n": {
         "base": "",
         "fields": {
             "sym": "proposal_name",

@@ -259,10 +259,15 @@ const domainKeyMappers = {
         }
     },
 
-    // "distpsvbonus": (action, transfered) => {
-    //     transfered.domain = ".fungible";
-    //     transfered.key = "1";
-    // },
+    "setpsvbonus": (action, transfered) => {
+        transfered.domain = ".bonus";
+        transfered.key = String(action.args.sym);
+    },
+
+    "distpsvbonus": (action, transfered) => {
+        transfered.domain = ".bonus";
+        transfered.key = String(action.args.sym);
+    },
 
 };
 

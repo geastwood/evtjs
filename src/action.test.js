@@ -330,14 +330,29 @@ describe("Action ABI Test", () => {
     }).timeout(5000);
     
 
-    // if ("Check NewSuspend" || CHECKALL)
-    // it("newsuspend", async function () {
-    //     await testAbi(new EVT.EvtAction("newsuspend", {
-    //         name: "test",
-    //         proposer: publicKey,
-    //         trx: ""
-    //     }));
-    // }).timeout(5000);
+    if (!"Check NewSuspend" || CHECKALL)
+    it("newsuspend", async function () {
+        await testAbi(new EVT.EvtAction("newsuspend", {
+            name: "test",
+            proposer: publicKey,
+            trx: {
+                "expiration": "2018-05-20T12:25:51",
+                "ref_block_num": 8643,
+                "ref_block_prefix": 842752750,
+                "max_charge": 10000,
+                "payer": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                "actions": [
+                    {
+                        "name": "newdomain",
+                        "domain": "test2",
+                        "key": ".create",
+                        "data": "000000000000000000000000109f077d0003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a9700000000000a5317601000000010100000003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a9706d4859000000000100000000572d3ccdcd010000000102000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000002866a69101000000010100000003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a9706d4859000000000100"
+                    }
+                ],
+                "transaction_extensions": []
+            }
+        }));
+    }).timeout(5000);
 
 
     if (!"Check AprvSuspend" || CHECKALL)
@@ -391,13 +406,27 @@ describe("Action ABI Test", () => {
     //     await testAbi(new EVT.EvtAction("newlock", {
     //         name: "test",
     //         proposer: publicKey,
-    //         status: "lock_status", // TODO
+    //         status: 1,
     //         unlock_time: "2019-03-02T12:00:00",
     //         deadline: "2020-03-02T12:00:00",
-    //         assets: "lock_asset[]", // TODO
-    //         condition: "lock_condition", // TODO
-    //         succeed: publicKey,
-    //         failed: publicKey
+    //         assets: [{
+    //             tokens: {
+    //                 domain: "test",
+    //                 names: ["test"]
+    //             },
+    //             fungible: {
+    //                 domain: `test`,
+    //                 names: ["test"]
+    //             },
+    //         }],
+    //         condition: {
+    //             cond_keys: {
+    //                 threshold: 8,
+    //                 cond_keys: publicKey
+    //             }
+    //         },
+    //         succeed: [publicKey],
+    //         failed: [publicKey]
     //     }));
     // }).timeout(5000);
 
