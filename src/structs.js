@@ -57,7 +57,7 @@ const Structs = module.exports = (config = {}, extendedSchema) => {
     const evtTypes = {
         evt_address: ()=> [EvtAddress],
         evt_asset: ()=> [EvtAsset],
-        evt_link: ()=> [EvtLink],
+        evtlink: ()=> [EvtLink],
         name: ()=> [Name],
         name128: ()=> [Name128],
         group_root: ()=> [GroupRoot],
@@ -200,8 +200,9 @@ const EvtLink = (validation) => {
             let parsed = evtLink.parseEvtLinkSync(value, { recoverPublicKeys: false });
             
             if (!_structs) _structs = Structs({});
-            let obj = _structs.structs["everipass_bin"].fromObject(parsed);
-            let bin = Fcbuffer.toBuffer(_structs.structs["everipass_bin"], obj);
+            let obj = _structs.structs["evtlink_bin"].fromObject(parsed);
+            let bin = Fcbuffer.toBuffer(_structs.structs["evtlink_bin"], obj);
+            console.log(obj);
             
             b.append(bin);
         },
