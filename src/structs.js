@@ -206,11 +206,13 @@ const EvtLinkSegment = (validation, baseTypes) => {
             staticVariant.appendByteBuffer(b, [value.typeKey, value.value]);
         },
         fromObject (value) {
-            console.log("Processing", value);
-            return staticVariant.fromObject([value.typeKey, value.value])[1];
+            // if (!value.typeKey && !value.value) return value;
+            // return staticVariant.fromObject([value.typeKey, value.value])[1];
+            return value;
         },
         toObject (value) {
-            return staticVariant.toObject([value.typeKey, value.value])[1];
+            // return staticVariant.toObject([value.typeKey, value.value])[1];
+            return value;
         }
     }
 }
