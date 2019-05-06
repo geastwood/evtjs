@@ -982,7 +982,9 @@ class APICaller {
 
     /**
      * push transaction to everiToken chain
-     * @param {any[]} actions actions in the transaction
+     * @param {[config{}], any[]} actions actions in the transaction
+     * if config.submitToServer is set to false, the return would be a signed transaction with config.
+     * if config.offline is set to true, the binargs would be calculated natively.
      */
     async pushTransaction() {
         let actions = [ ];
@@ -990,7 +992,9 @@ class APICaller {
 
         // default config
         let trxConf = {
-            maxCharge: 100000000
+            maxCharge: 100000000,
+            submitToServer: true,
+            offline: false
         };
 
         // check and copy config from parameters
@@ -1064,7 +1068,7 @@ class APICaller {
             // create binary action for push_transaction
             let binAction = {
                 name: originalAction.actionName,
-                data: (await this.__chainAbiJsonToBin({ action: originalAction.actionName, args: originalAction.abi })).binargs,
+                data: (await this.__chainAbiJsonToBin({ action: originalAction.actionName, args: originalAction.abi }, trxConf.offline)).binargs,
                 domain: originalAction.domain,
                 key: originalAction.key
             };
@@ -1138,14 +1142,33 @@ class APICaller {
             body.signatures = sigs;
         }
 
+        // if not setting to push, abort and return body (with signature)
+        if (!trxConf.submitToServer) {
+            return {
+                body,
+                config: trxConf
+            }; // return transaction with full signature
+        }
+
         // push transaction
         // console.log("__body:" + JSON.stringify(body, null, 4));
+        return (await this.pushSignedTransaction(body, trxConf.__hasEveriPay ? trxConf.__linkId : null));
+        
+    }
+
+    /**
+     * push a signed transaction
+     * @param {string} body 
+     * @param {trxConf.__linkId} everiPayLinkId 
+     */
+    async pushSignedTransaction(body, everiPayLinkId=null) {
+
         var res = await this.__chainPushTransaction(body);
 
         // check if it is successful
-        if (trxConf.__hasEveriPay) {
+        if (everiPayLinkId !== null) {
             // For everiPay transaction, for safety, use strict mode
-            let ret = await this.getStatusOfEvtLink({ linkId: trxConf.__linkId, block: true, throwException: false });
+            let ret = await this.getStatusOfEvtLink({ linkId: everiPayLinkId, block: true, throwException: false });
 
             if (ret && ret.pending == false && ret.successful && ret.transactionId) {
                 return { transactionId: ret.transactionId };
@@ -1166,6 +1189,7 @@ class APICaller {
                 throw new Error("did not receive anything from the chain");
             }
         }
+
     }
 
     async __chainAbiJsonToBinByAPI(abi) {
@@ -1191,8 +1215,8 @@ class APICaller {
         
     }
     
-    async __chainAbiJsonToBin(abi, throughAPI=true) {
-        if (throughAPI) return await this.__chainAbiJsonToBinByAPI(abi);
+    async __chainAbiJsonToBin(abi, offline=false) {
+        if (!offline) return await this.__chainAbiJsonToBinByAPI(abi);
         else return await this.__chainAbiJsonToBinByFC(abi);
     }
 

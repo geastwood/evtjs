@@ -20,6 +20,7 @@ const Structs = module.exports = (config = {}, extendedSchema) => {
         if(cachedCode.has(account)) {
             return structs[lookupName];
         }
+        if (!config.abiCache || !config.abiCache.abi) return "";
         const abi = config.abiCache.abi(account);
         const struct = abi.structs[lookupName];
         if(struct != null) {
@@ -56,7 +57,8 @@ const Structs = module.exports = (config = {}, extendedSchema) => {
     const evtTypes = {
         evt_address: ()=> [EvtAddress],
         evt_asset: ()=> [EvtAsset],
-        evt_link: ()=> [EvtLink],
+        evtlink: ()=> [EvtLink],
+        evtlink_segment: ()=> [EvtLinkSegment],
         name: ()=> [Name],
         name128: ()=> [Name128],
         group_root: ()=> [GroupRoot],
@@ -188,6 +190,33 @@ const Name128 = (validation) => {
     };
 };
 
+const EvtLinkSegment = (validation, baseTypes) => {
+    const staticVariant = baseTypes.static_variant({
+        42: baseTypes.uint32(validation),
+        91: baseTypes.string(validation),
+        92: baseTypes.string(validation),
+        156: baseTypes.bytes(validation)
+    });
+    return {
+        fromByteBuffer (b) {
+            const [typeKey, value] = staticVariant.fromByteBuffer(b);
+            return {typeKey, value};
+        },
+        appendByteBuffer (b, value) {
+            staticVariant.appendByteBuffer(b, [value.typeKey, value.value]);
+        },
+        fromObject (value) {
+            // if (!value.typeKey && !value.value) return value;
+            // return staticVariant.fromObject([value.typeKey, value.value])[1];
+            return value;
+        },
+        toObject (value) {
+            // return staticVariant.toObject([value.typeKey, value.value])[1];
+            return value;
+        }
+    }
+}
+
 const EvtLink = (validation) => {
     return {
         fromByteBuffer (b) {
@@ -199,8 +228,8 @@ const EvtLink = (validation) => {
             let parsed = evtLink.parseEvtLinkSync(value, { recoverPublicKeys: false });
             
             if (!_structs) _structs = Structs({});
-            let obj = _structs.structs["everipass_bin"].fromObject(parsed);
-            let bin = Fcbuffer.toBuffer(_structs.structs["everipass_bin"], obj);
+            let obj = _structs.structs["evtlink_bin"].fromObject(parsed);
+            let bin = Fcbuffer.toBuffer(_structs.structs["evtlink_bin"], obj);
             
             b.append(bin);
         },

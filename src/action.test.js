@@ -88,10 +88,14 @@ describe("Preparation", () => {
             if (!Array.isArray(balanceList) || !balanceList.length) throw Error(`NO.${i+1} Account does not have any Asset.`);
             Object.keys(balanceThrd).forEach(key => {
                 let matched = false;
+                let balance = 0;
                 balanceList.forEach(p => {
-                    if (p.includes(` S#${key}`) && parseFloat(p.replace(` S#${key}`, "")) > balanceThrd[key]) matched = true;
+                    if (p.includes(` S#${key}`)) {
+                        balance = parseFloat(p.replace(` S#${key}`, ""));
+                        if (balance > balanceThrd[key]) matched = true;
+                    }
                 });
-                if (!matched) throw Error(`NO.${i+1} Account does not have sufficient Asset S#${key}. (${balanceThrd[key]} needed).`);
+                if (!matched) throw Error(`NO.${i+1} Account does not have sufficient Asset S#${key}. (${balance} given, ${balanceThrd[key]} needed).`);
             });
         });
     }).timeout(5000);
@@ -326,14 +330,29 @@ describe("Action ABI Test", () => {
     }).timeout(5000);
     
 
-    // if ("Check NewSuspend" || CHECKALL)
-    // it("newsuspend", async function () {
-    //     await testAbi(new EVT.EvtAction("newsuspend", {
-    //         name: "test",
-    //         proposer: publicKey,
-    //         trx: ""
-    //     }));
-    // }).timeout(5000);
+    if (!"Check NewSuspend" || CHECKALL)
+    it("newsuspend", async function () {
+        await testAbi(new EVT.EvtAction("newsuspend", {
+            name: "test",
+            proposer: publicKey,
+            trx: {
+                "expiration": "2018-05-20T12:25:51",
+                "ref_block_num": 8643,
+                "ref_block_prefix": 842752750,
+                "max_charge": 10000,
+                "payer": "EVT8MGU4aKiVzqMtWi9zLpu8KuTHZWjQQrX475ycSxEkLd6aBpraX",
+                "actions": [
+                    {
+                        "name": "newdomain",
+                        "domain": "test2",
+                        "key": ".create",
+                        "data": "000000000000000000000000109f077d0003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a9700000000000a5317601000000010100000003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a9706d4859000000000100000000572d3ccdcd010000000102000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000002866a69101000000010100000003c7e3ff0060d848bd31bf53daf1d5fed7d82c9b1121394ee15dcafb07e913a9706d4859000000000100"
+                    }
+                ],
+                "transaction_extensions": []
+            }
+        }));
+    }).timeout(5000);
 
 
     if (!"Check AprvSuspend" || CHECKALL)
@@ -364,7 +383,7 @@ describe("Action ABI Test", () => {
     }).timeout(5000);
 
     
-    if ("Check Everipass" || CHECKALL)
+    if (!"Check Everipass" || CHECKALL)
     it("everipass", async function () {
         await testAbi(new EVT.EvtAction("everipass", {
             link: "0DFYZXZO9-:Y:JLF*3/4JCPG7V1346OZ:R/G2M93-2L*BBT9S0YQ0+JNRIW95*HF*94J0OVUN$KS01-GZ-N7FWK9_FXXJORONB7B58VU9Z2MZKZ5*:NP3::K7UYKD:Y9I1V508HBQZK2AE*ZS85PJZ2N47/41LQ-MZ/4Q6THOX**YN0VMQ*3/CG9-KX2:E7C-OCM*KJJT:Z7640Q6B*FWIQBYMDPIXB4CM:-8*TW-QNY$$AY5$UA3+N-7L/ZSDCWO1I7M*3Q6*SMAYOWWTF5RJAJ:NG**8U5J6WC2VM5Z:OLZPVJXX*12I*6V9FL1HX095$5:$*C3KGCM3FIS-WWRE14E:7VYNFA-3QCH5ULZJ*CRH91BTXIK-N+J1"
@@ -372,14 +391,14 @@ describe("Action ABI Test", () => {
     }).timeout(5000);
 
 
-    // if ("Check Everipay" || CHECKALL)
-    // it("everipay", async function () {
-    //     await testAbi(new EVT.EvtAction("everipay", {
-    //         evt_link: "",
-    //         payee: publicKey,
-    //         number: "0.00010 S#1"
-    //     }));
-    // }).timeout(5000);
+    if (!"Check Everipay" || CHECKALL)
+    it("everipay", async function () {
+        await testAbi(new EVT.EvtAction("everipay", {
+            link: "0IR$/H2QRH0UC+8K3WC1BZQIP0+-4R+:FZ52-BBI3OKV-E2E-780SC1Z0IS7E_QMVKIXWYQ2BFOF4WBLW/6-00:IT$A5HY3:ETDY2863VI2K6800N7VXTU8ZXZHK6CM+W-86*FB-YVHH7RUJQTE14FCR241WRW",
+            payee: publicKey,
+            number: "0.00010 S#1"
+        }));
+    }).timeout(5000);
 
 
     // if ("Check NewLock" || CHECKALL)
@@ -387,13 +406,27 @@ describe("Action ABI Test", () => {
     //     await testAbi(new EVT.EvtAction("newlock", {
     //         name: "test",
     //         proposer: publicKey,
-    //         status: "lock_status", // TODO
+    //         status: 1,
     //         unlock_time: "2019-03-02T12:00:00",
     //         deadline: "2020-03-02T12:00:00",
-    //         assets: "lock_asset[]", // TODO
-    //         condition: "lock_condition", // TODO
-    //         succeed: publicKey,
-    //         failed: publicKey
+    //         assets: [{
+    //             tokens: {
+    //                 domain: "test",
+    //                 names: ["test"]
+    //             },
+    //             fungible: {
+    //                 domain: `test`,
+    //                 names: ["test"]
+    //             },
+    //         }],
+    //         condition: {
+    //             cond_keys: {
+    //                 threshold: 8,
+    //                 cond_keys: publicKey
+    //             }
+    //         },
+    //         succeed: [publicKey],
+    //         failed: [publicKey]
     //     }));
     // }).timeout(5000);
 
