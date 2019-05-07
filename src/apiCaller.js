@@ -70,16 +70,30 @@ class APICaller {
 
         Logger.verbose("[fetch] begin sending request: " + url + ": " + JSON.stringify(request, null, 4));
 
-        var res = await fetch(url, {
+        let requestOptions = {
             method: request.method,
             body: request.body ? JSON.stringify(request.body) : undefined,
             headers: {
                 "Content-Type": "application/json"
             },
             networkTimeout: request.networkTimeout || this.config.networkTimeout
-        });
-        
-        let ret = await res.json();
+        };
+
+        let res, ret;
+        if (this.config.httpRequestHook) {
+            res = await this.config.httpRequestHook(url, requestOptions);
+
+            if (typeof res == "string") {
+                ret = JSON.parse(res);
+            }
+            else {
+                ret = res;
+            }
+        }
+        else {
+            res = await fetch(url, requestOptions);
+            ret = await res.json();
+        }
 
         if (ret && ret.code && ret.message && ret.error) {
             this.__throwServerResponseError(ret);
@@ -983,8 +997,8 @@ class APICaller {
     /**
      * push transaction to everiToken chain
      * @param {[config{}], any[]} actions actions in the transaction
-     * if config.submitToServer is set to false, the return would be a signed transaction with config.
-     * if config.offline is set to true, the binargs would be calculated natively.
+     * if config.submitToNode is set to false, the return would be a signed transaction with config.
+     * if config.AbiJsonToBinLocally is set to true, the binargs would be calculated natively.
      */
     async pushTransaction() {
         let actions = [ ];
@@ -993,8 +1007,8 @@ class APICaller {
         // default config
         let trxConf = {
             maxCharge: 100000000,
-            submitToServer: true,
-            offline: false
+            submitToNode: true,
+            AbiJsonToBinLocally: false
         };
 
         // check and copy config from parameters
@@ -1068,7 +1082,7 @@ class APICaller {
             // create binary action for push_transaction
             let binAction = {
                 name: originalAction.actionName,
-                data: (await this.__chainAbiJsonToBin({ action: originalAction.actionName, args: originalAction.abi }, trxConf.offline)).binargs,
+                data: (await this.__chainAbiJsonToBin({ action: originalAction.actionName, args: originalAction.abi }, trxConf.AbiJsonToBinLocally)).binargs,
                 domain: originalAction.domain,
                 key: originalAction.key
             };
@@ -1143,7 +1157,7 @@ class APICaller {
         }
 
         // if not setting to push, abort and return body (with signature)
-        if (!trxConf.submitToServer) {
+        if (!trxConf.submitToNode) {
             return {
                 body,
                 config: trxConf
@@ -1159,16 +1173,16 @@ class APICaller {
     /**
      * push a signed transaction
      * @param {string} body 
-     * @param {trxConf.__linkId} everiPayLinkId 
+     * @param {trxConf.__linkId} includedEvtLinkID 
      */
-    async pushSignedTransaction(body, everiPayLinkId=null) {
+    async pushSignedTransaction(body, includedEvtLinkID=null) {
 
         var res = await this.__chainPushTransaction(body);
 
         // check if it is successful
-        if (everiPayLinkId !== null) {
+        if (includedEvtLinkID !== null) {
             // For everiPay transaction, for safety, use strict mode
-            let ret = await this.getStatusOfEvtLink({ linkId: everiPayLinkId, block: true, throwException: false });
+            let ret = await this.getStatusOfEvtLink({ linkId: includedEvtLinkID, block: true, throwException: false });
 
             if (ret && ret.pending == false && ret.successful && ret.transactionId) {
                 return { transactionId: ret.transactionId };
@@ -1215,8 +1229,8 @@ class APICaller {
         
     }
     
-    async __chainAbiJsonToBin(abi, offline=false) {
-        if (!offline) return await this.__chainAbiJsonToBinByAPI(abi);
+    async __chainAbiJsonToBin(abi, AbiJsonToBinLocally=false) {
+        if (!AbiJsonToBinLocally) return await this.__chainAbiJsonToBinByAPI(abi);
         else return await this.__chainAbiJsonToBinByFC(abi);
     }
 

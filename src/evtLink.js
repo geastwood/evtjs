@@ -400,11 +400,16 @@ EvtLink.validateEveriPassUnsafe = async function validateEveriPassUnsafe(options
 //      16      collection code
 // 42           unix timestamp in seconds
 // 43           max allowed amount for payment (optionl)
+// 44           (uint32) symbol id to be paid in everiPay (for example: "1" for EVT)
+// 45           (uint32) symbol id to be received in PayeeCode (for example: "1" for EVT)
+// 46           fixed amount (optionl)
 // 44           symbol id to be paid in everiPay (for example: "5")
 // 91           domain name to be validated in everiPass
 // 92           token  name to be validated in everiPass
 // 94           max allowed amount for payment (optionl, string format remained only for amount >= 2 ^ 32)
 // 95           public key (address) for receiving points or coins
+// 96           (string) count to receive in PayeeCode, should use decimal with proper precision
+// 97           fixed amount (optionl, string format remained only for amount >= 2 ^ 32)
 // 156          global-unique link id
 
 /**
@@ -471,6 +476,9 @@ EvtLink.getEveriPayText = async function(params) {
     if (!params.maxAmount || !Number.isInteger(params.maxAmount)) {
         throw new Error("maxAmount is required, and must be a integer");
     }
+    if (params.fixedAmount && !Number.isInteger(params.fixedAmount)) {
+        throw new Error("fixedAmount must be a integer");
+    }
 
     // add segments
     let flag =  (1 + 4);  // everiPay
@@ -481,6 +489,10 @@ EvtLink.getEveriPayText = async function(params) {
         byteSegments.push(createSegment(43, params.maxAmount));  // max amount
     if (params.maxAmount && params.maxAmount >= 4294967295) 
         byteSegments.push(createSegment(94, params.maxAmount.toString()));  // max amount
+    if (params.fixedAmount && params.fixedAmount < 4294967295) 
+        byteSegments.push(createSegment(46, params.fixedAmount));            // fixed amount
+    if (params.fixedAmount && params.fixedAmount >= 4294967295) 
+        byteSegments.push(createSegment(97, params.fixedAmount.toString()));  // fixed amount
     
     byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));         // random link id 
 
