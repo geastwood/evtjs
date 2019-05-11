@@ -443,14 +443,14 @@ EvtLink.getEveriPassText = async function(params) {
     if (!params.tokenName) {
         throw new Error("Must provide the value of tokenName");
     }
-    
+
     // add segments
-    let flag = (1 + 2 + (params.autoDestroying ? 8 : 0));                            // everiPass
+    let flag = (1 + 2 + (params.autoDestroying ? 8 : 0));                                     // everiPass
     byteSegments.push(createSegment(42, Math.floor(EvtLink.getFixedCurrentTime() / 1000) ));  // timestamp
-    if (params.domainName) byteSegments.push(createSegment(91, params.domainName));  // domainName for everiPass
-    if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));    // tokenName for everiPass
-    if (params.memo) byteSegments.push(createSegment(98, params.memo));    // memo for everiPass
-    // byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));       // random link id 
+    if (params.domainName) byteSegments.push(createSegment(91, params.domainName));           // domainName for everiPass
+    if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));             // tokenName for everiPass
+    if (params.memo) byteSegments.push(createSegment(98, params.memo));                       // memo for everiPass
+    // byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));             // random link id 
 
     // convert buffer of segments to text using base10
     return {
