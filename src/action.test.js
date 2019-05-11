@@ -1,4 +1,4 @@
-const CHECKALL = (typeof process.env.DEV === "undefined") ? true : !(process.env.DEV);
+const CHECKALL = false;//(typeof process.env.DEV === "undefined") ? true : !(process.env.DEV);
 
 /* eslint-env mocha */
 const assert = require("assert");
