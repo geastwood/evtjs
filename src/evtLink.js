@@ -111,7 +111,9 @@ function createSegment(typeKey, value) {
     }
     // string
     else if (typeKey <= 155) {
+        if (typeof value !== "string") throw new Error("value must be string.");
         let content = Buffer.from(value);
+        if (content.length > 255) throw new Error("Length of 'value' exceed the limitation (255).");
         let header = new Buffer([ typeKey, content.length ]);
         return (Buffer.concat([ header, content ]));
     }
@@ -410,6 +412,7 @@ EvtLink.validateEveriPassUnsafe = async function validateEveriPassUnsafe(options
 // 95           public key (address) for receiving points or coins
 // 96           (string) count to receive in PayeeCode, should use decimal with proper precision
 // 97           fixed amount (optionl, string format remained only for amount >= 2 ^ 32)
+// 98           memo (optionl, length can not exceed 255)
 // 156          global-unique link id
 
 /**
@@ -432,17 +435,21 @@ EvtLink.getEveriPassText = async function(params) {
     let byteSegments = [ ];
 
     if (params.autoDestroying !== true && params.autoDestroying !== false) {
-        throw new Error("Must specify the value of autoDestroying");
+        throw new Error("Must provide the value of autoDestroying");
     }
-    /*if (!params.linkId || params.linkId.length !== 32) {
-        throw new Error("linkId is required");
-    }*/
-
+    if (!params.domainName) {
+        throw new Error("Must provide the value of domainName");
+    }
+    if (!params.tokenName) {
+        throw new Error("Must provide the value of tokenName");
+    }
+    
     // add segments
     let flag = (1 + 2 + (params.autoDestroying ? 8 : 0));                            // everiPass
     byteSegments.push(createSegment(42, Math.floor(EvtLink.getFixedCurrentTime() / 1000) ));  // timestamp
     if (params.domainName) byteSegments.push(createSegment(91, params.domainName));  // domainName for everiPass
     if (params.tokenName) byteSegments.push(createSegment(92, params.tokenName));    // tokenName for everiPass
+    if (params.memo) byteSegments.push(createSegment(98, params.memo));    // memo for everiPass
     // byteSegments.push(createSegment(156, Buffer.from(params.linkId, "hex") ));       // random link id 
 
     // convert buffer of segments to text using base10
