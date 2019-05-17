@@ -30,6 +30,13 @@ EvtKey.privateKeyFromBuffer = function(bufferHex) {
 };
 
 /**
+ * Generates a public key for evt from a Buffer
+ */
+EvtKey.publicKeyFromCompressedBuffer = function(bufferHex) {
+    return ecc.PublicKey.fromBuffer(new Buffer(bufferHex, "hex")).toString();
+};
+
+/**
  * Generates a private key for evt in specific seed. Note: The same seed produces the same private key every time. At least 128 random bits should be used to produce a good private key.
  * @param {string} seed The seed string
  */
