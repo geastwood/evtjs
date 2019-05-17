@@ -11,7 +11,7 @@ class EvtKey {
  * @param {*} privateKey privateKey in WIF format
  */
 EvtKey.privateToPublic = function(privateKeyInWif) {
-    return "EVT" + ecc.privateToPublic(privateKeyInWif).substr(3);
+    return ecc.privateToPublic(privateKeyInWif);
 };
 
 /**
@@ -30,7 +30,14 @@ EvtKey.privateKeyFromBuffer = function(bufferHex) {
 };
 
 /**
- * Generates a public key for evt from a Buffer
+ * Generates a buffer from private key
+ */
+EvtKey.privateKeyToBufferHex = function(privateKey) {
+    return ecc.PrivateKey.fromString(privateKey).toBuffer().toString("hex");
+};
+
+/**
+ * Generates a public key for evt from a compressed Buffer
  */
 EvtKey.publicKeyFromCompressedBuffer = function(bufferHex) {
     return ecc.PublicKey.fromBuffer(new Buffer(bufferHex, "hex")).toString();

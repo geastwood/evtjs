@@ -1030,7 +1030,7 @@ class APICaller {
         let privateKeys = [];
         let publicKeys = [];
 
-        // user can use availablePublicKeys in config for estimate, or use keyProvider as a backup
+        // user can use availablePublicKeys in config for estimate, or use keyProvider instead
         if (!trxConf.__estimateCharge || !trxConf.availablePublicKeys) {
             privateKeys = await this.__calcKeyProvider(this.config.keyProvider, null);
             publicKeys = privateKeys.map(x => EvtKey.privateToPublic(x));

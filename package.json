@@ -1,6 +1,6 @@
 {
     "name": "evtjs",
-    "version": "5.4.4",
+    "version": "5.4.5",
     "description": "Javascript API Bindings for the everiToken blockchain.",
     "main": "lib/index.js",
     "scripts": {

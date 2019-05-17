@@ -9,9 +9,22 @@ const PublicKey = require("./key_public");
 const keyUtils = require("./key_utils");
 const createHash = require("create-hash");
 const promiseAsync = require("./promise-async");
+const publicKeyMemoryCache = new (require("../memoryCache"))(100);
 
 const G = secp256k1.G;
 const n = secp256k1.n;
+
+let isNode = false;
+try {
+    if (typeof window !== "object") {
+        let crypto = require("crypto");
+
+        if (crypto && crypto.createECDH) {
+            isNode = true;
+        }
+    }
+}
+catch (e) { }
 
 module.exports = PrivateKey;
 
@@ -44,29 +57,49 @@ function PrivateKey(d) {
         return toWif();
     }
 
+    let wif;
+
     /**
         @return  {wif}
     */
     function toWif() {
+        if (wif) return wif;
         var private_key = toBuffer();
         // checksum includes the version
         private_key = Buffer.concat([new Buffer([0x80]), private_key]);
-        return keyUtils.checkEncode(private_key, "sha256x2");
-    }
+        wif = keyUtils.checkEncode(private_key, "sha256x2");
 
-    let public_key;
+        return wif;
+    }
 
     /**
         @return {Point}
     */
     function toPublic() {
-        if (public_key) {
+        let cachedKey = publicKeyMemoryCache.get(toString());
+        if (cachedKey) {
             // cache
-            // S L O W in the browser
-            return public_key;
+            // S L O W
+            return cachedKey;
         }
-        const Q = secp256k1.G.multiply(d);
-        return public_key = PublicKey.fromPoint(Q);
+
+        let public_key;
+
+        // In Node, use Native Method
+        if (isNode) {
+            const { createECDH } = require('crypto');
+            const ecdh = createECDH('secp256k1');
+            ecdh.setPrivateKey(toBuffer());
+            public_key = PublicKey.fromBuffer(new Buffer(ecdh.getPublicKey('hex', 'compressed'), 'hex'));
+        }
+        else {
+            const Q = secp256k1.G.multiply(d);
+            public_key = PublicKey.fromPoint(Q);
+        }
+
+        publicKeyMemoryCache.set(toString(), public_key);
+
+        return public_key;
     }
 
     function toBuffer() {
