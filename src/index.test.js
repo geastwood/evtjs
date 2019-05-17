@@ -680,6 +680,7 @@ describe("EvtLink", function() {
                 "everipay",
                 {
                     link: link.rawText,
+                    "memo": "",
                     "payee": EVT.EvtKey.privateToPublic(wif2),
                     "number": "1.00000 S#1"
                 }
@@ -712,7 +713,8 @@ describe("EvtLink", function() {
             new EVT.EvtAction(
                 "everipass",
                 {
-                    link: link.rawText
+                    link: link.rawText,
+                    memo: ""
                 }
             )
         );

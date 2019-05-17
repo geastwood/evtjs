@@ -109,6 +109,14 @@ class APICaller {
      * get information from everiToken chain node
      */
     async getInfo(options) {
+        if (this.__lastTimeGetInfo && this.__cachedInfo) {
+            if (new Date().valueOf() - this.__lastTimeGetInfo < 5000) {
+                return this.__cachedInfo;
+            }
+        }
+
+        this.__lastTimeGetInfo = new Date().valueOf();
+
         options = options || { };
         var info = await this.__callAPI({
             url: "/v1/chain/get_info",
