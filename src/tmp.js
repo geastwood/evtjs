@@ -1,40 +1,39 @@
 
 const EVT = require(".");
-const { createECDH } = require('crypto');
 
-const t = EVT.EvtKey.privateKeyFromBuffer("f3a1cce59d01ce5bd93c93b47d1b01c3f1a1169ec0713df2e8e08deef6dc888f");
-const p = EVT.EvtKey.publicKeyFromCompressedBuffer("036bac55d258d15441cc79b78b929aedb777b15142392590e4bb0a2350cbe86935");
+// async function test() {
+//     let caller = EVT({});
 
+//     console.time("h");
+//     for (let i = 0; i < 30; ++i) {
+//         let r = await caller.__chainAbiJsonToBin({
+//             action: "transferft", args: {
+//                 "from": "EVT6s645MbiHEdFyZzyV94pUdaPtqu6AvcgupAtrjotAXTUMfTkzw",
+//                 "to": "EVT6s645MbiHEdFyZzyV94pUdaPtqu6AvcgupAtrjotAXTUMfTkzw",
+//                 "number": "1.00000 S#1",
+//                 "memo": "2529361"
+//             }
+//         }, true);
 
-console.time("privateToPublic");
-console.log({t, p, h:  EVT.EvtKey.privateToPublic(t)});
-console.log({t, p, h:  EVT.EvtKey.privateToPublic(t)});
-console.log({t, p, h:  EVT.EvtKey.privateToPublic(t)});
-console.log({t, p, h:  EVT.EvtKey.privateToPublic(t)});
-console.log({t, p, h:  EVT.EvtKey.privateToPublic(t)});
-console.log({t, p, h:  EVT.EvtKey.privateToPublic(t)});
-console.log({t, p, h:  EVT.EvtKey.privateToPublic(t)});
-console.log({t, p, h:  EVT.EvtKey.privateToPublic(t)});
-console.log({t, p, h:  EVT.EvtKey.privateToPublic(t)});
-console.log({t, p, h:  EVT.EvtKey.privateToPublic(t)});
-console.timeEnd("privateToPublic");
+//         console.log(r);
+//     }
 
+//     console.timeEnd("h");
+// }
 
-function getPublicKey2(t) {
-    const ecdh = createECDH('secp256k1');
-    ecdh.setPrivateKey(EVT.EvtKey.privateKeyToBufferHex(t), 'hex');
-    return EVT.EvtKey.publicKeyFromCompressedBuffer(ecdh.getPublicKey('hex', 'compressed'));
+// test();
+
+let fs = require("fs");
+let lines = fs.readFileSync("E:\\tmp.txt", { encoding: 'utf8' }).split('\n');
+
+async function t(){
+    for (let i = 0; i < lines.length; ++i) {
+        if (lines[i]) {
+            let splited = lines[i].split("_");
+            console.log("segm:" + EVT.EvtLink.dec2b(splited[0]).toString("hex"));
+            console.log("sign:" + EVT.EvtLink.dec2b(splited[1]).toString("hex"));
+        }
+    }
 }
 
-console.time("privateToPublic2");
-console.log({t, p, h:  getPublicKey2(t)});
-console.log({t, p, h:  getPublicKey2(t)});
-console.log({t, p, h:  getPublicKey2(t)});
-console.log({t, p, h:  getPublicKey2(t)});
-console.log({t, p, h:  getPublicKey2(t)});
-console.log({t, p, h:  getPublicKey2(t)});
-console.log({t, p, h:  getPublicKey2(t)});
-console.log({t, p, h:  getPublicKey2(t)});
-console.log({t, p, h:  getPublicKey2(t)});
-console.log({t, p, h:  getPublicKey2(t)});
-console.timeEnd("privateToPublic2");
+t();
