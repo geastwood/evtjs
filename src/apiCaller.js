@@ -1010,6 +1010,7 @@ class APICaller {
      */
     async pushTransaction() {
         let actions = [ ];
+        let rawActions = [];
         let hasConfig = false;
 
         // default config
@@ -1047,6 +1048,8 @@ class APICaller {
         for (let i = (hasConfig ? 1 : 0); i < arguments.length; ++i) {
             actions.push(arguments[i]);
         }
+
+        rawActions = actions.slice()
 
         // check arguments
         if (actions.length == 0) {
@@ -1155,7 +1158,7 @@ class APICaller {
 
             // sign
             const signBuf = new Buffer(digestRes, "hex");
-            let sigs = await this.__signTransaction(signBuf, body.transaction, privateKeys);
+            let sigs = await this.__signTransaction(signBuf, body.transaction, privateKeys, rawActions);
 
             if (!Array.isArray(sigs)) {
                 sigs = [ sigs ];
@@ -1248,8 +1251,8 @@ class APICaller {
      * @param {object} transaction 
      * @param {string[]} privateKeys 
      */
-    __signTransaction(buf, transaction, privateKeys) {
-        return this.config.signProvider({signHash, buf, transaction, privateKeys});
+    __signTransaction(buf, transaction, privateKeys, actions) {
+        return this.config.signProvider({signHash, buf, transaction, privateKeys, actions});
     }
 
     async __getDigestToSign(transaction) { 
