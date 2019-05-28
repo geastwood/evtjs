@@ -500,6 +500,10 @@ declare class EvtConfig implements EvtConfigItems {
      */
     signProvider?: (signParams: SignParams) => Promise<string[]>;
     /**
+     * Provide private key. It could be a function to return a key or a key array or a promise which will resolve with a key or a key array, it could also be a key or key array directly. If you provide `signProvidr`, this field will be ignored.
+     */
+    keyProvider?: string | string[] | Promise<string> | Promise<string[]>;
+    /**
      * Optional hook to capture all the http requests to the node. If set, no http request will be launched automatically, all the requests will be transferred to your hook and take the return value as response.
      */
     httpRequestHook?: HttpRequestHook;
@@ -522,6 +526,10 @@ declare interface EvtConfigItems {
      * Optional hook to capture all the http requests to the node. If set, no http request will be launched automatically, all the requests will be transferred to your hook and take the return value as response.
      */
     httpRequestHook?: HttpRequestHook;
+    /**
+     * Provide private key. It could be a function to return a key or a key array or a promise which will resolve with a key or a key array, it could also be a key or key array directly. If you provide `signProvidr`, this field will be ignored.
+     */
+    keyProvider?: string | string[] | Promise<string> | Promise<string[]>;
 }
 
 declare type HttpRequestHook = (url: string, options: HttpRequestOptions) => Promise<{ json: () => Promise<any>; }>;
