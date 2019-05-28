@@ -1,9 +1,9 @@
 {
     "name": "evtjs",
-    "version": "5.4.6",
+    "version": "5.4.7",
     "description": "Javascript API Bindings for the everiToken blockchain.",
     "main": "lib/index.js",
-    "types": "./src/index.d.ts",
+    "types": "./lib/index.d.ts",
     "scripts": {
         "test": "mocha --use_strict src/*.test.js",
         "test_lib": "mocha --use_strict lib/*.test.js",
