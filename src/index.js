@@ -31,4 +31,6 @@ EVT = Object.assign(EVT, {
     Helper
 });
 
+EVT.default = EVT;
+
 module.exports = EVT;
