@@ -81,7 +81,7 @@ EvtKey.isValidAddress = function(address) {
     if (address === "EVT00000000000000000000000000000000000000000000000000") return true;
     if (address.length == 53 && address[3] == "0") return true;
 
-    return ecc.isValidPublic("EVT" + address.substr(3)) || ecc.isValidPublic("EOS" + address.substr(3));
+    return ecc.isValidPublic("EVT" + address.substr(3));
 };
 
 
@@ -119,7 +119,7 @@ EvtKey.randomName128 = async function() {
 };
  
 /**
- * Check if a public key is valid.
+ * Check if a private key is valid.
  * @param {*} key wif format of a private key
  */
 EvtKey.isValidPrivateKey = function(key) {

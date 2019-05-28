@@ -37,7 +37,7 @@ class EvtConfig {
 EvtConfig.getTestNetEndpoint = function() {
     return Object.assign({ }, {
         host: "testnet1.everitoken.io",
-        port: 8888,
+        port: 443,
         protocol: "https"
     });
 };

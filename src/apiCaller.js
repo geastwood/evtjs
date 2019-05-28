@@ -202,7 +202,7 @@ class APICaller {
     /**
      * Get required keys for suspended transactions
      * @param {string} proposalName The proposal name you want to sign
-     * @param {string} availableKeys array of public keys you own
+     * @param {string[]} availableKeys array of public keys you own
      */
     async getRequiredKeysForSuspendedTransaction(proposalName, availableKeys) {
         // check parameters
@@ -516,7 +516,6 @@ class APICaller {
      * @param {string} linkId the linkId
      * @param {object} options 
      * @returns {object} the status of an evtLink
-     * @deprecated
      */
     async getStatusOfEvtLink(options) {
         if (typeof options !== "object" || !options) throw new Error("invalid options");
@@ -595,7 +594,7 @@ class APICaller {
             return { pending: false, successful: false, exception: lastError || new Error("everiPay timeOut or network issue") };
         }
         else {
-            return { pending: true, exception: new Error("No available network connection") };
+            return { pending: true, successful: false, exception: new Error("No available network connection") };
         }
     }
 
@@ -1049,7 +1048,7 @@ class APICaller {
             actions.push(arguments[i]);
         }
 
-        rawActions = actions.slice()
+        rawActions = actions.slice();
 
         // check arguments
         if (actions.length == 0) {
@@ -1203,7 +1202,7 @@ class APICaller {
             }
         }
         else if (res && res.processed && res.processed.receipt && res.processed.receipt.status === "executed") {
-            return { transactionId: res.transaction_id };
+            return { transactionId: res.transaction_id, body };
         }
         else {
             // throw error detail
@@ -1214,7 +1213,6 @@ class APICaller {
                 throw new Error("did not receive anything from the chain");
             }
         }
-
     }
 
     async __chainAbiJsonToBinByAPI(abi) {
@@ -1302,7 +1300,7 @@ class APICaller {
   If only one key is available, the blockchain API calls are skipped and that
   key is used to sign the transaction.
 */
-const defaultSignProvider = (apiCaller, config) => async function ({ sign, buf, transaction, privateKeys }) {
+const defaultSignProvider = (apiCaller, config) => async function ({ signHash, buf, transaction, privateKeys }) {
     let keys = privateKeys;
 
     if (!keys) {
