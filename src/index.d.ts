@@ -204,6 +204,14 @@ declare interface PushTransactionConfig {
      * (Default value: false) If true, evtjs will try to use local ABI serialization, which is safer and will reduce one round HTTP request.
      */
     AbiJsonToBinLocally?: boolean;
+    /**
+     * (Optional) Set who will pay for transaction fee. If only one private key is provided, you could ignore this parameter, else it is required.
+     */
+    payer?: string;
+    /**
+     * (Optional) Datetime for transaction's execution time expiration using this format: "2019-05-28T15:39:44". After this time if you still could not find this transaction on the chain, you can believe the transaction already failed.
+     */
+    expiration?: string;
 }
 
 declare class EvtAction {
@@ -553,7 +561,10 @@ declare interface SignParams {
 declare interface EvtNetworkEndpoint {
     host: string;
     port: number;
-    protocol: "http" | "https";
+    /**
+     * Must be one of "http", "https"
+     */
+    protocol: string;
 }
 
 declare interface EntryPoint {
