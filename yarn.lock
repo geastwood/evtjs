@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/node@^12.0.2":
+  version "12.0.4"
+  resolved "https://registry.npmjs.org/@types/node/-/node-12.0.4.tgz#46832183115c904410c275e34cf9403992999c32"
+
 JSONStream@^1.0.3:
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/JSONStream/-/JSONStream-1.3.3.tgz#27b4b8fbbfeab4e71bcf551e7f27be8d952239bf"

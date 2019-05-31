@@ -22,18 +22,10 @@ const EVT = require(".");
 // }
 
 // test();
+async function t() {
+    console.log(await EVT.default.EvtKey.signHash("00".repeat(32), "5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D", "hex"));
+    console.log(await EVT.default.EvtKey.signHash("00".repeat(32), "5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D", "hex"));
+    console.log(await EVT.default.EvtKey.signHash("00".repeat(32), "5J1by7KRQujRdXrurEsvEr2zQGcdPaMJRjewER6XsAR2eCcpt3D", "hex"));
 
-let fs = require("fs");
-let lines = fs.readFileSync("E:\\tmp.txt", { encoding: 'utf8' }).split('\n');
-
-async function t(){
-    for (let i = 0; i < lines.length; ++i) {
-        if (lines[i]) {
-            let splited = lines[i].split("_");
-            console.log("segm:" + EVT.EvtLink.dec2b(splited[0]).toString("hex"));
-            console.log("sign:" + EVT.EvtLink.dec2b(splited[1]).toString("hex"));
-        }
-    }
 }
-
 t();
