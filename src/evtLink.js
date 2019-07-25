@@ -413,6 +413,7 @@ EvtLink.validateEveriPassUnsafe = async function validateEveriPassUnsafe(options
 // 96           (string) count to receive in PayeeCode, should use decimal with proper precision
 // 97           fixed amount (optionl, string format remained only for amount >= 2 ^ 32)
 // 98           memo (optionl, length can not exceed 255)
+// 99           redirect url (https prefix will automatically be added) when user use browsers to open evtlink
 // 156          global-unique link id
 
 /**
