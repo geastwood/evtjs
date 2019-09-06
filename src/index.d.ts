@@ -61,7 +61,7 @@ declare class ApiCaller {
     /**
      * get owned token list for accounts. Make sure you have history_plugin enabled on the chain node
      * @param publicKeys a array or a single value which represents public keys you want to query
-     * @param groupByDomain whether group the returned values by domain, only avaiable for chain version >= 3
+     * @param groupByDomain whether group the returned values by domain, only available for chain version >= 3
      */
     getOwnedTokens(publicKeys: string[] | string, groupByDomain?: boolean): Promise<({ name: string; domain: string; }[])> | Promise<{ [key: string]: string[] }>;
     /**
@@ -86,7 +86,7 @@ declare class ApiCaller {
      * get detail information about a transaction by its id.
      * @param id the id of the transaction.
      * @param blockNum (optional) the block num of the transaction. If not provided, the system will find it for you.
-     * @param options (optional) addtional options. available field: usingHistoryPlugin - (default true) whether to use history plugin. If you want to query transactions on a node that doesn't have history plugin, please set it to false. But in this case you can't query old transactions.
+     * @param options (optional) additional options. available field: usingHistoryPlugin - (default true) whether to use history plugin. If you want to query transactions on a node that doesn't have history plugin, please set it to false. But in this case you can't query old transactions.
      */
     getTransactionDetailById(id: string, blockNum?: string, options?: { usingHistoryPlugin?: boolean }): Promise<TransactionWrapper>;
     /**
@@ -163,14 +163,14 @@ declare class ApiCaller {
      * @param symbolId the id of the symbol 
      * @param address the address (optional)
      * @param skip the count to be skipped, default to 0 (optional)
-     * @param take the count to be taked, default to 10 (optional)
+     * @param take the count to be taken, default to 10 (optional)
      */
     getFungibleActionsByAddress(symbolId: number, address?: string, skip?: number, take?: string): Promise<ActionDetail[]>;
     /**
      * get detail information about transactions which involves specific public keys. Make sure you have history_plugin enabled on the chain node
      * @param publicKeys a single value or a array of public keys to query (required)
      * @param skip the count to be skipped, default to 0 (optional)
-     * @param take the count to be taked, default to 10 (optional)
+     * @param take the count to be taken, default to 10 (optional)
      * @param direction the direction for sorting the result. Defaults to `desc`. Could only be one of "desc" or "asc". (optional)
      */
     getTransactionsDetailOfPublicKeys(publicKeys: string | string[], skip?: number, take?: number, direction?: "desc" | "asc"): Promise<TransactionWrapper[]>;
@@ -219,8 +219,8 @@ declare class EvtAction {
      * initialize a new EvtAction instance
      * @param actionName the name of the action. See action list at "Action" section of https://www.everitoken.io/developers/apis,_sdks_and_tools/abi_reference#actions .
      * @param abi abi structure of the action, please refer to ABI Reference: https://www.everitoken.io/developers/apis,_sdks_and_tools/abi_reference#actions .
-     * @param domain the `domain` value of the action. In most cases you can ignore this parameter except for some special actions. If you want to know if one action is supported, you can call calculateDomainAndKey. For detial, see documentation of trx_json_to_digest at https://www.everitoken.io/developers/apis,_sdks_and_tools/api_reference#post-/v1/chain/trx_json_to_digest
-     * @param key the `key` value of the action.  In most cases you can ignore this parameter except for some special actions. If you want to know if one action is supported, you can call calculateDomainAndKey. For detial, see documentation of trx_json_to_digest at https://www.everitoken.io/developers/apis,_sdks_and_tools/api_reference#post-/v1/chain/trx_json_to_digest
+     * @param domain the `domain` value of the action. In most cases you can ignore this parameter except for some special actions. If you want to know if one action is supported, you can call calculateDomainAndKey. For detail, see documentation of trx_json_to_digest at https://www.everitoken.io/developers/apis,_sdks_and_tools/api_reference#post-/v1/chain/trx_json_to_digest
+     * @param key the `key` value of the action.  In most cases you can ignore this parameter except for some special actions. If you want to know if one action is supported, you can call calculateDomainAndKey. For detail, see documentation of trx_json_to_digest at https://www.everitoken.io/developers/apis,_sdks_and_tools/api_reference#post-/v1/chain/trx_json_to_digest
      */
     constructor(actionName: string, abi: object, domain?: string, key?: string);
     /**
@@ -237,12 +237,12 @@ declare class EvtAction {
     abi: object;
     /**
      * the `domain` value of the action. In most cases it can be calculated automatically. Just call calculateDomainAndKey.
-     * For detial, see documentation of trx_json_to_digest at https://www.everitoken.io/developers/apis,_sdks_and_tools/api_reference#post-/v1/chain/trx_json_to_digest
+     * For detail, see documentation of trx_json_to_digest at https://www.everitoken.io/developers/apis,_sdks_and_tools/api_reference#post-/v1/chain/trx_json_to_digest
      */
     domain?: string;
     /**
      * the `key` value of the action. In most cases it can be calculated automatically. Just call calculateDomainAndKey.
-     * For detial, see documentation of trx_json_to_digest at https://www.everitoken.io/developers/apis,_sdks_and_tools/api_reference#post-/v1/chain/trx_json_to_digest
+     * For detail, see documentation of trx_json_to_digest at https://www.everitoken.io/developers/apis,_sdks_and_tools/api_reference#post-/v1/chain/trx_json_to_digest
      */
     key?: string;
 }
@@ -343,7 +343,7 @@ declare interface DomainDetail {
 declare interface Authorization {
     name: string;
     /**
-     * If total weight of signed authorizers is greater than or eqaul to threshold, the operation will be permitted.
+     * If total weight of signed authorizers is greater than or equal to threshold, the operation will be permitted.
      */
     threshold: number;
     authorizers?: AuthorizersEntity[];
@@ -537,9 +537,9 @@ declare interface EvtConfigItems {
      */
     httpRequestHook?: HttpRequestHook;
     /**
-     * Provide private key. It could be a function to return a key or a key array or a promise which will resolve with a key or a key array, it could also be a key or key array directly. If you provide `signProvidr`, this field will be ignored.
+     * Provide private key. It could be a function to return a key or a key array or a promise which will resolve with a key or a key array, it could also be a key or key array directly. If you provide `signProvider`, this field will be ignored.
      */
-    keyProvider?: string | string[] | Promise<string> | Promise<string[]>;
+    keyProvider?: KeyProvider;
 }
 
 declare type HttpRequestHook = (url: string, options: HttpRequestOptions) => Promise<{ json: () => Promise<any>; }>;
@@ -669,7 +669,7 @@ declare interface EvtLink {
       */
     getEvtLinkForEveriPay(options: everiPayParams): Promise<{ rawText: string; }>;
     /**
-    * get evt link for payee code, which is used for receving fungible tokens
+    * get evt link for payee code, which is used for receiving fungible tokens
     */
     getEvtLinkForPayeeCode(options: PayeeCodeParams): Promise<{ rawText: string; }>;
     /**
@@ -677,7 +677,7 @@ declare interface EvtLink {
      */
     getEVTLinkQrImage(qrType: "everiPass" | "everiPay" | "payeeCode", qrParams: everiPassParams | everiPayParams | PayeeCodeParams, imgParams: {
         /**
-         * Whether to reload the image automitcally every several seconds. In most cases you should set it to true.
+         * Whether to reload the image automatically every several seconds. In most cases you should set it to true.
          */
         autoReload?: boolean;
         /**
@@ -702,7 +702,7 @@ declare interface GetEVTLinkQrImageCallbackParams {
      */
     rawText?: string;
     /**
-     * Get DataUrl for the image as per RFC2397 (https://tools.ietf.org/html/rfc2397). You could use this value to set src attribute of img element. Only set avaiable when `params.canvas == null`.
+     * Get DataUrl for the image as per RFC2397 (https://tools.ietf.org/html/rfc2397). You could use this value to set src attribute of img element. Only set available when `params.canvas == null`.
      */
     dataUrl?: string;
     /**
@@ -717,7 +717,7 @@ declare interface GetEVTLinkQrImageCallbackParams {
 
 declare interface PayeeCodeParams {
     /**
-     * The reciver's address.
+     * The receiver's address.
      */
     address: string;
     /**
@@ -787,7 +787,7 @@ declare interface EvtLinkSegment {
 
 declare interface EvtKey {
     /**
-     * Conver private key into public key.
+     * Convert private key into public key.
      * @param privateKey Private key.
      */
     privateToPublic(privateKey: string): string;
