@@ -141,7 +141,7 @@ declare class ApiCaller {
      * get detail information about a domain by its name. Make sure you have history_plugin enabled on the chain node
      * @param name the name of the domain
      */
-    getDomainDetail(name): Promise<DomainDetail>;
+    getDomainDetail(name: string): Promise<DomainDetail>;
     /**
      * Fetch all the transaction ids in one block
      * @param blockId the id of the block
@@ -188,7 +188,7 @@ declare class ApiCaller {
      * @param config config about the transaction
      * @param actions actions in the transaction
      */
-    pushTransaction(config: PushTransactionConfig, ...actions: EvtAction[]): Promise<{ transactionId: string }> | Promise<{ body: PendingTransaction, config: PushTransactionConfig }>;
+    pushTransaction(config: PushTransactionConfig, ...actions: EvtAction[]): Promise<{ transactionId: string, charge: number }> | Promise<{ body: PendingTransaction, config: PushTransactionConfig }>;
 }
 
 declare interface PushTransactionConfig {
@@ -482,6 +482,8 @@ declare interface NodeInfo {
     server_version_string: string;
 }
 
+declare type KeyProvider = string | string[] | Promise<string> | Promise<string[]>
+
 /**
  * Store config for ApiCaller, provide a default config which points to TestNet
  */
@@ -508,9 +510,9 @@ declare class EvtConfig implements EvtConfigItems {
      */
     signProvider?: (signParams: SignParams) => Promise<string[]>;
     /**
-     * Provide private key. It could be a function to return a key or a key array or a promise which will resolve with a key or a key array, it could also be a key or key array directly. If you provide `signProvidr`, this field will be ignored.
+     * Provide private key. It could be a function to return a key or a key array or a promise which will resolve with a key or a key array, it could also be a key or key array directly. If you provide `signProvider`, this field will be ignored.
      */
-    keyProvider?: string | string[] | Promise<string> | Promise<string[]>;
+    keyProvider?: KeyProvider;
     /**
      * Optional hook to capture all the http requests to the node. If set, no http request will be launched automatically, all the requests will be transferred to your hook and take the return value as response.
      */
@@ -723,9 +725,10 @@ declare interface PayeeCodeParams {
      */
     fungibleId: number;
     /**
-     * (Optional) Amonut. Amount must be a decimal string with proper precision (like asset type doing)
+     * (Optional) Amount. Amount must be a decimal string with proper precision (like asset type doing)
      */
     amount?: string;
+    keyProvider?: KeyProvider
 }
 
 declare interface everiPassParams {
@@ -739,6 +742,7 @@ declare interface everiPassParams {
      * The memory information will be recorded onto the chain. For current Mainnet it is not supported.
      */
     memo?: string;
+    keyProvider?: KeyProvider
 }
 
 declare interface everiPayParams {
@@ -762,6 +766,7 @@ declare interface everiPayParams {
      * (Optional) The memory information will be recorded onto the chain. For current Mainnet it is not supported.
      */
     memo?: string;
+    keyProvider?: KeyProvider
 }
 
 declare interface ParsedEvtLink {
@@ -815,7 +820,7 @@ declare interface EvtKey {
      */
     isValidPublicKey(publicKey: string): boolean;
     /**
-     * Check if an address is valid. An address could be either a public key or generatd address like 'EVT00000000000000000000000000000000000000000000000000'.
+     * Check if an address is valid. An address could be either a public key or generated address like 'EVT00000000000000000000000000000000000000000000000000'.
      * @param publicKey 
      */
     isValidAddress(publicKey: string): boolean;
